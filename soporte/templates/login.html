@@ -1,0 +1,95 @@
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AdminLTE 3 | Log in (v2)</title>
+
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+  <!-- icheck bootstrap -->
+  <link rel="stylesheet" href="{% static 'plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
+
+</head>
+<body class="hold-transition login-page">
+<div class="login-box">
+  <!-- /.login-logo -->
+  <div class="card card-outline card-danger">
+    <div class="card-header text-center">
+             <img src="{% static 'images/logoishida.png' %}" width="150" height="150" class="img-fluid" alt="...">
+    </div>
+    <div class="card-body">
+      <p class="login-box-msg">Inicio de Sesíon</p>
+
+      <form action="/" method="post">
+          {% csrf_token %}
+        <div class="input-group mb-3">
+          <input name="username" id="username" type="text" class="form-control" placeholder="Usuario">
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-user"></span>
+            </div>
+          </div>
+        </div>
+        <div class="input-group mb-3">
+          <input name="password" id="password" type="password" class="form-control" placeholder="Password">
+          <div class="input-group-append">
+            <div class="input-group-text">
+              <span class="fas fa-lock"></span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-4">
+
+          </div>
+          <!-- /.col -->
+          <div class="col-4">
+            <button type="submit" class="btn btn-danger btn-block">Ingresar</button>
+          </div>
+          <!-- /.col -->
+        </div>
+      <br>
+          {% if message is not None %}
+               <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                            {{ message }}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+               </div>
+          {% endif %}
+
+      </form>
+
+     <div class="social-auth-links text-center mt-2 mb-3">
+  <a href="https://api.whatsapp.com/send?phone=593994606970" class="btn btn-success" target="_blank">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+  <a href="https://www.facebook.com/ishidasoftware" class="btn btn-primary" target="_blank">
+    <i class="fab fa-facebook"></i>
+  </a>
+  <a href="https://ishidasoftware.com/" class="btn btn-dark" target="_blank">
+    <i class="fas fa-globe"></i>
+  </a>
+</div>
+
+    </div>
+    <!-- /.card-body -->
+  </div>
+  <!-- /.card -->
+</div>
+<!-- /.login-box -->
+
+<!-- jQuery -->
+<script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
+
+<!-- Bootstrap 4 -->
+<script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<!-- AdminLTE App -->
+<script src="{% static 'dist/js/adminlte.min.js' %}"></script>
+</body>
+</html>
