@@ -25,5 +25,6 @@ urlpatterns = [
     path('soporte', views.soporte, name='soporte'),
     path('desarrollo', views.desarrollo, name='desarrollo'),
     path('desarrolloact', views.desarrolloact, name='desarrolloact'),
+    path('empresajson', views.empresas, name='empresas'),
     path('logout/', views.signout, name='logout'),
 ]

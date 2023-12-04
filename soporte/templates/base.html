@@ -253,6 +253,47 @@
         //Money Euro
         $('[data-mask]').inputmask()
 
+        $('#fecha_ticket_creacion').daterangepicker({
+            timePicker: true,
+            singleDatePicker: true,
+            timePicker24Hour: true,
+            startDate: moment(),
+            locale: {
+                format: 'DD-MM-YYYY HH:mm:ss'
+            }
+        });
+
+        $('#fecha_ticket_asignacion').daterangepicker({
+            timePicker: true,
+            singleDatePicker: true,
+            timePicker24Hour: true,
+            startDate: moment(),
+            locale: {
+                format: 'DD-MM-YYYY HH:mm:ss'
+            }
+        });
+
+        $('#fecha_ticket_finalizacion').daterangepicker({
+            timePicker: true,
+            singleDatePicker: true,
+            timePicker24Hour: true,
+            startDate: moment(),
+            locale: {
+                format: 'DD-MM-YYYY HH:mm:ss'
+            }
+        });
+
+        $('#fecha_ticket_estimado').daterangepicker({
+            timePicker: true,
+            singleDatePicker: true,
+            timePicker24Hour: true,
+            startDate: moment(),
+            locale: {
+                format: 'DD-MM-YYYY HH:mm:ss'
+            }
+        });
+
+
         //Date picker
         $('#desde').datetimepicker({
             format: 'L'

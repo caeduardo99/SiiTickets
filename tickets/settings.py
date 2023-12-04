@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -78,7 +79,18 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    },
+    'sql_server': {
+        'ENGINE': 'sql_server.pyodbc',
+        'NAME': config('SQL_SERVER_NAME', default=''),
+        'USER': config('SQL_SERVER_USER', default=''),
+        'PASSWORD': config('SQL_SERVER_PASSWORD', default=''),
+        'HOST': config('SQL_SERVER_HOST', default=''),
+        'PORT': config('SQL_SERVER_PORT', default=''),
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',  # Puedes necesitar ajustar esto según tu versión
+        },
+    },
 }
 
 
