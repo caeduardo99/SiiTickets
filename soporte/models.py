@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import User
 from django.db import models
 
 class Empresa(models.Model):
@@ -41,11 +42,17 @@ class TicketDesarrollo(models.Model):
     descripcionActividadPrincipal = models.ForeignKey('ActividadPrincipal', on_delete=models.CASCADE)
     idActividadSecundaria = models.ForeignKey('ActividadSecundaria', on_delete=models.CASCADE)
 
+class Solicitante(models.Model):
+    id = models.AutoField(primary_key=True)
+    nombreApellido = models.CharField(max_length=255)
+    telefonoSolicitante = models.DecimalField(max_digits=10, decimal_places=0)
+    idEmpresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
+
 # Modelo TicketSoporte
 class TicketSoporte(models.Model):
     id = models.AutoField(primary_key=True)
-    idAgente = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='ticket_soporte_agente')
-    idSolicitante = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='ticket_soporte_solicitante')
+    idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ticket_soporte_agente')
+    idSolicitante = models.ForeignKey(Solicitante, on_delete=models.CASCADE, related_name='ticket_soporte_solicitante')
     fechaCreacion = models.DateTimeField(auto_now_add=True)
     fechaInicio = models.DateTimeField(auto_now_add=True)
     fechaFinalizacion = models.DateTimeField(auto_now_add=True)
@@ -74,9 +81,3 @@ class ActividadSecundaria(models.Model):
     fechaFinalizacion = models.DateTimeField(auto_now_add=True)
     fechaFinalizacionReal = models.DateTimeField(auto_now_add=True)
     idActividadPrincipal = models.ForeignKey(ActividadPrincipal, on_delete=models.CASCADE)
-
-class Solicitante(models.Model):
-    id = models.AutoField(primary_key=True)
-    nombreApellido = models.CharField(max_length=255)
-    telefonoSolicitante = models.DecimalField(max_digits=10, decimal_places=0)
-    idEmpresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)

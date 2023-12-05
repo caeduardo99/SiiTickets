@@ -6,7 +6,8 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
 from django.db import connections
-
+from .models import Solicitante, Empresa
+import json
 
 
 def login_user(request):
@@ -34,7 +35,6 @@ def login_user(request):
         return render(request, 'login.html')
 
 
-
 @login_required
 def signout(request):
     """
@@ -52,16 +52,29 @@ def contact(request):
     context = {
         'nombre_usuario': nombre_usuario
     }
-    return render(request, 'contact.html',context)
+    return render(request, 'contact.html', context)
 
 
 @login_required
 def soporte(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
-    print('nombre_usuario', nombre_usuario)
+
+    # Llamar a la función solicitantes para obtener los resultados
+    resultados_solicitantes = solicitantesjson(request)
+
+    resultados_solicitantes_data = json.loads(resultados_solicitantes.content)
+
+    # Llamar a la función agentes para obtener los resultados
+    resultados_agentes = agentesjson(request)
+
+    resultados_agentes_data = json.loads(resultados_agentes.content)
+
+
 
     context = {
-        'nombre_usuario': nombre_usuario
+        'nombre_usuario': nombre_usuario,
+        'resultados_solicitantes_data': resultados_solicitantes_data,
+        'resultados_agentes_data': resultados_agentes_data
     }
     return render(request, 'soporte.html', context)
 
@@ -85,22 +98,44 @@ def desarrolloact(request):
     context = {
         'nombre_usuario': nombre_usuario
     }
-    return render(request, 'desarrollo_actualizacion.html',context)
+    return render(request, 'desarrollo_actualizacion.html', context)
 
 
+########## BACKEND ##################
 
-def empresas(request):
-    # Definir tu consulta SQL
-    sql_query = "select * from auth_user;"
+
+def solicitantesjson(request):
+    # Construir la consulta SQL
+    consulta_sql = """
+      SELECT ss.id,ss.nombreApellido,se.nombreEmpresa 
+FROM soporte_solicitante ss
+INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id;
+    """
     connection = connections['default']
-    # Ejecutar la consulta
+
+    # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        cursor.execute(sql_query)
+        cursor.execute(consulta_sql)
         columns = [col[0] for col in cursor.description]
-        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    # Devolver los resultados como JSON
-    return JsonResponse(results, safe=False)
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
 
 
+def agentesjson(request):
+    # Construir la consulta SQL
+    consulta_sql = """
+    SELECT id, first_name || ' ' || last_name AS full_name FROM auth_user;
+    """
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
 

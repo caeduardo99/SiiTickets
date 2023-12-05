@@ -32,7 +32,7 @@
                     <div class="card-header bg-danger text-white">Detalles del Ticket</div>
                     <div class="card-body">
                         <form class="form-row">
-                            <div class="form-group col-6">
+                            <div class="form-group col-md-6">
                                 <div class="form-group">
                                     <label>Fecha creación:</label>
                                     <div class="input-group">
@@ -46,7 +46,7 @@
                             </div>
 
 
-                            <div class="form-group col-6">
+                            <div class="form-group col-md-6">
                                 <div class="form-group">
                                     <label>Fecha asignación:</label>
                                     <div class="input-group">
@@ -60,7 +60,7 @@
                             </div>
 
 
-                            <div class="form-group col-6">
+                            <div class="form-group col-md-6">
                                 <div class="form-group">
                                     <label>Fecha Estimada Fin:</label>
                                     <div class="input-group">
@@ -73,7 +73,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group col-6">
+                            <div class="form-group col-md-6">
                                 <div class="form-group">
                                     <label>Fecha Finalización:</label>
                                     <div class="input-group">
@@ -87,45 +87,50 @@
                             </div>
 
 
-                            <div class="form-group col-6">
+                            <div class="form-group col-md-6">
                                 <label for="solicitante">Solicitante:</label>
                                 <select class="select2" id="solicitante" style="width: 100%;" name="solicitante">
-                                    <!-- Opciones para el select de solicitante -->
-                                    <option value="usuario1">Usuario 1</option>
-                                    <option value="usuario2">Usuario 2</option>
+                                    <option value="">Seleccione Solicitante</option>
+                                    {% for solicitante in resultados_solicitantes_data %}
+                                        <option value="{{ solicitante.id }}"
+                                                data-empresa="{{ solicitante.nombreEmpresa }}">
+                                            {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+
+                            </div>
+
+                            <div class="form-group col-md-6">
+                                <label for="agentesolicitado">Agente Asignado</label>
+                                <select class="select2" id="agentesolicitado" style="width: 100%;"
+                                        name="agentesolicitado">
+                                    <option value="">Seleccione Agente</option>
+                                    <!-- Opciones para el select de agente solicitado -->
+                                    {% for agente in resultados_agentes_data %}
+                                        <option value="{{ agente.id }}">
+                                            {{ agente.full_name }}
+                                        </option>
+                                    {% endfor %}
                                     <!-- Agrega más opciones según sea necesario -->
                                 </select>
                             </div>
 
-                            <div class="form-group col-6">
-                                <label for="empresa">Empresa:</label>
-                                <select class="select2" id="empresa" style="width: 100%;" name="empresa">
-                                    <!-- Opciones para el select de empresa -->
-                                    <option value="empresa1">Empresa 1</option>
-                                    <option value="empresa2">Empresa 2</option>
-                                    <!-- Agrega más opciones según sea necesario -->
-                                </select>
-                            </div>
-
-                            <div class="form-group col-6">
-                                <label for="motivo">Motivo de Soporte</label>
+                            <div class="form-group col-md-6">
+                                <label for="motivo">Motivo de Soporte:</label>
                                 <textarea class="form-control" id="motivo" name="motivo"
                                           placeholder="Ingrese el motivo"></textarea>
                             </div>
 
 
-                            <div class="form-group col-6">
-                                <label for="agentesolicitado">Agente Asignado</label>
-                                <select class="select2" id="agentesolicitado" style="width: 100%;"
-                                        name="agentesolicitado">
-                                    <!-- Opciones para el select de agente solicitado -->
-                                    <option value="agente1">Agente 1</option>
-                                    <option value="agente2">Agente 2</option>
-                                    <!-- Agrega más opciones según sea necesario -->
-                                </select>
+                            <div class="form-group col-md-6">
+                                <label for="motivo">Observaciones</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones"
+                                          placeholder="Ingrese Oberservaciones"></textarea>
                             </div>
 
-                            <div class="form-group col-6">
+
+                            <div class="form-group col-md-4">
                                 <label for="prioridad">Prioridad:</label>
                                 <select class="select2" id="prioridad" style="width: 100%;" name="prioridad">
                                     <!-- Opciones para el select de prioridad -->
@@ -136,11 +141,22 @@
                             </div>
 
 
-                            <div class="form-group col-6">
+                            <div class="form-group col-md-4">
                                 <label for="factura">¿Se debe emitir factura?</label>
                                 <select class="select2" id="factura" style="width: 100%;" name="factura">
                                     <option value="si">Sí</option>
                                     <option value="no">No</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group col-md-4">
+                                <label for="Estado">Estado:</label>
+                                <select class="select2" id="estado" style="width: 100%;" name="estado">
+                                    <!-- Opciones para el select de prioridad -->
+                                    <option value="alta">Abierto</option>
+                                    <option value="alta">En progreso</option>
+                                    <option value="media">En espera</option>
+                                    <option value="baja">Finalizado</option>
                                 </select>
                             </div>
 
@@ -172,6 +188,11 @@
             })
         });
     </script>
+
+
+
+
+
 
 
 
