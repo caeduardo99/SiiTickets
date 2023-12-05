@@ -5,8 +5,6 @@ from django.contrib.auth import logout as logout_django
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponse
-from twilio.twiml.messaging_response import MessagingResponse
-from twilio.rest import Client
 from django.db import connections
 
 
