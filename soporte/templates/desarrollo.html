@@ -2,79 +2,129 @@
 
 {% load static %}
 {% block content %}
-    <!-- Contenido específico de la página de dashboard -->
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h3>Desarrollo</h3>
-                </div>
-
+<!-- Contenido específico de la página de dashboard -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h3>Desarrollo</h3>
             </div>
-        </div><!-- /.container-fluid -->
-    </section>
-    <div class="content">
-        <ul class="nav nav-tabs" id="myTabs">
-            <li class="nav-item">
-                <a class="nav-link active" id="nuevoticket-tab" data-toggle="tab" href="#nuevoticket">Nuevo Proyecto</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Proyectos</a>
-            </li>
-        </ul>
 
-        <div class="tab-content mt-2">
-            <div class="tab-pane fade show active" id="nuevoticket">
-                <div class="card mb-3">
-                    <div class="card-header bg-danger text-white">Detalles del Proyecto</div>
-                    <div class="card-body">
-                        <form class="form-row">
-                            <div class="form-group col-md-12">
-                                <div class="form-group">
-                                    <label>Título del Proyecto</label>
-                                    <input type="text" id="inputTitleProject" class="form-control" placeholder="Escriba el título del Proyecto">
-                                    <small id="spanTitleProject" class="form-text" style="display: none;">Este campo es obligatorio!</small>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+<div class="content">
+    <ul class="nav nav-tabs" id="myTabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="nuevoticket-tab" data-toggle="tab" href="#nuevoticket">Nuevo Proyecto</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Proyectos</a>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-2">
+        <div class="tab-pane fade show active" id="nuevoticket">
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">Detalles del Proyecto</div>
+                <div class="card-body">
+                    <form class="form-row">
+                        <div class="form-group col-md-12">
+                            <div class="form-group">
+                                <label>Título del Proyecto</label>
+                                <input type="text" id="inputTitleProject" class="form-control"
+                                    placeholder="Escriba el título del Proyecto">
+                                <small id="spanTitleProject" class="form-text" style="display: none;">Este campo es
+                                    obligatorio!</small>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-6" id="rowSolicitante" style="display: none;">
+                            <label for="solicitante">Solicitante:</label>
+                            <select class="select2" id="solicitante" style="width: 100%;" name="solicitante">
+                                <option value="">Seleccione Solicitante</option>
+                                {% for solicitante in resultados_solicitantes_data %}
+                                <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
+                                    {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6" id="rowAgente" style="display: none;">
+                            <label for="agentesolicitado">Agente Asignado</label>
+                            <select class="select2" id="agentesolicitado" style="width: 100%;" name="agentesolicitado">
+                                <option value="">Seleccione Agente</option>
+                                {% for agente in resultados_agentes_data %}
+                                <option value="{{ agente.id }}">
+                                    {{ agente.full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group col-md-6" id="rowFechaInformacionCreacion" style="display: none;">
+                            <label>Fecha creación:</label>
+                            <div class="input-group">
+                                <input type="text" id="fecha_ticket_creacion" name="fecha_creacion" class="form-control"
+                                    disabled />
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                                 </div>
                             </div>
-
-                            <div class="form-group col-md-6" id="rowSolicitante" style="display: none;">
-                                    <label for="solicitante">Solicitante:</label>
-                                    <select class="select2" id="solicitante" style="width: 100%;" name="solicitante">
-                                        <option value="">Seleccione Solicitante</option>
-                                        {% for solicitante in resultados_solicitantes_data %}
-                                        <option value="{{ solicitante.id }}"
-                                                data-empresa="{{ solicitante.nombreEmpresa }}">
-                                            {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
-                                        </option>
-                                        {% endfor %}
-                                    </select>
+                        </div>
+                        <div class="form-group col-md-6" id="rowFechaInformacionAsignacion" style="display: none;">
+                            <label>Fecha asignación:</label>
+                            <div class="input-group">
+                                <input type="text" id="fecha_ticket_asignacion"
+                                    class="form-control" placeholder="Seleccione una fecha" disabled />
+                                <div class="input-group-append">
+                                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                </div>
                             </div>
-                            <div class="form-group col-md-6" id="rowAgente" style="display: none;">
-                                <label for="agentesolicitado">Agente Asignado</label>
-                                <select class="select2" id="agentesolicitado" style="width: 100%;"
-                                        name="agentesolicitado">
-                                    <option value="">Seleccione Agente</option>
-                                    {% for agente in resultados_agentes_data %}
-                                        <option value="{{ agente.id }}">
-                                            {{ agente.full_name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
+                        </div>
 
-                            <div class="form-group col-md-12" id="rowDescripcionGeneral" style="display: none;">
-                                <label for="textDescripcionRequerimiento">Descripcion General</label>
-                                <textarea class="form-control" id="textDescripcionRequerimiento" rows="3"></textarea>
-                            </div>
+                        <div class="form-group col-md-6" id="rowFechaInformacionFinalizacionEstimada" style="display: none;">
+                            <label>Fecha Estimada Fin:</label>
+                                    <div class="input-group">
+                                        <input type="text" id="fecha_ticket_estimado" name="fecha_estimado"
+                                               class="form-control" placeholder="Seleccione una Fecha de culminacion estimada"/>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                        </div>
+                        <div class="form-group col-md-6" id="rowFechaInformacionFinalizacion" style="display: none;">
+                            <label>Fecha Finalización:</label>
+                                    <div class="input-group">
+                                        <input type="text" id="fecha_ticket_finalizacion" name="fecha_finalizacion"
+                                               class="form-control" placeholder="Seleccione una fecha de culminacion" disabled />
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                        </div>
 
-                            <div class="form-group col-md-12" id="rowTableTask" style="display: none;">
-                                <table class="table">
+                        <div class="form-group col-md-12" id="rowDescripcionGeneral" style="display: none;">
+                            <label for="textDescripcionRequerimiento">Descripcion General</label>
+                            <textarea class="form-control" id="textDescripcionRequerimiento" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-group col-md-12" id="rowButtonTask" style="display: none;">
+                            <button type="button" id="btnNewTask" class="btn btn-outline-dark btn-block">Agregar nueva
+                                tarea</button>
+                        </div>
+
+                        <div class="form-group col-md-12" id="rowTableTask" style="display: none;">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-sm">
                                     <thead>
                                         <tr>
                                             <th scope="col">#</th>
                                             <th scope="col">Descripcion de la Tarea</th>
                                             <th scope="col">Responsable</th>
+                                            <th scope="col">Horas diarias</th>
                                             <th scope="col">Tareas adicionales</th>
+                                            <th scope="col">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody id="tableBodyTasks">
@@ -82,41 +132,35 @@
                                     </tbody>
                                 </table>
                             </div>
+                        </div>
 
-                            <div class="form-group col-md-12" id="rowButtonTask" style="display: none;">
-                                <button type="button" id="btnNewTask" class="btn btn-outline-dark btn-block">Agregar nueva tarea</button>
-                            </div>
-                        </form>
-                    </div>
+                        <div class="form-group col-md-12" id="rowButtonCreateTicket" style="display: none;">
+                            <button type="button" id="btnCreateTicket" class="btn btn-success btn-block">Crear ticket de Desarrollo</button>
+                        </div>
+                        
+                    </form>
                 </div>
             </div>
-            <div class="tab-pane fade" id="vertickets">
-                <h2>Contenido de la pestaña 2</h2>
-            </div>
+        </div>
+        <div class="tab-pane fade" id="vertickets">
+            <h2>Contenido de la pestaña 2</h2>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
-    <script type="text/javascript">
-        // Incorporar datos directamente en el script
-        window.resultados_agentes_data = [
-            {% for agente in resultados_agentes_data %}
-                {
-                    id: "{{ agente.id }}",
-                    full_name: "{{ agente.full_name }}"
-                },
-            {% endfor %}
+</div>
+<script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
+<script type="text/javascript">
+    // Incorporar datos directamente en el script
+    window.resultados_agentes_data = [
+        {% for agente in resultados_agentes_data %}
+    {
+        id: "{{ agente.id }}",
+            full_name: "{{ agente.full_name }}"
+    },
+    {% endfor %}
         ];
-    </script>
-    <script type="text/javascript" src="../static/dist/utils/desarrollo.js"></script>
-    <link rel="stylesheet" href="../static/dist/css/desarrollo.css">
+</script>
+<script src="../static/dist/utils/desarrollo.js"></script>
+<link rel="stylesheet" href="../static/dist/css/desarrollo.css">
 
 {% endblock %}
-
-
-
-
-
-
-
-
