@@ -84,8 +84,17 @@ def desarrollo(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
     print('nombre_usuario', nombre_usuario)
 
+    resultados_solicitantes = solicitantesjson(request)
+
+    resultados_solicitantes_data = json.loads(resultados_solicitantes.content)
+    resultados_agentes = agentesjson(request)
+
+    resultados_agentes_data = json.loads(resultados_agentes.content)
+
     context = {
-        'nombre_usuario': nombre_usuario
+        'nombre_usuario': nombre_usuario,
+        'resultados_solicitantes_data': resultados_solicitantes_data,
+        'resultados_agentes_data': resultados_agentes_data
     }
     return render(request, 'desarrollo.html', context)
 
