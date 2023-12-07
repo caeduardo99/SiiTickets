@@ -33,7 +33,7 @@
                     <div class="card-body">
                         <form class="form-row" method="post" action="{% url 'crear_ticket_soporte' %}">
                             {% csrf_token %}
-                            <div class="form-group col-md-6">
+                            <div class="form-group col-md-4">
                                 <div class="form-group">
                                     <label>Fecha asignación:</label>
                                     <div class="input-group">
@@ -46,8 +46,7 @@
                                 </div>
                             </div>
 
-
-                            <div class="form-group col-md-6">
+                            <div class="form-group col-md-4">
                                 <div class="form-group">
                                     <label>Fecha Estimada Fin:</label>
                                     <div class="input-group">
@@ -60,7 +59,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group col-md-6">
+                            <div class="form-group col-md-4">
                                 <div class="form-group">
                                     <label>Fecha Finalización:</label>
                                     <div class="input-group">
@@ -72,7 +71,6 @@
                                     </div>
                                 </div>
                             </div>
-
 
                             <div class="form-group col-md-6">
                                 <label for="solicitante">Solicitante:</label>
@@ -139,11 +137,13 @@
                             <div class="form-group col-md-4">
                                 <label for="Estado">Estado:</label>
                                 <select class="select2" id="estado" style="width: 100%;" name="estado">
-                                    <!-- Opciones para el select de prioridad -->
-                                    <option value="Abierto">Abierto</option>
-                                    <option value="En progreso">En progreso</option>
-                                    <option value="En espera">En espera</option>
-                                    <option value="Finalizado">Finalizado</option>
+                                    <option value="">Seleccione Estado</option>
+                                    <!-- Opciones para el select de agente solicitado -->
+                                    {% for agente in resultados_estados_data %}
+                                        <option value="{{ agente.id }}">
+                                            {{ agente.descripcion }}
+                                        </option>
+                                    {% endfor %}
                                 </select>
                             </div>
 
@@ -207,7 +207,7 @@
                             '<td>' + ticket.Motivo + '</td>' +
                             '<td>' + ticket.Solicitante + '</td>' +
                             '<td>' + ticket.Prioridad + '</td>' +
-                            '<td>' + ticket.estado + '</td>' +
+                            '<td>' + ticket.Estado + '</td>' +
                             '</tr>';
                         $('#tickets-table tbody').append(newRow);
                     });

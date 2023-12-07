@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from .models import TicketSoporte
 from django.contrib.auth.models import User
-from .models import Solicitante
+from .models import Solicitante, EstadosTicket
 from datetime import datetime
 
 
@@ -72,12 +72,15 @@ def soporte(request):
 
     resultados_agentes_data = json.loads(resultados_agentes.content)
 
+    resultados_estados = estadosjson(request)
 
+    resultados_estados_data = json.loads(resultados_estados.content)
 
     context = {
         'nombre_usuario': nombre_usuario,
         'resultados_solicitantes_data': resultados_solicitantes_data,
-        'resultados_agentes_data': resultados_agentes_data
+        'resultados_agentes_data': resultados_agentes_data,
+        'resultados_estados_data': resultados_estados_data
     }
     return render(request, 'soporte.html', context)
 
@@ -151,14 +154,33 @@ def agentesjson(request):
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
+
+def estadosjson(request):
+    # Construir la consulta SQL
+    consulta_sql = """
+    select * from soporte_estadosticket se 
+    """
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+
 def ticketsoportescreados(request):
     # Construir la consulta SQL
     consulta_sql = """
     SELECT st.id as NumTicket, st.comentario as Motivo, ss.nombreapellido as Solicitante,
-st.prioridad as Prioridad, st.estado ,se.nombreEmpresa as NombreEmpresa
+st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa
 FROM soporte_ticketsoporte st
 left JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-LEFT JOIN soporte_empresa se ON se.id = ss.idEmpresa_id;
+LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
+left join soporte_estadosticket ses on ses.id = st.idestado_id
 
     """
     connection = connections['default']
@@ -171,6 +193,7 @@ LEFT JOIN soporte_empresa se ON se.id = ss.idEmpresa_id;
 
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
+
 
 @require_POST
 def crear_ticket_soporte(request):
@@ -186,8 +209,8 @@ def crear_ticket_soporte(request):
     prioridad = request.POST.get('prioridad', '')
     print('prioridad', prioridad)
     observacion = request.POST.get('observaciones', '')
-    estado = request.POST.get('estado', '')
-    print('estado', estado)
+    id_estado = request.POST.get('estado', '')
+    print('id_estado', id_estado)
     facturar = request.POST.get('factura', '')
 
     try:
@@ -196,6 +219,8 @@ def crear_ticket_soporte(request):
 
         # Obtener la instancia del usuario (agente)
         agente = User.objects.get(id=id_agente)
+
+        estado = EstadosTicket.objects.get(id=id_estado)
 
         # Crear una instancia de TicketSoporte con los datos del formulario
         nuevo_ticket = TicketSoporte(
@@ -208,7 +233,7 @@ def crear_ticket_soporte(request):
             comentario=comentario,
             prioridad=prioridad,
             observacion=observacion,
-            estado=estado,
+            idestado=estado,
             facturar=facturar
         )
 

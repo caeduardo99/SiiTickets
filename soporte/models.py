@@ -32,7 +32,7 @@ class TicketActualizacion(models.Model):
     descripcionGeneral = models.CharField(max_length=255)
     observaciones = models.CharField(max_length=255)
     prioridad = models.CharField(max_length=100)
-    estado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE)  # Cambio aquí
+    idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_actualizacion_estado')  # Cambio aquí
     facturar = models.BooleanField()
 
 # Modelo TicketDesarrollo
@@ -47,7 +47,7 @@ class TicketDesarrollo(models.Model):
     fechaFinalizacionReal = models.DateTimeField()
     descripcionActividadPrincipal = models.ForeignKey('ActividadPrincipal', on_delete=models.CASCADE)
     idActividadSecundaria = models.ForeignKey('ActividadSecundaria', on_delete=models.CASCADE)
-    estado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE)  # Cambio aquí
+    idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_desarollo_estado')  # Cambio aquí
     facturar = models.BooleanField()
 
 class Solicitante(models.Model):
@@ -68,7 +68,7 @@ class TicketSoporte(models.Model):
     comentario = models.CharField(max_length=255)
     prioridad = models.CharField(max_length=100)
     observacion = models.CharField(max_length=255)
-    estado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE)  # Cambio aquí
+    idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE,related_name='ticket_soporte_estado')  # Cambio aquí
     facturar = models.BooleanField()
 
 class ActividadPrincipal(models.Model):
