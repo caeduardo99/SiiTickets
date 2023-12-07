@@ -31,11 +31,12 @@ $(document).ready(function () {
   const solicitante = document.getElementById('solicitante');
   const fechaTicketCreacion = document.getElementById('fecha_ticket_creacion');
   const fechaTicketAsignacion = document.getElementById('fecha_ticket_asignacion');
+  const textDescripcionRequerimiento = document.getElementById('textDescripcionRequerimiento');
 
   $('#fecha_ticket_asignacion').val('');
 
   var resultadosAgentesData = window.resultados_agentes_data;
-  let contadorFilas = 1, nameAgente, nameSolicitante;
+  let contadorFilas = 1, nameAgente, nameSolicitante, estadoTicket = 1;
 
   // FUNCIONAMIENTO DEL INPUT TITULO
   inputTitleProject.addEventListener("input", function () {
@@ -63,6 +64,7 @@ $(document).ready(function () {
       fechaTicketAsignacion.disabled = false;
       rowFechaInformacionFinalizacionEstimada.style.display = '';
       rowFechaInformacionFinalizacion.style.display = '';
+      estadoTicket = 2;
     }else{
       fechaTicketAsignacion.value = '';
       fechaTicketEstimado.value = '';
@@ -70,6 +72,7 @@ $(document).ready(function () {
       rowFechaInformacionFinalizacionEstimada.style.display = 'none';
       rowFechaInformacionFinalizacion.style.display = 'none';
       fechaTicketAsignacion.disabled = true;
+      estadoTicket = 1;
     }
   });
 
@@ -83,11 +86,8 @@ $(document).ready(function () {
     nameSolicitante = solicitante.options[solicitante.selectedIndex].text;
   });
 
-  // METODO PARA MANEJAR EL EVENTO CLICK DEL BOTON
-  btnNewTask.addEventListener("click", function () {
-    rowTableTask.style.display = "";
-    rowButtonCreateTicket.style.display = "";
-
+  // FUNCION PARA CREAR UNA NUEVA CELDA
+  function createNewFile( valContador, valDescripcion, valHorasDiarias, valResponsable, valTareasAdicionales, valAcciones){
     var nuevaFila = document.createElement("tr");
 
     var celdaNumerador = document.createElement("td");
@@ -99,6 +99,7 @@ $(document).ready(function () {
     inputText.type = "text";
     inputText.className = "form-control";
     inputText.name = "descripcionTarea";
+    inputText.value = valDescripcion;
     celdaInput.appendChild(inputText);
     nuevaFila.appendChild(celdaInput);
 
@@ -131,24 +132,41 @@ $(document).ready(function () {
     var inputTareasAdicionales = document.createElement("input");
     inputTareasAdicionales.type = "text";
     inputTareasAdicionales.className = "form-control";
-    inputTareasAdicionales.name = "tareasAdicionales[]";
+    inputTareasAdicionales.name = "tareasAdicionales";
     celdaTareasAdicionales.appendChild(inputTareasAdicionales);
     nuevaFila.appendChild(celdaTareasAdicionales);
 
     var celdaEliminar = document.createElement("td");
     var btnEliminar = document.createElement("button");
-    btnEliminar.textContent = "Quitar";
+    var btnAddSecond = document.createElement("button");
+    btnEliminar.textContent = "-";
+    btnAddSecond.textContent = "+";
     btnEliminar.className = "btn btn-danger";
+    btnAddSecond.className = "btn btn-success";
+    // Lógica para eliminar la fila
     btnEliminar.onclick = function () {
-      // Lógica para eliminar la fila
       nuevaFila.remove();
     };
+    // Logica para agregar tarea secundaria
+    btnAddSecond.onclick = function(){
+
+    }
     celdaEliminar.appendChild(btnEliminar);
+    celdaEliminar.appendChild(btnAddSecond);
     nuevaFila.appendChild(celdaEliminar);
 
     contadorFilas++;
 
     cuerpoTabla.appendChild(nuevaFila);
+  }
+
+  // METODO PARA MANEJAR EL EVENTO CLICK DEL BOTON
+  btnNewTask.addEventListener("click", function () {
+    rowTableTask.style.display = "";
+    rowButtonCreateTicket.style.display = "";
+
+    createNewFile("", "", "", "", "", "");
+    
   });
 
   // METODO DE CREACION PARA MANEJAR EL BOTON DE CREACION DE TICKET
@@ -162,7 +180,9 @@ $(document).ready(function () {
       fechaCreacion: fechaTicketCreacion.value,
       fechaAsignacion: fechaTicketAsignacion.value == '' ? '' : fechaTicketAsignacion.value,
       fechaFinalizacion: fechaTicketEstimado.value == '' ? '' : fechaTicketEstimado.value,
-      fechaFinalizacionReal: fechaTicketFinalizacion.value == '' ? '' : fechaTicketFinalizacion.value
+      fechaFinalizacionReal: fechaTicketFinalizacion.value == '' ? '' : fechaTicketFinalizacion.value,
+      descripcionActividadGeneral: textDescripcionRequerimiento.value == '' ? '' : textDescripcionRequerimiento.value,
+      estadoTicketId: estadoTicket
     };
 
     console.log(objTicketDevelop)
