@@ -31,21 +31,8 @@
                 <div class="card mb-3">
                     <div class="card-header bg-danger text-white">Detalles del Ticket</div>
                     <div class="card-body">
-                        <form class="form-row">
-                            <div class="form-group col-md-6">
-                                <div class="form-group">
-                                    <label>Fecha creación:</label>
-                                    <div class="input-group">
-                                        <input type="text" id="fecha_ticket_creacion" name="fecha_creacion"
-                                               class="form-control"/>
-                                        <div class="input-group-append">
-                                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-
+                        <form class="form-row" method="post" action="{% url 'crear_ticket_soporte' %}">
+                            {% csrf_token %}
                             <div class="form-group col-md-6">
                                 <div class="form-group">
                                     <label>Fecha asignación:</label>
@@ -134,9 +121,9 @@
                                 <label for="prioridad">Prioridad:</label>
                                 <select class="select2" id="prioridad" style="width: 100%;" name="prioridad">
                                     <!-- Opciones para el select de prioridad -->
-                                    <option value="alta">Alta</option>
-                                    <option value="media">Media</option>
-                                    <option value="baja">Baja</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Media">Media</option>
+                                    <option value="Baja">Baja</option>
                                 </select>
                             </div>
 
@@ -144,8 +131,8 @@
                             <div class="form-group col-md-4">
                                 <label for="factura">¿Se debe emitir factura?</label>
                                 <select class="select2" id="factura" style="width: 100%;" name="factura">
-                                    <option value="si">Sí</option>
-                                    <option value="no">No</option>
+                                    <option value="1">Sí</option>
+                                    <option value="0">No</option>
                                 </select>
                             </div>
 
@@ -153,10 +140,10 @@
                                 <label for="Estado">Estado:</label>
                                 <select class="select2" id="estado" style="width: 100%;" name="estado">
                                     <!-- Opciones para el select de prioridad -->
-                                    <option value="alta">Abierto</option>
-                                    <option value="alta">En progreso</option>
-                                    <option value="media">En espera</option>
-                                    <option value="baja">Finalizado</option>
+                                    <option value="Abierto">Abierto</option>
+                                    <option value="En progreso">En progreso</option>
+                                    <option value="En espera">En espera</option>
+                                    <option value="Finalizado">Finalizado</option>
                                 </select>
                             </div>
 
@@ -170,7 +157,27 @@
             </div>
 
             <div class="tab-pane fade" id="vertickets">
-                <h2>Contenido de la pestaña 2</h2>
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">Detalles del Ticket</div>
+                    <div class="card-body">
+                        <table class="table" id="tickets-table">
+                            <thead>
+                            <tr>
+                                <th>NumTicket</th>
+                                <th>Empresa</th>
+                                <th>Motivo</th>
+                                <th>Solicitante</th>
+                                <th>Prioridad</th>
+                                <th>Estado</th>
+                                <!-- Otros encabezados según tus campos -->
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Aquí se llenarán las filas de la tabla -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
         </div>
@@ -180,6 +187,49 @@
     <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
     <script src="../static/dist/utils/soporte.js"></script>
+
+
+    <script>
+        function cargarTablaTickets() {
+            $.ajax({
+                url: '{% url "ticketsoportescreados" %}',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    // Limpiar el cuerpo de la tabla
+                    $('#tickets-table tbody').empty();
+
+                    // Iterar sobre los datos y agregar filas a la tabla
+                    $.each(data, function (index, ticket) {
+                        var newRow = '<tr>' +
+                            '<td>' + ticket.NumTicket + '</td>' +
+                            '<td>' + ticket.NombreEmpresa + '</td>' +
+                            '<td>' + ticket.Motivo + '</td>' +
+                            '<td>' + ticket.Solicitante + '</td>' +
+                            '<td>' + ticket.Prioridad + '</td>' +
+                            '<td>' + ticket.estado + '</td>' +
+                            '</tr>';
+                        $('#tickets-table tbody').append(newRow);
+                    });
+                },
+                error: function (error) {
+                    console.log('Error en la solicitud AJAX:', error);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            // Puedes cargar la tabla cuando se carga la página por primera vez si es necesario
+            cargarTablaTickets();
+
+            // Agregar un evento de clic a la pestaña "vertickets"
+            $('#vertickets-tab').on('click', function () {
+                // Cargar la tabla cuando se hace clic en la pestaña
+                cargarTablaTickets();
+            });
+        });
+    </script>
+
 
 {% endblock %}
 

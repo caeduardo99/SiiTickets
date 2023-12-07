@@ -30,4 +30,7 @@ urlpatterns = [
     path('solicitantesjson/', views.solicitantesjson, name='solicitantesjson'),
     path('agentesjson/', views.agentesjson, name='agentesjson'),
 
+    path('ticketsoportescreados/', views.ticketsoportescreados, name='ticketsoportescreados'),
+    path('crear_ticket_soporte/', views.crear_ticket_soporte, name='crear_ticket_soporte'),
+
 ]
