@@ -423,6 +423,8 @@
 
                             <button type="submit" class="btn btn-primary">Guardar Cambios
                             </button>
+                            <button type="button" class="btn btn-secondary" id="nuevoBoton">Otro Botón</button>
+
                         </form>
                     </div>
                     <div class="modal-footer">
@@ -438,6 +440,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
     <script src="../static/dist/utils/soporte.js"></script>
 
+
+    <script>
+        $(document).ready(function () {
+            // Your existing code...
+
+            // Add a click event for the new button
+            $('#otroBoton').on('click', function () {
+                // Your custom logic here
+                alert('¡Hiciste clic en el otro botón!');
+            });
+        });
+
+    </script>
 
     <script>
         function cargarTablaTickets() {
@@ -575,14 +590,17 @@
             console.log('estadoSelect.val()', estadoSelect.val());
 
             var conversacionRow = $('#conversacionRow');
+            var nuevoBoton = $('#nuevoBoton');
 
-            // Asumiendo que 5 es el valor que determina la visualización de la sección
+// Asumiendo que 5 es el valor que determina la visualización de la sección
             estadoSelect.on('change', function () {
                 if (estadoSelect.val() === '4') {
                     conversacionRow.show();
-
+                } else if (estadoSelect.val() === '5') {
+                    nuevoBoton.prop('disabled', false);
                 } else {
                     conversacionRow.hide();
+                    nuevoBoton.prop('disabled', true); // Assuming you want to disable the button for other cases
                 }
             });
 

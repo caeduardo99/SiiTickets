@@ -366,6 +366,11 @@ def editar_ticket_soporte(request):
             # Obtener el ticket existente para editar
             ticket = TicketSoporte.objects.get(id=ticket_id)
 
+            # Verificar y asignar fechas
+            fecha_inicio = fecha_inicio if fecha_inicio else None
+            fecha_finalizacion = fecha_finalizacion if fecha_finalizacion else None
+            fecha_finalizacion_real = fecha_finalizacion_real if fecha_finalizacion_real else None
+
             # Actualizar los campos del ticket con los nuevos datos del formulario
             ticket.idAgente = agente
             ticket.idSolicitante = solicitante
@@ -395,7 +400,6 @@ def editar_ticket_soporte(request):
             return JsonResponse({'status': 'error', 'message': f'Error al editar el ticket: {str(e)}'}, status=400)
     else:
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
-
 
 
 @require_POST
