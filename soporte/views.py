@@ -337,6 +337,7 @@ def ticketsoportescreadosid(request):
 
 
 def ticketDesarrolloCreados(request):
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
     consulta_sql = """
     SELECT st.id as NumTicket, ss.id as idCliente, ss.nombreApellido as Cliente, au.id as idAgente, au.first_name as Agente,
 	se.nombreEmpresa as Empresa , st.tituloProyecto,st.idestado_id as idEstado, ses.descripcion as EstadoProyecto, 
@@ -347,12 +348,13 @@ def ticketDesarrolloCreados(request):
     LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
     LEFT JOIN soporte_estadosticket ses on ses.id = st.idestado_id
     LEFT JOIN auth_user au on au.id = st.idAgente_id
+      WHERE au.username = %s
     """
     connection = connections["default"]
 
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        cursor.execute(consulta_sql)
+        cursor.execute(consulta_sql,[nombre_usuario])
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
