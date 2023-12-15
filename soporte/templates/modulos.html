@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
+    <!-- Contenido específico de la página de dashboard -->
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h3>Módulos</h3>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+    <!-- Sección de crear empresas -->
+    <div class="content">
+        <ul class="nav nav-tabs" id="myTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="nuevomodulo-tab" data-toggle="tab" href="#nuevomodulo">Nuevo Módulo</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="vermodulos-tab" data-toggle="tab" href="#vermodulos">Módulo</a>
+            </li>
+        </ul>
+        <div class="tab-content mt-2">
+            <!-- Contenido de la pestaña Nuevo Ticket -->
+            <div class="tab-pane fade show active" id="nuevomodulo">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">Detalles del Nuevo Módulo</div>
+                    <div class="card-body">
+                        <form class="form-row" method="post" action="{% url 'crear_modulo' %}">
+                            {% csrf_token %}
+                            <div class="form-group col-md-6">
+                                <label for="modulo">Nombre Módulo:</label>
+                                <input class="form-control" id="modulo" name="modulo"
+                                       placeholder="Ingrese el Módulo"></input>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="descripcionModulo">Descripción del Módulo:</label>
+                                <input class="form-control" id="descripcionModulo" name="descripcionModulo"
+                                       placeholder="Ingrese la Descripción del Módulo"></input>
+                            </div>
+                            <div class="form-group col-12">
+                                <button type="submit" class="btn btn-dark">Crear Modulo</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Sección de listado de empresas -->
+            <div class="tab-pane fade" id="vermodulos">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">Lista de Módulos</div>
+                    <div class="card-body">
+                        <table class="table" id="tickets-table">
+                            <thead>
+                            <tr>
+                                <th>NumModulo</th>
+                                <th>Modulo</th>
+                                <th>Descripcion</th>
+                                <th>Acciones</th>
+                                <!-- Otros encabezados según tus campos -->
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Aquí se llenarán las filas de la tabla -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Modal para Detalles del Modulo -->
+    <div class="modal fade" id="detalleModuloModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Detalles del Módulo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editarModuloForm">
+                        <div class="form-group">
+                            <label for="modalNumModulo">Número de Módulo:</label>
+                            <input type="number" class="form-control" id="modalNumModulo" readonly></input>
+                        </div>
+                        <div class="form-group">
+                            <label for="nombreModulo">Nombre del Módulo:</label>
+                            <input type="text" class="form-control" id="editNombreModulo" name="editNombreModulo">
+                        </div>
+                        <div class="form-group">
+                            <label for="descripcion">Descripción del Módulo:</label>
+                            <input type="text" class="form-control" id="editDescripcion" name="editDescripcion">
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="guardarCambiosModulo()">Guardar
+                            Cambios
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
+    <script src="../static/dist/utils/soporte.js"></script>
+    <script>
+        function cargarTablaTickets() {
+            $.ajax({
+                url: '{% url "moduloscreados" %}',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    // Limpiar el cuerpo de la tabla
+                    $('#tickets-table tbody').empty();
+                    // Iterar sobre los datos y agregar filas a la tabla
+                    $.each(data, function (index, empresa) {
+                        var newRow = '<tr>' +
+                            '<td>' + empresa.NumModulo + '</td>' +
+                            '<td>' + empresa.modulo + '</td>' +
+                            '<td>' + empresa.descripcionModulo + '</td>' +
+                            '<td>' +
+                            '<button class="btn btn-info btn-sm" onclick="verModulo(' + empresa.NumModulo + ')">Ver Modulo</button>' +
+                            '</td>' +
+                            '</tr>';
+                        $('#tickets-table tbody').append(newRow);
+                    });
+                },
+                error: function (error) {
+                    console.log('Error en la solicitud AJAX:', error);
+                }
+            });
+        }
+
+        function verModulo(numModulo) {
+            // Realizar la solicitud AJAX para obtener los detalles de la empresa
+            $.ajax({
+                url: '{% url "detalles_modulo" %}',
+                method: 'GET',
+                data: {numModulo: numModulo},
+                dataType: 'json',
+                success: function (modulo) {
+                    // Llenar los campos del modal con los detalles de la empresa
+                    $('#modalNumModulo').val(modulo[0].NumModulo);
+                    $('#editNombreModulo').val(modulo[0].modulo);
+                    $('#editDescripcion').val(modulo[0].descripcionModulo);
+                    // Mostrar el modal
+                    $('#detalleModuloModal').modal('show');
+                },
+                error: function (error) {
+                    console.log('Error al obtener detalles del modulo:', error);
+                }
+            });
+        }
+
+        function guardarCambiosModulo() {
+            var numModulo = $('#modalNumModulo').val();
+            var nombreModulo = $('#editNombreModulo').val();
+            var descripcion = $('#editDescripcion').val();
+
+            $.ajax({
+                url: '{% url "actualizar_modulo" %}',
+                method: 'POST',
+                data: {
+                    numModulo: numModulo,
+                    nombreModulo: nombreModulo,
+                    descripcion: descripcion,
+                    csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+                },
+                success: function (response) {
+                    if (response.success) {
+                        mostrarMensaje('success', 'Módulo actualizado con éxito');
+                        $('#detalleModuloModal').modal('hide');
+                        cargarTablaTickets();
+                    } else {
+                        mostrarMensaje('error', 'Error al actualizar el módulo: ' + response.error);
+                    }
+                },
+                error: function (error) {
+                    mostrarMensaje('error', 'Error al actualizar el módulo: ' + error.statusText);
+                }
+            });
+        }
+
+        function mostrarMensaje(tipo, mensaje) {
+            var alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+            $('#mensajeAlerta').removeClass('alert-success alert-danger').addClass(alertClass);
+            $('#mensajeAlerta').text(mensaje);
+            $('#mensajeAlerta').show();
+
+            // Ocultar el mensaje después de unos segundos (opcional)
+            setTimeout(function () {
+                $('#mensajeAlerta').hide();
+            }, 5000);  // Ocultar después de 5 segundos (puedes ajustar esto según tus necesidades)
+        }
+
+        $(document).ready(function () {
+            // Puedes cargar la tabla cuando se carga la página por primera vez si es necesario
+            cargarTablaTickets();
+            // Agregar un evento de clic a la pestaña "vertickets"
+            $('#vertickets-tab').on('click', function () {
+                // Cargar la tabla cuando se hace clic en la pestaña
+                cargarTablaTickets();
+            });
+        });
+    </script>
+{% endblock %}

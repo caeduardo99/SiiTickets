@@ -17,6 +17,7 @@ from django.contrib.auth.models import User
 from .models import Solicitante, EstadosTicket
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
+from .models import TicketSoporte, TicketActualizacion, ModuloSii4, Empresa
 
 
 def login_user(request):
@@ -112,10 +113,64 @@ def desarrollo(request):
 @login_required
 def desarrolloact(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
-    print("nombre_usuario", nombre_usuario)
 
-    context = {"nombre_usuario": nombre_usuario}
-    return render(request, "desarrollo_actualizacion.html", context)
+    # Llamar a la función solicitantes para obtener los resultados
+    resultados_solicitantes = solicitantesjson(request)
+
+    resultados_solicitantes_data = json.loads(resultados_solicitantes.content)
+
+    # Llamar a la función agentes para obtener los resultados
+    resultados_agentes = agentesjson(request)
+
+    resultados_agentes_data = json.loads(resultados_agentes.content)
+
+    # Llamar a la función estados para obtener los resultados
+    resultados_estados = estadosjson(request)
+
+    resultados_estados_data = json.loads(resultados_estados.content)
+
+    # Llamar a la función estados para obtener los resultados
+    resultados_modulo = modulojson(request)
+
+    resultados_modulos_data = json.loads(resultados_modulo.content)
+
+    context = {
+        'nombre_usuario': nombre_usuario,
+        'resultados_solicitantes_data': resultados_solicitantes_data,
+        'resultados_agentes_data': resultados_agentes_data,
+        'resultados_estados_data': resultados_estados_data,
+        'resultados_modulos_data': resultados_modulos_data,
+    }
+    return render(request, 'desarrollo_actualizacion.html', context)
+
+@login_required
+def empresas(request):
+    # nombre_usuario = request.user.username if request.user.is_authenticated else None
+    # print('nombre_usuario', nombre_usuario)
+
+    resultados_empresas = empresasjson(request)
+
+    resultados_empresas_data = json.loads(resultados_empresas.content)
+
+    context = {
+        'resultados_solicitantes_data': resultados_empresas_data,
+    }
+    return render(request, 'empresas.html', context)
+
+
+@login_required
+def modulos(request):
+    # nombre_usuario = request.user.username if request.user.is_authenticated else None
+    # print('nombre_usuario', nombre_usuario)
+
+    resultados_modulos = modulojson(request)
+
+    resultados_modulos_data = json.loads(resultados_modulos.content)
+
+    context = {
+        'resultados_modulos_data': resultados_modulos_data,
+    }
+    return render(request, 'modulos.html', context)
 
 
 ########## BACKEND ##################
@@ -173,6 +228,37 @@ def estadosjson(request):
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
+def modulojson(request):
+    # Construir la consulta SQL
+    consulta_sql = """
+    select * from soporte_modulosii4 se 
+    """
+    connection = connections['default']
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+
+def empresasjson(request):
+    # Construir la consulta SQL
+    consulta_sql = """
+    select * from soporte_empresa se 
+    """
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
 
 def ticketsoportescreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
@@ -187,6 +273,31 @@ def ticketsoportescreados(request):
       LEFT JOIN auth_user au ON au.id = st.idAgente_id
       WHERE au.username = %s
       """
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql, [nombre_usuario])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+def ticketactualizacioncreados(request):
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
+    # Construir la consulta SQL
+    consulta_sql = """
+        SELECT st.id as NumTicket, sm.modulo as Modulo, ss.nombreapellido as Solicitante,
+st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa
+FROM soporte_ticketactualizacion st
+left JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
+left join soporte_estadosticket ses on ses.id = st.idestado_id
+LEFT JOIN soporte_modulosii4 sm on sm.id = st.moduloActualizar_id
+LEFT JOIN auth_user au ON au.id = st.idAgente_id
+      WHERE au.username = %s
+        """
     connection = connections['default']
 
     # Ejecutar la consulta SQL y obtener los resultados
@@ -547,3 +658,380 @@ def crear_ticket_desarrollo(request):
             {"status": "error", "message": f"Error al crear el ticket: {str(e)}"},
             status=400,
         )
+
+def ticketactualizacioncreadosid(request):
+    # Obtener el valor del parámetro "id" de la solicitud
+    ticket_id = request.GET.get('id', None)
+    print(ticket_id)
+
+    # Construir la consulta SQL
+    consulta_sql = """
+    SELECT * FROM soporte_ticketactualizacion
+    """
+
+    # Agregar un filtro por ID si se proporciona el parámetro "id"
+    if ticket_id is not None:
+        consulta_sql += f" WHERE id = {ticket_id}"
+
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+
+def empresascreados(request):
+    # Construir la consulta SQL
+    consulta_sql = """
+        select se.id as NumEmpresa, se.nombreEmpresa, se.direccion as direccion,
+se.telefono as telefono, se.email as email
+from soporte_empresa se
+
+        """
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+
+def moduloscreados(request):
+    # Construir la consulta SQL
+    consulta_sql = """
+        select sm.id as NumModulo, sm.modulo, sm.descripcionModulo 
+from soporte_modulosii4 sm
+
+        """
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+
+@require_POST
+def crear_ticket_actualizacion(request):
+    fecha_actual = datetime.now()
+    # Obtener los datos del formulario
+    id_agente = request.POST.get('agentesolicitado', '')
+    id_solicitante = request.POST.get('solicitante', '')
+    fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
+    fecha_inicio = request.POST.get('fecha_asignacion', '')
+    fecha_finalizacion = request.POST.get('fecha_estimado', '')
+    fecha_finalizacion_real = request.POST.get('fecha_finalizacion', '')
+    horasDiariasAsignadas = request.POST.get('horasDiariasAsignadas', '')
+    idmoduloActualizar = request.POST.get('modulo', '')
+    print('idmoduloActualizar', idmoduloActualizar)
+    descripcionGeneral = request.POST.get('descripcionGeneral')
+    observaciones = request.POST.get('observaciones', '')
+    prioridad = request.POST.get('prioridad', '')
+    id_estado = request.POST.get('estado', '')
+    facturar = request.POST.get('factura', '')
+
+    try:
+        # Obtener la instancia del solicitante
+        solicitante = Solicitante.objects.get(id=id_solicitante)
+
+        # Obtener la instancia del usuario (agente)
+        agente = User.objects.get(id=id_agente)
+
+        estado = EstadosTicket.objects.get(id=id_estado)
+
+        modulo = ModuloSii4.objects.get(id=idmoduloActualizar)
+
+        # Crear una instancia de TicketSoporte con los datos del formulario
+        nuevo_ticket = TicketActualizacion(
+            idAgente=agente,
+            idSolicitante=solicitante,
+            fechaCreacion=fecha_creacion,
+            fechaInicio=fecha_inicio,
+            fechaFinalizacion=fecha_finalizacion,
+            fechaFinalizacionReal=fecha_finalizacion_real,
+            horasDiariasAsignadas=horasDiariasAsignadas,
+            moduloActualizar=modulo,
+            descripcionGeneral=descripcionGeneral,
+            observaciones=observaciones,
+            prioridad=prioridad,
+            idestado=estado,
+            facturar=facturar
+        )
+
+        print(nuevo_ticket)
+        nuevo_ticket.save()
+
+        return JsonResponse({'status': 'success', 'message': 'Ticket creado con éxito'})
+    except Solicitante.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Solicitante no encontrado'}, status=400)
+    except User.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Usuario (agente) no encontrado'}, status=400)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
+
+
+@require_POST
+def crear_empresa(request):
+    fecha_actual = datetime.now()
+    # Obtener los datos del formulario
+    fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
+    nombreEmpresa = request.POST.get('nombreEmpresa', '')
+    direccion = request.POST.get('direccion', '')
+    telefono = request.POST.get('telefono', '')
+    email = request.POST.get('email', '')
+    nueva_empresa = Empresa(
+
+        fechaCreacion=fecha_creacion,
+        nombreEmpresa=nombreEmpresa,
+        direccion=direccion,
+        telefono=telefono,
+        email=email,
+    )
+
+    print(nueva_empresa)
+    nueva_empresa.save()
+
+    return JsonResponse({'status': 'success', 'message': 'Empresa creada con éxito'})
+
+@require_POST
+def crear_modulo(request):
+    fecha_actual = datetime.now()
+    # Obtener los datos del formulario
+    modulo = request.POST.get('modulo', '')
+    descripcionModulo = request.POST.get('descripcionModulo', '')
+    nuevo_modulo = ModuloSii4(
+
+        modulo=modulo,
+        descripcionModulo=descripcionModulo,
+    )
+
+    print(nuevo_modulo)
+    nuevo_modulo.save()
+
+    return JsonResponse({'status': 'success', 'message': 'Modulo creado con éxito'})
+
+
+def detalles_empresa(request):
+    # Obtén el valor de numEmpresa desde la solicitud GET
+    num_empresa = request.GET.get('numEmpresa')
+
+    # Construir la consulta SQL con filtrado por numModulo
+    consulta_sql = """
+        SELECT se.id as NumEmpresa, se.nombreEmpresa, se.direccion, se.telefono, se.email
+        FROM soporte_empresa se
+        WHERE se.id = %s
+    """
+
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql, [num_empresa])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+
+def detalles_modulo(request):
+    # Obtén el valor de numEmpresa desde la solicitud GET
+    num_modulo = request.GET.get('numModulo')
+
+    # Construir la consulta SQL con filtrado por numEmpresa
+    consulta_sql = """
+        select sm.id as NumModulo, sm.modulo, sm.descripcionModulo
+from soporte_modulosii4 sm
+        WHERE sm.id = %s
+    """
+
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql, [num_modulo])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+
+def actualizar_empresa(request):
+    print('Ingresó a la vista actualizar_empresa')  # Agregado para verificar si se llega a la función
+    if request.method == 'POST':
+        try:
+            # Obtén los datos del formulario
+            num_empresa = request.POST.get('numEmpresa')
+            nombre_empresa = request.POST.get('nombreEmpresa')
+            direccion = request.POST.get('direccion')
+            telefono = request.POST.get('telefono')
+            email = request.POST.get('email')
+
+            # Construir la consulta SQL de actualización
+            consulta_sql = """
+                UPDATE soporte_empresa
+                SET nombreEmpresa = %s, direccion = %s, telefono = %s, email = %s
+                WHERE id = %s
+            """
+
+            connection = connections['default']
+
+            # Ejecutar la consulta SQL de actualización
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_sql, [nombre_empresa, direccion, telefono, email, num_empresa])
+
+            print(f'Empresa actualizada con éxito - NumEmpresa: {num_empresa}')
+
+            return JsonResponse({'success': True})
+        except Exception as e:
+            print(f'Error al actualizar la empresa - NumEmpresa: {num_empresa}, Error: {e}')
+            return JsonResponse({'error': 'Error al actualizar la empresa'})
+    else:
+        print('Error: Método no permitido')
+        return JsonResponse({'error': 'Método no permitido'})
+
+def actualizar_modulo(request):
+    print('Ingresó a la vista actualizar_modulo')  # Agregado para verificar si se llega a la función
+    if request.method == 'POST':
+        try:
+            # Obtén los datos del formulario
+            num_modulo = request.POST.get('numModulo')
+            modulo = request.POST.get('nombreModulo')
+            descripcionModulo = request.POST.get('descripcion')
+
+            # Construir la consulta SQL de actualización
+            consulta_sql = """
+                UPDATE soporte_modulosii4
+                SET modulo = %s, descripcionModulo = %s
+                WHERE id = %s;
+            """
+
+            connection = connections['default']
+
+            # Ejecutar la consulta SQL de actualización
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_sql, [modulo, descripcionModulo, num_modulo])
+
+            print(f'Modulo actualizado con éxito - NumModulo: {num_modulo}')
+
+            return JsonResponse({'success': True})
+        except Exception as e:
+            print(f'Error al actualizar el modulo - NumModulo: {num_modulo}, Error: {e}')
+            return JsonResponse({'error': 'Error al actualizar el Modulo'})
+    else:
+        print('Error: Método no permitido')
+        return JsonResponse({'error': 'Método no permitido'})
+
+
+def detalles_actualizacion(request):
+    num_ticket = request.GET.get('numTicket')
+    consulta_sql = """
+        SELECT st.id,sm.modulo,(au.first_name || ' ' || au.last_name) AS full_name,
+    (ss.nombreApellido || ' ' || se.nombreEmpresa) AS solicitante_empresa,st.prioridad,
+    ses.descripcion,se.nombreEmpresa,st.horasDiariasAsignadas,st.descripcionGeneral,
+    st.prioridad,st.fechaCreacion,st.fechaInicio,st.fechaFinalizacion,st.fechaFinalizacionReal,
+    st.observaciones,st.facturar
+FROM
+    soporte_ticketactualizacion st
+LEFT JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+LEFT JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
+LEFT JOIN soporte_estadosticket ses ON ses.id = st.idestado_id
+LEFT JOIN soporte_modulosii4 sm ON sm.id = st.moduloActualizar_id
+LEFT JOIN auth_user au ON au.id = st.idAgente_id
+LEFT JOIN soporte_estadosticket se2 ON se2.id = st.idestado_id
+        WHERE st.id = %s
+    """
+    connection = connections['default']
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql, [num_ticket])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    return JsonResponse(resultados, safe=False)
+
+
+@csrf_exempt
+def editar_ticket_actualizar(request):
+    if request.method in ('PUT', 'POST'):
+        ticket_id = request.POST.get('numeroticketedit')
+        print('editar', ticket_id)
+        # Obtener los datos del formulario
+        id_agente = request.POST.get('agentesolicitadoedit', '')
+        print(id_agente)
+        id_solicitante = request.POST.get('solicitanteEdit', '')
+        print(id_solicitante)
+        horasAsignadas = request.POST.get('horasDiariasAsignadasedit', '')
+        print(horasAsignadas)
+        # fecha_inicio = request.POST.get('fecha_asignacionedit', '')
+        # fecha_finalizacion = request.POST.get('fecha_estimadoedit', '')
+        # fecha_finalizacion_real = request.POST.get('fechafinalizacionedit', '')
+        descripcion = request.POST.get('descripcionGeneraledit', '')
+        print(descripcion)
+        prioridad = request.POST.get('prioridadEdit', '')
+        print(prioridad)
+        observacion = request.POST.get('observacionesedit', '')
+        print(observacion)
+        id_estado = request.POST.get('estadoEdit', '')
+        print(id_estado)
+        id_modulo = request.POST.get('moduloEdit', '')
+        print(id_modulo)
+        facturar = request.POST.get('facturaEdit', '')
+        print(facturar)
+
+        try:
+            # Obtener la instancia del solicitante
+            solicitante = Solicitante.objects.get(id=id_solicitante)
+
+            # Obtener la instancia del usuario (agente)
+            agente = User.objects.get(id=id_agente)
+
+            estado = EstadosTicket.objects.get(id=id_estado)
+
+            modulo = ModuloSii4.objects.get(id=id_modulo)
+
+            # Obtener el ticket existente para editar
+            ticket = TicketActualizacion.objects.get(id=ticket_id)
+
+            # Actualizar los campos del ticket con los nuevos datos del formulario
+            ticket.idAgente = agente
+            ticket.idSolicitante = solicitante
+            ticket.horasDiariasAsignadas = horasAsignadas
+            # ticket.fechaInicio = fecha_inicio
+            # ticket.fechaFinalizacion = fecha_finalizacion
+            # ticket.fechaFinalizacionReal = fecha_finalizacion_real
+            ticket.descripcion = descripcion
+            ticket.prioridad = prioridad
+            ticket.observacion = observacion
+            ticket.idestado = estado
+            ticket.moduloActualizar_id = modulo
+            ticket.facturar = facturar
+            print('ticket: ', ticket)
+            # Guardar los cambios en el ticket
+            ticket.save()
+
+            return JsonResponse({'status': 'success', 'message': 'Ticket editado con éxito'})
+        except Solicitante.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Solicitante no encontrado'}, status=400)
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Usuario (agente) no encontrado'}, status=400)
+        except EstadosTicket.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Estado de ticket no encontrado'}, status=400)
+        except TicketSoporte.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Ticket no encontrado'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'Error al editar el ticket: {str(e)}'}, status=400)
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)

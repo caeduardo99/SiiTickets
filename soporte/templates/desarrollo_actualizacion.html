@@ -1,25 +1,416 @@
 {% extends "base.html" %}
-
 {% load static %}
 {% block content %}
-    <!-- Contenido específico de la página de dashboard -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h3>Desarrollo Actualización</h3>
+                    <h3>Actualización</h3>
                 </div>
-
             </div>
         </div><!-- /.container-fluid -->
     </section>
     <div class="content">
-
-
+        <ul class="nav nav-tabs" id="myTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="nuevoticket-tab" data-toggle="tab" href="#nuevoticket">Nuevo Ticket</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Tickets</a>
+            </li>
+        </ul>
+        <div class="tab-content mt-2">
+            <!-- Contenido de la pestaña Nuevo Ticket -->
+            <div class="tab-pane fade show active" id="nuevoticket">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">Detalles del Ticket de Actualización</div>
+                    <div class="card-body">
+                        <form class="form-row" method="post" action="{% url 'crear_ticket_actualizacion' %}">
+                            {% csrf_token %}
+                            <div class="form-group col-md-4">
+                                <div class="form-group">
+                                    <label>Fecha asignación:</label>
+                                    <div class="input-group">
+                                        <input type="text" id="fecha_ticket_asignacion" name="fecha_asignacion"
+                                               class="form-control"/>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <div class="form-group">
+                                    <label>Fecha Estimada Fin:</label>
+                                    <div class="input-group">
+                                        <input type="text" id="fecha_ticket_estimado" name="fecha_estimado"
+                                               class="form-control"/>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <div class="form-group">
+                                    <label>Fecha Finalización:</label>
+                                    <div class="input-group">
+                                        <input type="text" id="fecha_ticket_finalizacion" name="fecha_finalizacion"
+                                               class="form-control"/>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="solicitante">Solicitante:</label>
+                                <select class="select2" id="solicitante" style="width: 100%;" name="solicitante">
+                                    <option value="">Seleccione Solicitante</option>
+                                    {% for solicitante in resultados_solicitantes_data %}
+                                        <option value="{{ solicitante.id }}"
+                                                data-empresa="{{ solicitante.nombreEmpresa }}">
+                                            {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="agentesolicitado">Agente Asignado</label>
+                                <select class="select2" id="agentesolicitado" style="width: 100%;"
+                                        name="agentesolicitado">
+                                    <option value="">Seleccione Agente</option>
+                                    {% for agente in resultados_agentes_data %}
+                                        <option value="{{ agente.id }}">
+                                            {{ agente.full_name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="modulo">Modulo Actualizar</label>
+                                <select class="select2" id="modulo" style="width: 100%;"
+                                        name="modulo">
+                                    <option value="">Seleccione Modulo</option>
+                                    {% for modulo in resultados_modulos_data %}
+                                        <option value="{{ modulo.id }}">
+                                            {{ modulo.descripcionModulo }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="horasDiariasAsignadas">Horas Asignadas:</label>
+                                <input class="form-control" id="horasDiariasAsignadas" name="horasDiariasAsignadas"
+                                       placeholder="Ingrese las Horas"></input>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="observaciones">Observaciones</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones"
+                                          placeholder="Ingrese Oberservaciones"></textarea>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="descripcionGeneral">Descripción General</label>
+                                <textarea class="form-control" id="descripcionGeneral" name="descripcionGeneral"
+                                          placeholder="Ingrese Descripción"></textarea>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="prioridad">Prioridad:</label>
+                                <select class="select2" id="prioridad" style="width: 100%;" name="prioridad">
+                                    <option value="Alta">Alta</option>
+                                    <option value="Media">Media</option>
+                                    <option value="Baja">Baja</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="factura">¿Se debe emitir factura?</label>
+                                <select class="select2" id="factura" style="width: 100%;" name="factura">
+                                    <option value="1">Sí</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="Estado">Estado:</label>
+                                <select class="select2" id="estado" style="width: 100%;" name="estado">
+                                    <option value="">Seleccione Estado</option>
+                                    {% for agente in resultados_estados_data %}
+                                        <option value="{{ agente.id }}">
+                                            {{ agente.descripcion }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-12">
+                                <button type="submit" class="btn btn-dark">Crear Ticket</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="vertickets">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">Detalles del Ticket</div>
+                    <div class="card-body">
+                        <table class="table" id="tickets-table">
+                            <thead>
+                            <tr>
+                                <th>NumTicket</th>
+                                <th>Empresa</th>
+                                <th>Modulo Actualizar</th>
+                                <th>Solicitante</th>
+                                <th>Prioridad</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+    <!-- Modal para Detalles de la actualización -->
+    <div class="modal fade" id="detalleTicketModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Detalles del Ticket de Actualización</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editarTicketForm" method="post" action="{% url 'editar_ticket_actualizar' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="_method" value="PUT">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="modalNumTicket">Número de Ticket:</label>
+                                <input type="number" class="form-control" id="modalNumTicket"
+                                       name="numeroticketedit" readonly>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="fecha_ticket_asignacionedit">Fecha asignación:</label>
+                                <input type="text" class="form-control" id="fecha_ticket_asignacionedit"
+                                       name="fecha_ticket_asignacionedit">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="fecha_estimadoedit">Fecha Estimada Fin:</label>
+                                <input type="text" class="form-control" id="fecha_estimadoedit"
+                                       name="fecha_estimadoedit">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="fecha_finalizacionedit">Fecha Finalización:</label>
+                                <input type="text" class="form-control" id="fecha_finalizacionedit"
+                                       name="fecha_finalizacionedit">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="solicitanteEdit">Solicitante:</label>
+                                <select class="select2" id="solicitanteEdit" style="width: 100%;"
+                                        name="solicitanteEdit">
+                                    <option value="">Seleccione Solicitante</option>
+                                    {% for solicitanteedit in resultados_solicitantes_data %}
+                                        <option value="{{ solicitanteedit.id }}"
+                                                data-empresa="{{ solicitanteedit.nombreEmpresa }}">
+                                            {{ solicitanteedit.nombreApellido }} - {{ solicitanteedit.nombreEmpresa }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="agentesolicitadoedit">Agente Asignado</label>
+                                <select class="select2" id="agentesolicitadoedit" style="width: 100%;"
+                                        name="agentesolicitadoedit">
+                                    <option value="">Seleccione Agente</option>
+                                    <!-- Opciones para el select de agente solicitado -->
+                                    {% for agenteedit in resultados_agentes_data %}
+                                        <option value="{{ agenteedit.id }}">
+                                            {{ agenteedit.full_name }}
+                                        </option>
+                                    {% endfor %}
+                                    <!-- Agrega más opciones según sea necesario -->
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="moduloEdit">Modulo Actualizar</label>
+                                <select class="select2" id="moduloEdit" style="width: 100%;"
+                                        name="moduloEdit">
+                                    <option value="">Seleccione Modulo</option>
+                                    {% for moduloedit in resultados_modulos_data %}
+                                        <option value="{{ moduloedit.id }}">
+                                            {{ moduloedit.modulo }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="horasDiariasAsignadasedit">Horas Asignadas:</label>
+                                <input class="form-control" id="horasDiariasAsignadasedit"
+                                       name="horasDiariasAsignadasedit"
+                                       placeholder="Ingrese las Horas">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="observacionesedit">Observaciones:</label>
+                                <textarea class="form-control" id="observacionesedit" name="observacionesedit"
+                                          placeholder="Ingrese Observaciones"></textarea>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="descripcionGeneraledit">Descripción General:</label>
+                                <textarea class="form-control" id="descripcionGeneraledit" name="descripcionGeneraledit"
+                                          placeholder="Ingrese Descripción General"></textarea>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="prioridadEdit">Prioridad:</label>
+                                <select class="select2" id="prioridadEdit" style="width: 100%;" name="prioridadEdit">
+                                    <option value="Alta">Alta</option>
+                                    <option value="Media">Media</option>
+                                    <option value="Baja">Baja</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="facturaEdit">¿Se debe emitir factura?</label>
+                                <select class="select2" id="facturaEdit" style="width: 100%;" name="facturaEdit">
+                                    <option value="1">Sí</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="estadoEdit">Estado:</label>
+                                <select class="select2" id="estadoEdit" style="width: 100%;" name="estadoEdit">
+                                    <option value="">Seleccione Estado</option>
+                                    {% for estadoedit in resultados_estados_data %}
+                                        <option value="{{ estadoedit.id }}">
+                                            {{ estadoedit.descripcion }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
+    <script src="../static/dist/utils/soporte.js"></script>
+    <script>
+        function cargarTablaTickets() {
+            $.ajax({
+                url: '{% url "ticketactualizacioncreados" %}',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    // Limpiar el cuerpo de la tabla
+                    $('#tickets-table tbody').empty();
+                    // Iterar sobre los datos y agregar filas a la tabla
+                    $.each(data, function (index, ticket) {
+                        var newRow = '<tr>' +
+                            '<td>' + ticket.NumTicket + '</td>' +
+                            '<td>' + ticket.NombreEmpresa + '</td>' +
+                            '<td>' + ticket.Modulo + '</td>' +
+                            '<td>' + ticket.Solicitante + '</td>' +
+                            '<td>' + ticket.Prioridad + '</td>' +
+                            '<td>' + ticket.Estado + '</td>' +
+                            '<td><button class="btn btn-info btn-sm ver-button" data-ticket-id="' + ticket.NumTicket + '">Ver Ticket</button></td>' +
+                            '</tr>';
+                        $('#tickets-table tbody').append(newRow);
+                    });
+                    // Agregar un evento de clic a los botones "Ver"
+                    $('.ver-button').on('click', function () {
+                        var ticketId = $(this).data('ticket-id');
+                        // Realizar una nueva solicitud AJAX para obtener la información detallada del ticket
+                        $.ajax({
+                            url: '{% url "ticketactualizacioncreadosid" %}?id=' + ticketId,
+                            method: 'GET',
+                            dataType: 'json',
+                            success: function (detalleTicket) {
+                                // Llenar el modal con la información obtenida
+                                llenarModal(detalleTicket);
+                                // Abrir el modal
+                                $('#detalleTicketModal').modal('show');
+                            },
+                            error: function (error) {
+                                console.log('Error en la solicitud AJAX:', error);
+                            }
+                        });
+                    });
+                },
+                error: function (error) {
+                    console.log('Error en la solicitud AJAX:', error);
+                }
+            });
+        }
 
+        function llenarModal(detalleTicket) {
+            // Llenar el modal con la información detallada del ticket
+            $('#modalNumTicket').val(detalleTicket[0].id);
+            $('#fecha_ticket_asignacionedit').val(moment(detalleTicket[0].fechaInicio).format('YYYY-MM-DD HH:mm:ss'));
+            $('#fecha_ticket_asignacionedit').daterangepicker({
+                timePicker: true,
+                singleDatePicker: true,
+                timePicker24Hour: true,
+                startDate: moment(detalleTicket[0].fechaInicio),  // Usa el valor proporcionado
+                locale: {
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }
+            });
+            $('#fecha_estimadoedit').val(moment(detalleTicket[0].fechaFinalizacion).format('YYYY-MM-DD HH:mm:ss'));
+            $('#fecha_estimadoedit').daterangepicker({
+                timePicker: true,
+                singleDatePicker: true,
+                timePicker24Hour: true,
+                startDate: moment(detalleTicket[0].fechaFinalizacion),  // Usa el valor proporcionado
+                locale: {
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }
+            });
+            $('#fecha_finalizacionedit').val(moment(detalleTicket[0].fechaFinalizacionReal).format('YYYY-MM-DD HH:mm:ss'));
+            $('#fecha_finalizacionedit').daterangepicker({
+                timePicker: true,
+                singleDatePicker: true,
+                timePicker24Hour: true,
+                startDate: moment(detalleTicket[0].fechaFinalizacionReal),  // Usa el valor proporcionado
+                locale: {
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }
+            });
+            $('#motivoedit').val(detalleTicket[0].comentario);
+            // Asegúrate de ajustar estas líneas según tus variables
+            var prioridadSelect = $('#prioridadEdit');
+            var agenteSelect = $('#agentesolicitadoedit');
+            var moduloSelect = $('#moduloEdit');
+            var solicitanteSelect = $('#solicitanteEdit');
+            prioridadSelect.val(detalleTicket[0].prioridad).trigger('change');
+            agenteSelect.val(detalleTicket[0].idAgente_id).trigger('change');
+            moduloSelect.val(detalleTicket[0].moduloActualizar_id).trigger('change');
+            solicitanteSelect.val(detalleTicket[0].idSolicitante_id).trigger('change');
+            $('#horasDiariasAsignadasedit').val(detalleTicket[0].horasDiariasAsignadas);
+            $('#observacionesedit').val(detalleTicket[0].observaciones);
+            $('#descripcionGeneraledit').val(detalleTicket[0].descripcionGeneral);
+            var facturaSelect = $('#facturaEdit');
+            facturaSelect.val(detalleTicket[0].facturar ? '1' : '0').trigger('change');
+            var estadoSelect = $('#estadoEdit');
+            estadoSelect.val(detalleTicket[0].idestado_id).trigger('change');
+            console.log('ID del estado:', detalleTicket[0].horasDiariasAsignadas);
+            $('#detalleTicketModal').modal('show');
+        }
 
-
+        $(document).ready(function () {
+            cargarTablaTickets();
+            $('#vertickets-tab').on('click', function () {
+                cargarTablaTickets();
+            });
+        });
+    </script>
 {% endblock %}
 
 
