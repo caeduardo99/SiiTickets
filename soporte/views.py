@@ -16,6 +16,7 @@ from .models import (
 from django.contrib.auth.models import User
 from .models import Solicitante, EstadosTicket
 from datetime import datetime
+from django.views.decorators.csrf import csrf_exempt
 
 
 def login_user(request):
@@ -80,12 +81,12 @@ def soporte(request):
     resultados_estados_data = json.loads(resultados_estados.content)
 
     context = {
-        "nombre_usuario": nombre_usuario,
-        "resultados_solicitantes_data": resultados_solicitantes_data,
-        "resultados_agentes_data": resultados_agentes_data,
-        "resultados_estados_data": resultados_estados_data,
+        'nombre_usuario': nombre_usuario,
+        'resultados_solicitantes_data': resultados_solicitantes_data,
+        'resultados_agentes_data': resultados_agentes_data,
+        'resultados_estados_data': resultados_estados_data
     }
-    return render(request, "soporte.html", context)
+    return render(request, 'soporte.html', context)
 
 
 @login_required
@@ -174,17 +175,45 @@ def estadosjson(request):
 
 
 def ticketsoportescreados(request):
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
     # Construir la consulta SQL
     consulta_sql = """
-    SELECT st.id as NumTicket, st.comentario as Motivo, ss.nombreapellido as Solicitante,
-st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa
-FROM soporte_ticketsoporte st
-left JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
-left join soporte_estadosticket ses on ses.id = st.idestado_id
+         SELECT st.id as NumTicket , st.comentario as Motivo, ss.nombreapellido as Solicitante,
+      st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa
+      FROM soporte_ticketsoporte st
+      LEFT JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+      LEFT JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
+      LEFT JOIN soporte_estadosticket ses ON ses.id = st.idestado_id
+      LEFT JOIN auth_user au ON au.id = st.idAgente_id
+      WHERE au.username = %s
+      """
+    connection = connections['default']
 
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql, [nombre_usuario])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+
+def ticketsoportescreadosid(request):
+    # Obtener el valor del parámetro "id" de la solicitud
+    ticket_id = request.GET.get('id', None)
+    print(ticket_id)
+
+    # Construir la consulta SQL
+    consulta_sql = """
+    SELECT * FROM soporte_ticketsoporte
     """
-    connection = connections["default"]
+
+    # Agregar un filtro por ID si se proporciona el parámetro "id"
+    if ticket_id is not None:
+        consulta_sql += f" WHERE id = {ticket_id}"
+
+    connection = connections['default']
 
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
@@ -194,6 +223,7 @@ left join soporte_estadosticket ses on ses.id = st.idestado_id
 
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
+
 
 def ticketDesarrolloCreados(request):
     consulta_sql = """
@@ -214,9 +244,10 @@ def ticketDesarrolloCreados(request):
         cursor.execute(consulta_sql)
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        
+
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
+
 
 def detalleTicketDesarrollo(request, ticket_id):
     consulta_sql = """
@@ -248,20 +279,19 @@ def detalleTicketDesarrollo(request, ticket_id):
 def crear_ticket_soporte(request):
     fecha_actual = datetime.now()
     # Obtener los datos del formulario
-    id_agente = request.POST.get("agentesolicitado", "")
-    id_solicitante = request.POST.get("solicitante", "")
-    fecha_creacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
-    print(fecha_creacion)
-    fecha_inicio = request.POST.get("fecha_asignacion", "")
-    fecha_finalizacion = request.POST.get("fecha_estimado", "")
-    fecha_finalizacion_real = request.POST.get("fecha_finalizacion", "")
-    comentario = request.POST.get("motivo", "")
-    prioridad = request.POST.get("prioridad", "")
-    print("prioridad", prioridad)
-    observacion = request.POST.get("observaciones", "")
-    id_estado = request.POST.get("estado", "")
-    print("id_estado", id_estado)
-    facturar = request.POST.get("factura", "")
+    id_agente = request.POST.get('agentesolicitado', '')
+    id_solicitante = request.POST.get('solicitante', '')
+    fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
+    fecha_inicio = request.POST.get('fecha_asignacion', '')
+    fecha_finalizacion = request.POST.get('fecha_estimado', '')
+    fecha_finalizacion_real = request.POST.get('fecha_finalizacion', '')
+    comentario = request.POST.get('motivo', '')
+    prioridad = request.POST.get('prioridad', '')
+    print('prioridad', prioridad)
+    observacion = request.POST.get('observaciones', '')
+    id_estado = request.POST.get('estado', '')
+    print('id_estado', id_estado)
+    facturar = request.POST.get('factura', '')
 
     try:
         # Obtener la instancia del solicitante
@@ -271,6 +301,11 @@ def crear_ticket_soporte(request):
         agente = User.objects.get(id=id_agente)
 
         estado = EstadosTicket.objects.get(id=id_estado)
+
+        # Verificar y asignar fechas
+        fecha_inicio = fecha_inicio if fecha_inicio else None
+        fecha_finalizacion = fecha_finalizacion if fecha_finalizacion else None
+        fecha_finalizacion_real = fecha_finalizacion_real if fecha_finalizacion_real else None
 
         # Crear una instancia de TicketSoporte con los datos del formulario
         nuevo_ticket = TicketSoporte(
@@ -284,26 +319,83 @@ def crear_ticket_soporte(request):
             prioridad=prioridad,
             observacion=observacion,
             idestado=estado,
-            facturar=facturar,
+            facturar=facturar
         )
 
         # Guardar el nuevo ticket en la base de datos
         nuevo_ticket.save()
 
-        return JsonResponse({"status": "success", "message": "Ticket creado con éxito"})
+        return JsonResponse({'status': 'success', 'message': 'Ticket creado con éxito'})
     except Solicitante.DoesNotExist:
-        return JsonResponse(
-            {"status": "error", "message": "Solicitante no encontrado"}, status=400
-        )
+        return JsonResponse({'status': 'error', 'message': 'Solicitante no encontrado'}, status=400)
     except User.DoesNotExist:
-        return JsonResponse(
-            {"status": "error", "message": "Usuario (agente) no encontrado"}, status=400
-        )
+        return JsonResponse({'status': 'error', 'message': 'Usuario (agente) no encontrado'}, status=400)
     except Exception as e:
-        return JsonResponse(
-            {"status": "error", "message": f"Error al crear el ticket: {str(e)}"},
-            status=400,
-        )
+        return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
+
+
+@csrf_exempt
+def editar_ticket_soporte(request):
+    if request.method in ('PUT', 'POST'):
+        ticket_id = request.POST.get('numeroticketedit')
+        print('editar', ticket_id)
+
+        # Obtener los datos del formulario
+        id_agente = request.POST.get('agentesolicitadoedit', '')
+        id_solicitante = request.POST.get('solicitanteeditar', '')
+        fecha_inicio = request.POST.get('fecha_asignacionedit', '')
+        fecha_finalizacion = request.POST.get('fecha_estimadoedit', '')
+        fecha_finalizacion_real = request.POST.get('fechafinalizacionedit', '')
+        comentario = request.POST.get('motivoedit', '')
+        prioridad = request.POST.get('prioridadedit', '')
+        observacion = request.POST.get('observacionesedit', '')
+        id_estado = request.POST.get('estadoeditar', '')
+        facturar = request.POST.get('facturaedit', '')
+        contenido_chat = request.POST.get('chat', '')
+        print('chat', contenido_chat)
+
+        try:
+            # Obtener la instancia del solicitante
+            solicitante = Solicitante.objects.get(id=id_solicitante)
+
+            # Obtener la instancia del usuario (agente)
+            agente = User.objects.get(id=id_agente)
+
+            estado = EstadosTicket.objects.get(id=id_estado)
+
+            # Obtener el ticket existente para editar
+            ticket = TicketSoporte.objects.get(id=ticket_id)
+
+            # Actualizar los campos del ticket con los nuevos datos del formulario
+            ticket.idAgente = agente
+            ticket.idSolicitante = solicitante
+            ticket.fechaInicio = fecha_inicio
+            ticket.fechaFinalizacion = fecha_finalizacion
+            ticket.fechaFinalizacionReal = fecha_finalizacion_real
+            ticket.comentario = comentario
+            ticket.prioridad = prioridad
+            ticket.observacion = observacion
+            ticket.idestado = estado
+            ticket.facturar = facturar
+            ticket.chat = contenido_chat
+
+            # Guardar los cambios en el ticket
+            ticket.save()
+
+            return JsonResponse({'status': 'success', 'message': 'Ticket editado con éxito'})
+        except Solicitante.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Solicitante no encontrado'}, status=400)
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Usuario (agente) no encontrado'}, status=400)
+        except EstadosTicket.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Estado de ticket no encontrado'}, status=400)
+        except TicketSoporte.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Ticket no encontrado'}, status=400)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': f'Error al editar el ticket: {str(e)}'}, status=400)
+    else:
+        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
 
 
 @require_POST
@@ -398,7 +490,7 @@ def crear_ticket_desarrollo(request):
                     id_estado_principal = 1
                 else:
                     id_estado_principal = 3
-                
+
                 new_task_main = ActividadPrincipal(
                     descripcion=task["descripcion"],
                     idTicketDesarrollo=ticket_desarrollo,
@@ -407,7 +499,6 @@ def crear_ticket_desarrollo(request):
                     idAgente=agente
                 )
                 new_task_main.save()
-
 
         if len(array_task_second) > 0:
             consult_main = []
@@ -427,7 +518,6 @@ def crear_ticket_desarrollo(request):
 
                 consult_main.append(resultados[0])
 
-
             for obj in consult_main:
                 id_objeto = obj.get("id")
                 descripcion_objeto = obj.get("descripcion")
@@ -437,7 +527,7 @@ def crear_ticket_desarrollo(request):
                     descripcion_adicional = obj_task_second.get("descripcionSecundaria")
                     horas_secundarias = obj_task_second.get("horasAsignadas")
                     task_main_obj = ActividadPrincipal.objects.get(id=id_objeto)
-                    
+
                     if descripcion_objeto == descripcion_secundaria:
                         new_task_second = ActividadSecundaria(
                             descripcion=descripcion_adicional,
@@ -446,13 +536,6 @@ def crear_ticket_desarrollo(request):
                             idestado=EstadosTicket.objects.get(id=id_estado_principal),
                         )
                         new_task_second.save()
-                
-                
-
-
-            
-
-                
 
         return JsonResponse({"status": "success", "message": "Ticket creado con éxito"})
     except Exception as e:

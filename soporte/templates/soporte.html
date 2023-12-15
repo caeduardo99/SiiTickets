@@ -2,7 +2,6 @@
 
 {% load static %}
 {% block content %}
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
     <!-- Contenido específico de la página de dashboard -->
     <section class="content-header">
         <div class="container-fluid">
@@ -13,9 +12,48 @@
             </div>
         </div><!-- /.container-fluid -->
     </section>
+    <style>
+        #chat {
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-width: 400px;
+            margin: auto;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .mensaje {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            overflow: hidden; /* Agregado para corregir el problema de alineación */
+        }
+
+        .mensaje.usuario {
+            background-color: #DCF8C6;
+            text-align: right;
+        }
+
+        .mensaje.otros {
+            background-color: #ECE5DD;
+            text-align: left;
+        }
+
+        .fecha {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 5px;
+        }
+
+        .mensaje .contenido {
+            display: inline-block;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+
+    </style>
     <div class="content">
-
-
         <ul class="nav nav-tabs" id="myTabs">
             <li class="nav-item">
                 <a class="nav-link active" id="nuevoticket-tab" data-toggle="tab" href="#nuevoticket">Nuevo Ticker</a>
@@ -169,6 +207,7 @@
                                 <th>Solicitante</th>
                                 <th>Prioridad</th>
                                 <th>Estado</th>
+                                <th>Accion</th>
                                 <!-- Otros encabezados según tus campos -->
                             </tr>
                             </thead>
@@ -180,6 +219,217 @@
                 </div>
             </div>
 
+        </div>
+
+        <!-- Agrega esta sección de HTML al cuerpo de tu página -->
+        <div class="modal fade" id="detalleTicketModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Detalles del Ticket</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editarTicketForm" method="post" action="{% url 'editar_ticket_soporte' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="_method" value="PUT">
+                            <div class="row">
+                                <div class="col-6">
+                                    <!-- Primera columna de campos -->
+                                    <div class="form-group">
+                                        <label for="modalNumTicket">Número de Ticket:</label>
+                                        <input type="number" class="form-control" id="modalNumTicket"
+                                               name="numeroticketedit" readonly></input>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fecha Creacion</label>
+                                        <div class="input-group">
+                                            <input type="text" id="modalFechaCreacion" name="modalFechaCreacion"
+                                                   class="form-control" readonly/>
+                                            <div class="input-group-append">
+                                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                                <div class="col-6">
+                                    <!-- Segunda columna de campos -->
+                                    <div class="form-group">
+                                        <label>Fecha Asignacion:</label>
+                                        <div class="input-group">
+                                            <input type="text" id="fecha_asignacionedit" name="fecha_asignacionedit"
+                                                   class="form-control"/>
+                                            <div class="input-group-append">
+                                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Fecha Estimada Fin:</label>
+                                        <div class="input-group">
+                                            <input type="text" id="fecha_ticket_estimadoedit" name="fecha_estimadoedit"
+                                                   class="form-control"/>
+                                            <div class="input-group-append">
+                                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <!-- Tercera columna de campos -->
+                                    <div class="form-group">
+                                        <label>Fecha Finalización:</label>
+                                        <div class="input-group">
+                                            <input type="text" id="fechafinalizacionedit" name="fechafinalizacionedit"
+                                                   class="form-control"/>
+                                            <div class="input-group-append">
+                                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                                <div class="col-6">
+                                    <!-- Cuarta columna de campos -->
+                                    <div class="form-group">
+                                        <label for="motivoedit">Motivo Soporte:</label>
+                                        <input type="text" class="form-control" id="motivoedit" name="motivoedit">
+                                    </div>
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <!-- Quinta columna de campos -->
+                                    <div class="form-group">
+                                        <label for="prioridadedit">Prioridad:</label>
+                                        <select class="select2" id="prioridadedit" style="width: 100%;"
+                                                name="prioridadedit">
+                                            <option value="Alta">Alta</option>
+                                            <option value="Media">Media</option>
+                                            <option value="Baja">Baja</option>
+                                        </select>
+                                    </div>
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                                <div class="col-6">
+                                    <!-- Sexta columna de campos -->
+                                    <div class="form-group">
+                                        <label for="observacionesedit">Observaciones:</label>
+                                        <input type="text" class="form-control" id="observacionesedit"
+                                               name="observacionesedit">
+                                    </div>
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6">
+                                    <!-- Séptima columna de campos -->
+                                    <div class="form-group">
+                                        <label for="facturaedit">¿Se debe emitir factura?</label>
+                                        <select class="select2" id="facturaedit" style="width: 100%;"
+                                                name="facturaedit">
+                                            <option value="1">Sí</option>
+                                            <option value="0">No</option>
+                                        </select>
+                                    </div>
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                                <div class="col-6">
+                                    <!-- Octava columna de campos -->
+                                    <div class="form-group">
+                                        <label for="agentesolicitadoedit">Agente Asignado</label>
+                                        <select class="select2" id="agentesolicitadoedit" style="width: 100%;"
+                                                name="agentesolicitadoedit">
+                                            <option value="">Seleccione Agente</option>
+                                            <!-- Opciones para el select de agente solicitado -->
+                                            {% for agenteedit in resultados_agentes_data %}
+                                                <option value="{{ agenteedit.id }}">
+                                                    {{ agenteedit.full_name }}
+                                                </option>
+                                            {% endfor %}
+                                            <!-- Agrega más opciones según sea necesario -->
+                                        </select>
+                                    </div>
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="form-group">
+                                        <label for="solicitanteeditar">Solicitante:</label>
+                                        <select class="select2" id="solicitanteeditar" style="width: 100%;"
+                                                name="solicitanteeditar">
+                                            <option value="">Seleccione Solicitante</option>
+                                            {% for solicitanteeditar in resultados_solicitantes_data %}
+                                                <option value="{{ solicitanteeditar.id }}"
+                                                        data-empresa="{{ solicitanteeditar.nombreEmpresa }}">
+                                                    {{ solicitanteeditar.nombreApellido }}
+                                                    - {{ solicitanteeditar.nombreEmpresa }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <!-- Novena columna de campos -->
+
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                                <div class="col-6">
+                                    <!-- Décima columna de campos -->
+                                    <div class="form-group">
+                                        <label for="estadoeditar">Estado:</label>
+                                        <select class="select2" id="estadoeditar" style="width: 100%;"
+                                                name="estadoeditar">
+                                            <!-- Opciones para el select de agente solicitado -->
+                                            {% for estadoedit in resultados_estados_data %}
+                                                <option value="{{ estadoedit.id }}">
+                                                    {{ estadoedit.descripcion }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <!-- Agrega más campos según tus necesidades en esta columna -->
+                                </div>
+                            </div>
+
+                            <div class="row" id="conversacionRow">
+                                <div class="col-6">
+                                    <!-- Undécima columna de campos -->
+                                    <div class="form-group">
+                                        <label for="archivoConversacion">Cargar Conversación:</label>
+                                        <input type="file" id="archivoInput"/>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <!-- Duodécima columna de campos -->
+                                    <div class="form-group">
+                                        <label>Conversación:</label>
+                                        <div id="chat"></div>
+                                        <input type="hidden" id="chatHidden" name="chat" value="">
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <button type="submit" class="btn btn-primary">Guardar Cambios
+                            </button>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
 
@@ -208,14 +458,147 @@
                             '<td>' + ticket.Solicitante + '</td>' +
                             '<td>' + ticket.Prioridad + '</td>' +
                             '<td>' + ticket.Estado + '</td>' +
+                            '<td><button class="btn btn-success ver-button" data-ticket-id="' + ticket.NumTicket + '">Ver</button></td>' +
                             '</tr>';
                         $('#tickets-table tbody').append(newRow);
+                    });
+
+                    // Agregar un evento de clic a los botones "Ver"
+                    $('.ver-button').on('click', function () {
+                        var ticketId = $(this).data('ticket-id');
+
+                        // Realizar una nueva solicitud AJAX para obtener la información detallada del ticket
+                        $.ajax({
+                            url: '{% url "ticketsoportescreadosid" %}?id=' + ticketId,
+                            method: 'GET',
+                            dataType: 'json',
+
+                            success: function (detalleTicket) {
+                                // Llenar el modticketIdal con la información obtenida
+                                llenarModal(detalleTicket);
+                                // Abrir el modal
+                                $('#detalleTicketModal').modal('show');
+                            },
+                            error: function (error) {
+                                console.log('Error en la solicitud AJAX:', error);
+                            }
+                        });
+
+
                     });
                 },
                 error: function (error) {
                     console.log('Error en la solicitud AJAX:', error);
                 }
             });
+        }
+
+        function llenarModal(detalleTicket) {
+            // Llenar el modal con la información detallada del ticket
+            $('#modalNumTicket').val(detalleTicket[0].id);
+            $('#modalFechaCreacion').val(detalleTicket[0].fechaCreacion);
+            $('#chat').empty();
+            var chatContenido = detalleTicket[0].chat;
+            console.log('meswaje', detalleTicket[0].chat)
+
+            // Verificar si chatContenido no es nulo antes de llamar a cargarYMostrarMensajes
+            if (chatContenido !== null) {
+                var chatFormateado = chatContenido.replace(/(\d{2}\/\d{2}\/\d{2}, \d{2}:\d{2}:\d{2})([^\n]*?):/g, '\n[$1] $2:');
+                cargarYMostrarMensajes(chatFormateado);
+            }
+            // Vuelve a inicializar DateRangePicker
+            $('#modalFechaCreacion').daterangepicker({
+                timePicker: true,
+                singleDatePicker: true,
+                timePicker24Hour: true,
+                startDate: moment(detalleTicket[0].fechaCreacion),  // Usa el valor proporcionado
+                locale: {
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }
+            });
+            $('#fecha_asignacionedit').val(detalleTicket[0].fechaInicio);
+            // Vuelve a inicializar DateRangePicker
+            $('#fecha_asignacionedit').daterangepicker({
+                timePicker: true,
+                singleDatePicker: true,
+                timePicker24Hour: true,
+                startDate: moment(detalleTicket[0].fechaInicio),  // Usa el valor proporcionado
+                locale: {
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }
+            });
+            $('#fecha_ticket_estimadoedit').val(detalleTicket[0].fechaFinalizacion);
+            // Vuelve a inicializar DateRangePicker
+            $('#fecha_ticket_estimadoedit').daterangepicker({
+                timePicker: true,
+                singleDatePicker: true,
+                timePicker24Hour: true,
+                startDate: moment(detalleTicket[0].fechaFinalizacion),  // Usa el valor proporcionado
+                locale: {
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }
+            });
+
+
+            var fechaFinalizacionReal = detalleTicket[0].fechaFinalizacionReal;
+            var datePicker = $('#fechafinalizacionedit').data('daterangepicker');
+
+            if (!datePicker) {
+                // Si el DateRangePicker no está inicializado, inicializarlo
+                $('#fechafinalizacionedit').daterangepicker({
+                    timePicker: true,
+                    singleDatePicker: true,
+                    timePicker24Hour: true,
+                    locale: {
+                        format: 'YYYY-MM-DD HH:mm:ss'
+                    }
+                });
+
+                datePicker = $('#fechafinalizacionedit').data('daterangepicker');
+            }
+
+            if (fechaFinalizacionReal) {
+                datePicker.setStartDate(moment(fechaFinalizacionReal));
+            } else {
+                // Si fechaFinalizacionReal es null, establecer el valor del input en blanco y actualizar el DateRangePicker
+                $('#fechafinalizacionedit').val('');
+
+            }
+
+
+            $('#motivoedit').val(detalleTicket[0].comentario);
+            var prioridadSelect = $('#prioridadedit');
+            prioridadSelect.val(detalleTicket[0].prioridad).trigger('change')
+            $('#observacionesedit').val(detalleTicket[0].observacion);
+            var estadoSelect = $('#estadoeditar');
+            estadoSelect.val(detalleTicket[0].idestado_id).trigger('change'); // Asegurar que Select2 actualice la visualización
+            console.log('estadoSelect.val()', estadoSelect.val());
+
+            var conversacionRow = $('#conversacionRow');
+
+            // Asumiendo que 5 es el valor que determina la visualización de la sección
+            estadoSelect.on('change', function () {
+                if (estadoSelect.val() === '4') {
+                    conversacionRow.show();
+
+                } else {
+                    conversacionRow.hide();
+                }
+            });
+
+            var solicitanteSelect = $('#solicitanteeditar');
+            solicitanteSelect.val(detalleTicket[0].idSolicitante_id).trigger('change'); // Asegurar que Select2 actualice la visualización
+            var facturarValor = detalleTicket[0].facturar;
+            var agenteSelect = $('#agentesolicitadoedit');
+            agenteSelect.val(detalleTicket[0].idAgente_id).trigger('change'); // Asegurar que Select2 actualice la visualización
+            // Convertir el valor booleano a cadena ('1' o '0')
+            var facturarString = facturarValor ? '1' : '0';
+            console.log('facturarString', facturarString)
+            // Establecer el valor del campo de facturaedit
+            $('#facturaedit').val(facturarString).trigger('change.select2'); // Asegurar que Select2 actualice la visualización
+            // Obtener el contenido del chat y establecerlo en el campo oculto
+
+
         }
 
         $(document).ready(function () {
@@ -229,6 +612,76 @@
             });
         });
     </script>
+
+
+    <script>
+        document.getElementById('archivoInput').addEventListener('change', function (event) {
+            const archivo = event.target.files[0];
+
+            if (archivo) {
+                const lector = new FileReader();
+
+                lector.onload = function (e) {
+                    const contenido = e.target.result;
+                    cargarYMostrarMensajes(contenido);
+                };
+
+                lector.readAsText(archivo);
+            }
+        });
+
+        function cargarYMostrarMensajes(contenido) {
+            const fechaBuscada = '12/12/23';
+            const mensajes = filtrarMensajesPorFecha(contenido, fechaBuscada);
+            mostrarMensajes(mensajes);
+        }
+
+        function mostrarMensajes(mensajes) {
+            const contenedorChat = document.getElementById('chat');
+            contenedorChat.innerHTML = ''; // Limpiar contenido anterior
+            setTimeout(function () {
+                var contenidoChat = $('#chat').text();
+                $('#chatHidden').val(contenidoChat);
+                console.log('contenidoChat', contenidoChat);
+            }, 100);
+            const lineas = mensajes.split('\n');
+            lineas.forEach(linea => {
+                const fechaInicio = linea.indexOf('[');
+                const fechaFin = linea.indexOf(']');
+                const fecha = linea.substring(fechaInicio + 1, fechaFin);
+
+                const contenidoMensaje = linea.substring(fechaFin + 2); // Saltar '] ' después de la fecha
+                const claseMensaje = fecha.includes('12/12/23') ? 'usuario' : 'otros';
+
+                const mensajeElement = document.createElement('div');
+                mensajeElement.classList.add('mensaje', claseMensaje);
+
+                const fechaElement = document.createElement('div');
+                fechaElement.classList.add('fecha');
+                fechaElement.textContent = fecha;
+
+                const contenidoElement = document.createElement('span');
+                contenidoElement.classList.add('contenido'); // Asegurar que la clase se añade al contenido
+                contenidoElement.textContent = contenidoMensaje;
+
+                mensajeElement.appendChild(fechaElement);
+                mensajeElement.appendChild(contenidoElement);
+
+                contenedorChat.appendChild(mensajeElement);
+            });
+        }
+
+
+        function filtrarMensajesPorFecha(contenido, fecha) {
+            // Implementa la lógica para filtrar los mensajes por la fecha específica
+            const lineas = contenido.split('\n');
+            const mensajesFiltrados = lineas.filter(linea => linea.includes(fecha));
+            return mensajesFiltrados.join('\n');
+        }
+
+    </script>
+
+
 
 
 {% endblock %}
