@@ -46,15 +46,19 @@ $(document).ready(function () {
   const ticketsTable = document
     .getElementById("tickets-table")
     .getElementsByTagName("tbody")[0];
-  const inputEditTitleProject = document.getElementById('inputEditTitleProject');
-  const inputEditNumHoras = document.getElementById('inputEditNumHoras');
-  const editSolicitante = document.getElementById('editSolicitante');
-  const editAgenteSolicitado = document.getElementById('editAgenteSolicitado');
-  const editFechaEstimada = document.getElementById('editFechaEstimada');
-  const editFechaFin = document.getElementById('editFechaFin');
-  const btnCreateTicket = document.getElementById('btnCreateTicket');
-  const editDescripcionGeneral = document.getElementById('editDescripcionGeneral');
-  const tableBodyTasksEdit = document.getElementById('tableBodyTasksEdit');
+  const inputEditTitleProject = document.getElementById(
+    "inputEditTitleProject"
+  );
+  const inputEditNumHoras = document.getElementById("inputEditNumHoras");
+  const editSolicitante = document.getElementById("editSolicitante");
+  const editAgenteSolicitado = document.getElementById("editAgenteSolicitado");
+  const editFechaEstimada = document.getElementById("editFechaEstimada");
+  const editFechaFin = document.getElementById("editFechaFin");
+  const btnCreateTicket = document.getElementById("btnCreateTicket");
+  const editDescripcionGeneral = document.getElementById(
+    "editDescripcionGeneral"
+  );
+  const tableBodyTasksEdit = document.getElementById("tableBodyTasksEdit");
 
   var resultadosAgentesData = window.resultados_agentes_data;
   var resultadosProyectos;
@@ -333,9 +337,10 @@ $(document).ready(function () {
       }
     });
 
-    
     filasSecundarias.forEach(function (fila) {
-      const descripcionInput = fila.querySelector("#descripcionTareaSecundaria");
+      const descripcionInput = fila.querySelector(
+        "#descripcionTareaSecundaria"
+      );
       const horasAsignadasInput = fila.querySelector(
         '[name="inputHorasAdicionales"]'
       );
@@ -343,7 +348,7 @@ $(document).ready(function () {
       const descripcionSecundaria = fila.querySelector(
         '[name="tareasAdicionales"]'
       );
-    
+
       const descripcionPrincipal = descripcionInput
         ? descripcionInput.textContent
         : "";
@@ -354,13 +359,13 @@ $(document).ready(function () {
       const tareasSecundarias = descripcionSecundaria
         ? descripcionSecundaria.value
         : "";
-    
+
       const existeCombinacion = arrayTaskSecond.some(
         (item) =>
           item.descripcionPrincipal === descripcionPrincipal &&
           item.descripcionSecundaria === tareasSecundarias
       );
-    
+
       if (!existeCombinacion) {
         const objInfoTaskSecond = {
           descripcionPrincipal: descripcionPrincipal,
@@ -368,7 +373,7 @@ $(document).ready(function () {
           responsable: responsable,
           descripcionSecundaria: tareasSecundarias,
         };
-    
+
         // Agregar el objeto al arreglo
         arrayTaskSecond.push(objInfoTaskSecond);
       }
@@ -418,6 +423,21 @@ $(document).ready(function () {
     })
     .catch((error) => console.error("Error:", error));
 
+// Función para crear elementos SVG
+function createSVG(pathData) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  svg.setAttribute("height", "16");
+  svg.setAttribute("width", "16");
+  svg.setAttribute("viewBox", "0 0 512 512");
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", pathData);
+
+  svg.appendChild(path);
+
+  return svg;
+}
 
   // FUNCION PARA LA CARGA DE LA TABLA
   function loadListProjects() {
@@ -431,6 +451,16 @@ $(document).ready(function () {
       row.insertCell().textContent = proyecto.tituloProyecto;
       row.insertCell().textContent = proyecto.Cliente;
       row.insertCell().textContent = proyecto.Agente;
+
+      // Condición para verificar el EstadoProyecto y agregar el SVG
+      if (proyecto.idEstado === 2) {
+        const svg = createSVG("M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z");
+        row.insertCell().appendChild(svg);
+      } else if (proyecto.idEstado === 1) {
+        const svg = createSVG("M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z");
+        row.insertCell().appendChild(svg);
+      }
+
       row.insertCell().textContent = proyecto.EstadoProyecto;
 
       // Agregar la nueva celda con un botón
@@ -440,6 +470,7 @@ $(document).ready(function () {
       button.textContent = "Ver";
       button.dataset.toggle = "modal";
       button.dataset.target = "#modalInfoProyect";
+
       // FUNCIONALIDAD DEL BOTON PARA OTRO MODAL
       button.addEventListener("click", function () {
         modalInfoProyectLabel.innerHTML = "";
@@ -453,12 +484,12 @@ $(document).ready(function () {
 
         editSolicitante.value = "";
         editSolicitante.value = proyecto.idCliente;
-        const changeEvent = new Event('change');
+        const changeEvent = new Event("change");
         editSolicitante.dispatchEvent(changeEvent);
 
         editAgenteSolicitado.value = "";
         editAgenteSolicitado.value = proyecto.idAgente;
-        const changeEventAgente = new Event('change');
+        const changeEventAgente = new Event("change");
         editAgenteSolicitado.dispatchEvent(changeEventAgente);
 
         editFechaEstimada.value = "";
@@ -471,10 +502,7 @@ $(document).ready(function () {
         editDescripcionGeneral.value = proyecto.descripcionActividadGeneral;
 
         // TABLA PARA LA EDICION DE ACTIVIDADES PRINCIPALES Y SECUNDARIAS
-        tableBodyTasksEdit.innerHTML = '';
-
-
-
+        tableBodyTasksEdit.innerHTML = "";
       });
       buttonCell.appendChild(button);
     });
