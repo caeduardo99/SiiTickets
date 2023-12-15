@@ -6,11 +6,15 @@ class EstadosTicket(models.Model):
     id = models.AutoField(primary_key=True)
     descripcion = models.CharField(max_length=30)
 
+class ModuloSii4(models.Model):
+    id = models.AutoField(primary_key=True)
+    modulo = models.CharField(max_length=255)
+    descripcionModulo = models.CharField(max_length=255)
 
 class Empresa(models.Model):
     id = models.AutoField(primary_key=True)
     nombreEmpresa = models.CharField(max_length=255)
-    fechaCreacion = models.DateTimeField(auto_now_add=True)
+    fechaCreacion = models.DateTimeField()
     direccion = models.CharField(max_length=255)
     telefono = models.CharField(max_length=255)
     email = models.CharField(max_length=255)
@@ -19,16 +23,22 @@ class Rol(models.Model):
     id = models.AutoField(primary_key=True)
     descripcion = models.CharField(max_length=255)
 
+class Solicitante(models.Model):
+    id = models.AutoField(primary_key=True)
+    nombreApellido = models.CharField(max_length=255)
+    telefonoSolicitante = models.CharField(max_length=255)
+    idEmpresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
+
 class TicketActualizacion(models.Model):
     id = models.AutoField(primary_key=True)
     idAgente = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    idEmpresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
+    idSolicitante = models.ForeignKey(Solicitante, on_delete=models.CASCADE, related_name='ticket_actualizacion_solicitante')
     fechaCreacion = models.DateTimeField()
     fechaInicio = models.DateTimeField()
     fechaFinalizacion = models.DateTimeField()
     fechaFinalizacionReal = models.DateTimeField()
     horasDiariasAsignadas = models.DecimalField(max_digits=5, decimal_places=2)
-    moduloActualizar = models.CharField(max_length=255)
+    moduloActualizar = models.ForeignKey(ModuloSii4, on_delete=models.CASCADE, related_name='ticket_actualizacion_modulo')
     descripcionGeneral = models.CharField(max_length=255)
     observaciones = models.CharField(max_length=255)
     prioridad = models.CharField(max_length=100)
@@ -38,23 +48,18 @@ class TicketActualizacion(models.Model):
 # Modelo TicketDesarrollo
 class TicketDesarrollo(models.Model):
     id = models.AutoField(primary_key=True)
-    idAgente = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='ticket_desarrollo_agente')
-    idSolicitante = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='ticket_desarrollo_solicitante')
-    nombreProyecto = models.CharField(max_length=255)
+    tituloProyecto = models.CharField(max_length=255)
+    descripcionActividadGeneral = models.CharField(max_length=500)
+    idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ticket_desarrollo_agente')
+    idSolicitante = models.ForeignKey(Solicitante, on_delete=models.CASCADE, related_name='ticket_desarrollo_solicitante')
     fechaCreacion = models.DateTimeField()
-    fechaInicio = models.DateTimeField()
-    fechaFinalizacion = models.DateTimeField()
-    fechaFinalizacionReal = models.DateTimeField()
-    descripcionActividadPrincipal = models.ForeignKey('ActividadPrincipal', on_delete=models.CASCADE)
-    idActividadSecundaria = models.ForeignKey('ActividadSecundaria', on_delete=models.CASCADE)
+    fechaAsignacion = models.DateTimeField(blank=True, null=True)
+    fechaFinalizacion = models.DateTimeField(blank=True, null=True)
+    fechaFinalizacionEstimada = models.DateTimeField(blank=True, null=True)
     idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_desarollo_estado')  # Cambio aquí
     facturar = models.BooleanField()
+    horasCompletasProyecto = models.IntegerField()
 
-class Solicitante(models.Model):
-    id = models.AutoField(primary_key=True)
-    nombreApellido = models.CharField(max_length=255)
-    telefonoSolicitante = models.CharField(max_length=255)
-    idEmpresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
 
 # Modelo TicketSoporte
 class TicketSoporte(models.Model):
@@ -74,18 +79,15 @@ class TicketSoporte(models.Model):
 class ActividadPrincipal(models.Model):
     id = models.AutoField(primary_key=True)
     descripcion = models.CharField(max_length=255)
-    fechaCreacion = models.DateTimeField(auto_now_add=True)
-    fechaInicio = models.DateTimeField(auto_now_add=True)
-    fechaFinalizacion = models.DateTimeField(auto_now_add=True)
-    fechaFinalizacionReal = models.DateTimeField(auto_now_add=True)
     idTicketDesarrollo = models.ForeignKey(TicketDesarrollo, on_delete=models.CASCADE)
-    idTicketSecundario = models.ForeignKey('ActividadSecundaria', on_delete=models.CASCADE)
+    horasDiariasAsignadas = models.IntegerField()
+    idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_principal_estado')
+    idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ticket_principal_agente')
+    
 
 class ActividadSecundaria(models.Model):
     id = models.AutoField(primary_key=True)
     descripcion = models.CharField(max_length=255)
-    fechaCreacion = models.DateTimeField(auto_now_add=True)
-    fechaInicio = models.DateTimeField(auto_now_add=True)
-    fechaFinalizacion = models.DateTimeField(auto_now_add=True)
-    fechaFinalizacionReal = models.DateTimeField(auto_now_add=True)
     idActividadPrincipal = models.ForeignKey(ActividadPrincipal, on_delete=models.CASCADE)
+    horasDiariasAsignadas = models.IntegerField()
+    idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_secundaria_estado')

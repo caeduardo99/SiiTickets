@@ -32,6 +32,10 @@ urlpatterns = [
     path('estadosjson/', views.estadosjson, name='estadosjson'),
 
     path('ticketsoportescreados/', views.ticketsoportescreados, name='ticketsoportescreados'),
+    path('ticketDesarrolloCreados/', views.ticketDesarrolloCreados, name='ticketDesarrolloCreados'),
     path('crear_ticket_soporte/', views.crear_ticket_soporte, name='crear_ticket_soporte'),
+    path('crear_ticket_desarrollo/', views.crear_ticket_desarrollo, name='crear_ticket_desarrollo'),
+    
+    path('ticketDesarrollo/<int:ticket_id>/', views.detalleTicketDesarrollo, name='detalleTicketDesarrollo'),
 
 ]

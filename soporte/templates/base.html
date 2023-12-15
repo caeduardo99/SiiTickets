@@ -253,6 +253,26 @@
         //Money Euro
         $('[data-mask]').inputmask()
 
+        $('#editFechaEstimada').daterangepicker({
+            timePicker: true,
+            singleDatePicker: true,
+            timePicker24Hour: true,
+            startDate: moment(),
+            locale: {
+                format: 'YYYY-MM-DD HH:mm:ss'
+            }
+        })
+
+        $('#editFechaFin').daterangepicker({
+            timePicker: true,
+            singleDatePicker: true,
+            timePicker24Hour: true,
+            startDate: moment(),
+            locale: {
+                format: 'YYYY-MM-DD HH:mm:ss'
+            }
+        })
+
         $('#fecha_ticket_creacion').daterangepicker({
             timePicker: true,
             singleDatePicker: true,
