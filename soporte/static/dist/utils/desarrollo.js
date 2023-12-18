@@ -58,6 +58,7 @@ $(document).ready(function () {
   const editDescripcionGeneral = document.getElementById(
     "editDescripcionGeneral"
   );
+
   const tableBodyTasksEdit = document.getElementById("tableBodyTasksEdit");
 
   var resultadosAgentesData = window.resultados_agentes_data;
@@ -92,17 +93,19 @@ $(document).ready(function () {
     nameAgente = agentesolicitado.options[agentesolicitado.selectedIndex].text;
 
     if (agentesolicitado.value != "") {
-      fechaTicketAsignacion.disabled = false;
       rowFechaInformacionFinalizacionEstimada.style.display = "";
       rowFechaInformacionFinalizacion.style.display = "";
       estadoTicket = 2;
+
+      const today = new Date();
+      const formattedDateTime = today.toISOString();
+      fechaTicketAsignacion.value = formattedDateTime;
     } else {
       fechaTicketAsignacion.value = "";
       fechaTicketEstimado.value = "";
       fechaTicketFinalizacion.value = "";
       rowFechaInformacionFinalizacionEstimada.style.display = "none";
       rowFechaInformacionFinalizacion.style.display = "none";
-      fechaTicketAsignacion.disabled = true;
       estadoTicket = 1;
     }
   });
@@ -423,21 +426,21 @@ $(document).ready(function () {
     })
     .catch((error) => console.error("Error:", error));
 
-// Función para crear elementos SVG
-function createSVG(pathData) {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  svg.setAttribute("height", "16");
-  svg.setAttribute("width", "16");
-  svg.setAttribute("viewBox", "0 0 512 512");
+  // Función para crear elementos SVG
+  function createSVG(pathData) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    svg.setAttribute("height", "16");
+    svg.setAttribute("width", "16");
+    svg.setAttribute("viewBox", "0 0 512 512");
 
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", pathData);
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", pathData);
 
-  svg.appendChild(path);
+    svg.appendChild(path);
 
-  return svg;
-}
+    return svg;
+  }
 
   // FUNCION PARA LA CARGA DE LA TABLA
   function loadListProjects() {
@@ -454,14 +457,16 @@ function createSVG(pathData) {
 
       // Condición para verificar el EstadoProyecto y agregar el SVG
       if (proyecto.idEstado === 2) {
-        const svg = createSVG("M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z");
+        const svg = createSVG(
+          "M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"
+        );
         row.insertCell().appendChild(svg);
       } else if (proyecto.idEstado === 1) {
-        const svg = createSVG("M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z");
+        const svg = createSVG(
+          "M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
+        );
         row.insertCell().appendChild(svg);
       }
-
-      row.insertCell().textContent = proyecto.EstadoProyecto;
 
       // Agregar la nueva celda con un botón
       const buttonCell = row.insertCell();
@@ -473,8 +478,30 @@ function createSVG(pathData) {
 
       // FUNCIONALIDAD DEL BOTON PARA OTRO MODAL
       button.addEventListener("click", function () {
+        const ticketId = proyecto.NumTicket;
+
+        // Realizar la solicitud al backend para el detalle del proyecto
+        fetch(`detalleTicketDesarrollo/${ticketId}/`)
+          .then((response) => response.json())
+          .then((detalleTicket) => {
+            // TABLA PARA LA EDICION DE ACTIVIDADES PRINCIPALES Y SECUNDARIAS
+            tableBodyTasksEdit.innerHTML = "";
+
+            // Iterar sobre los detalles del ticket y crear filas en la tabla
+            detalleTicket.forEach((tarea) => {
+              const row = tableBodyTasksEdit.insertRow();
+
+              row.insertCell().textContent = tarea.TareaPrincipal || "Sin datos";
+              row.insertCell().textContent = `${tarea.horasPrincipales} h` || "Sin datos";
+              row.insertCell().textContent = tarea.idAgenteTarPrincipal || "Sin datos";
+              row.insertCell().textContent = tarea.TareaSecundaria || "Sin datos";
+              row.insertCell().textContent = `${tarea.horasSecundarias} h` || "Sin datos";
+            });
+          })
+          .catch((error) => console.error("Error:", error));
+
         modalInfoProyectLabel.innerHTML = "";
-        modalInfoProyectLabel.innerHTML = `Proyecto ${proyecto.tituloProyecto}`;
+        modalInfoProyectLabel.innerHTML = proyecto.tituloProyecto;
 
         inputEditTitleProject.value = "";
         inputEditTitleProject.value = proyecto.tituloProyecto;
@@ -500,9 +527,6 @@ function createSVG(pathData) {
 
         editDescripcionGeneral.value = "";
         editDescripcionGeneral.value = proyecto.descripcionActividadGeneral;
-
-        // TABLA PARA LA EDICION DE ACTIVIDADES PRINCIPALES Y SECUNDARIAS
-        tableBodyTasksEdit.innerHTML = "";
       });
       buttonCell.appendChild(button);
     });

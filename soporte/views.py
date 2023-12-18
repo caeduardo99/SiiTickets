@@ -348,7 +348,7 @@ def ticketDesarrolloCreados(request):
     LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
     LEFT JOIN soporte_estadosticket ses on ses.id = st.idestado_id
     LEFT JOIN auth_user au on au.id = st.idAgente_id
-      WHERE au.username = %s
+    WHERE au.username = %s
     """
     connection = connections["default"]
 
@@ -364,15 +364,16 @@ def ticketDesarrolloCreados(request):
 
 def detalleTicketDesarrollo(request, ticket_id):
     consulta_sql = """
-    SELECT st.id as NumTicket, ss.id as idCliente, ss.nombreApellido as Cliente, au.id as idAgente, au.first_name as Agente,
-    se.nombreEmpresa as Empresa, st.tituloProyecto, st.idestado_id as idEstado, ses.descripcion as EstadoProyecto, 
-    st.descripcionActividadGeneral, st.horasCompletasProyecto as HorasTotales,
-    st.fechaCreacion, st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion 
+    SELECT st.id as NumTicket, st.tituloProyecto , st.idAgente_id as idAgenteAdmin, au.first_name as nomAgenteAdmin,
+	sa.id as idTareaPrincipal, sa.descripcion as TareaPrincipal, sa.idAgente_id as idAgenteTarPrincipal, 
+	sa.horasDiariasAsignadas as horasPrincipales,
+	au2.first_name as nomAgentTareaPrincipal,
+	sa2.id as idTareaSecundaria, sa2.descripcion as TareaSecundaria, sa2.horasDiariasAsignadas as horasSecundarias
     FROM soporte_ticketdesarrollo st 
-    LEFT JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-    LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
-    LEFT JOIN soporte_estadosticket ses on ses.id = st.idestado_id
-    LEFT JOIN auth_user au on au.id = st.idAgente_id
+    LEFT JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id
+    LEFT JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id = sa.id 
+    LEFT JOIN auth_user au ON au.id = st.idAgente_id
+    LEFT JOIN auth_user au2 ON au2.id = sa.idAgente_id
     WHERE st.id = %s
     """
 
@@ -385,7 +386,7 @@ def detalleTicketDesarrollo(request, ticket_id):
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     # Devolver la respuesta JSON
-    return JsonResponse(resultados[0], safe=False)
+    return JsonResponse(resultados, safe=False)
 
 
 @require_POST
