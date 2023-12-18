@@ -492,10 +492,10 @@ $(document).ready(function () {
               const row = tableBodyTasksEdit.insertRow();
 
               row.insertCell().textContent = tarea.TareaPrincipal || "Sin datos";
-              row.insertCell().textContent = `${tarea.horasPrincipales} h` || "Sin datos";
+              row.insertCell().textContent = tarea.horasPrincipales || "Sin datos";
               row.insertCell().textContent = tarea.idAgenteTarPrincipal || "Sin datos";
               row.insertCell().textContent = tarea.TareaSecundaria || "Sin datos";
-              row.insertCell().textContent = `${tarea.horasSecundarias} h` || "Sin datos";
+              row.insertCell().textContent = tarea.horasSecundarias || "Sin datos";
             });
           })
           .catch((error) => console.error("Error:", error));
