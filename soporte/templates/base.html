@@ -299,6 +299,16 @@
             }
         });
 
+        $('#editFechaEstimada').daterangepicker({
+            timePicker: true,
+            singleDatePicker: true,
+            timePicker24Hour: true,
+            startDate: moment(),
+            locale: {
+                format: 'YYYY-MM-DD HH:mm:ss'
+            }
+        })
+
         $('#fecha_ticket_asignacion').daterangepicker({
             timePicker: true,
             singleDatePicker: true,

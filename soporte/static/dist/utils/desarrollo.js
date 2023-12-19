@@ -40,6 +40,7 @@ $(document).ready(function () {
   const fechaTicketAsignacion = document.getElementById(
     "fecha_ticket_asignacion"
   );
+  const btnSaveChange = document.getElementById("btnSaveChange");
   const modalInfoProyectLabel = document.getElementById(
     "modalInfoProyectLabel"
   );
@@ -53,13 +54,14 @@ $(document).ready(function () {
   const editSolicitante = document.getElementById("editSolicitante");
   const editAgenteSolicitado = document.getElementById("editAgenteSolicitado");
   const editFechaEstimada = document.getElementById("editFechaEstimada");
-  const editFechaFin = document.getElementById("editFechaFin");
   const btnCreateTicket = document.getElementById("btnCreateTicket");
   const editDescripcionGeneral = document.getElementById(
     "editDescripcionGeneral"
   );
-
+  const btnRunEdit = document.getElementById("btnRunEdit");
   const tableBodyTasksEdit = document.getElementById("tableBodyTasksEdit");
+  const btnAddTaskMainEdit = document.getElementById("btnAddTaskMainEdit");
+  const tableTasksEdit = document.getElementById("tableTasksEdit");
 
   var resultadosAgentesData = window.resultados_agentes_data;
   var resultadosProyectos;
@@ -69,7 +71,9 @@ $(document).ready(function () {
     nameSolicitante,
     estadoTicket = 1,
     arrayTaskMain = [],
-    arrayTaskSecond = [];
+    arrayTaskSecond = [],
+    infoGeneralProject,
+    detalleTicket;
 
   // FUNCIONAMIENTO DEL INPUT TITULO
   inputTitleProject.addEventListener("input", function () {
@@ -90,24 +94,25 @@ $(document).ready(function () {
 
   // METODO PARA CONTROLAR LAS ACCIONES DEL SELECT DEL AGENTE
   $("#agentesolicitado").on("change", function () {
-    nameAgente = agentesolicitado.options[agentesolicitado.selectedIndex].text;
+    var agenteValue = $(this).val();
 
-    if (agentesolicitado.value != "") {
-      rowFechaInformacionFinalizacionEstimada.style.display = "";
-      rowFechaInformacionFinalizacion.style.display = "";
-      estadoTicket = 2;
+    // Realizar la solicitud AJAX
+    $.ajax({
+      type: "GET",
+      url: `infoAgenteSolicitado/${agenteValue}/`, // La URL de tu vista con el id_agente
+      dataType: "json",
+      success: function (data) {
+        $("#modalInfoAgente").modal("show");
+        console.log(data)
+        const titleModalAgente = document.getElementById('titleModalAgente');
+        titleModalAgente.textContent = `${data[0].first_name} ${data[0].last_name}`;
 
-      const today = new Date();
-      const formattedDateTime = today.toISOString();
-      fechaTicketAsignacion.value = formattedDateTime;
-    } else {
-      fechaTicketAsignacion.value = "";
-      fechaTicketEstimado.value = "";
-      fechaTicketFinalizacion.value = "";
-      rowFechaInformacionFinalizacionEstimada.style.display = "none";
-      rowFechaInformacionFinalizacion.style.display = "none";
-      estadoTicket = 1;
-    }
+
+      },
+      error: function (error) {
+        console.error("Error en la solicitud AJAX:", error);
+      },
+    });
   });
 
   // METODO PARA CONTROLAR EL AGENTE DEL SELECT SOLICITANTE
@@ -479,24 +484,37 @@ $(document).ready(function () {
       // FUNCIONALIDAD DEL BOTON PARA OTRO MODAL
       button.addEventListener("click", function () {
         const ticketId = proyecto.NumTicket;
+        btnRunEdit.style.display = "";
+        btnSaveChange.style.display = "none";
+        infoGeneralProject = proyecto;
 
         // Realizar la solicitud al backend para el detalle del proyecto
         fetch(`detalleTicketDesarrollo/${ticketId}/`)
           .then((response) => response.json())
-          .then((detalleTicket) => {
+          .then((data) => {
             // TABLA PARA LA EDICION DE ACTIVIDADES PRINCIPALES Y SECUNDARIAS
             tableBodyTasksEdit.innerHTML = "";
+            detalleTicket = data;
 
-            // Iterar sobre los detalles del ticket y crear filas en la tabla
-            detalleTicket.forEach((tarea) => {
-              const row = tableBodyTasksEdit.insertRow();
+            if (detalleTicket.length == 1) {
+              tableTasksEdit.style.display = "none";
+              btnRunEdit.style.display = "none";
+              btnSaveChange.style.display = "";
+            } else {
+              // Iterar sobre los detalles del ticket y crear filas en la tabla
+              detalleTicket.forEach((tarea) => {
+                tableTasksEdit.style.display = "";
+                btnRunEdit.style.display = "";
+                const row = tableBodyTasksEdit.insertRow();
 
-              row.insertCell().textContent = tarea.TareaPrincipal || "Sin datos";
-              row.insertCell().textContent = tarea.horasPrincipales || "Sin datos";
-              row.insertCell().textContent = tarea.idAgenteTarPrincipal || "Sin datos";
-              row.insertCell().textContent = tarea.TareaSecundaria || "Sin datos";
-              row.insertCell().textContent = tarea.horasSecundarias || "Sin datos";
-            });
+                row.insertCell().textContent = tarea.TareaPrincipal || "";
+                row.insertCell().textContent = tarea.horasPrincipales || "";
+                row.insertCell().textContent =
+                  tarea.nomAgentTareaPrincipal || "";
+                row.insertCell().textContent = tarea.TareaSecundaria || "";
+                row.insertCell().textContent = tarea.horasSecundarias || "";
+              });
+            }
           })
           .catch((error) => console.error("Error:", error));
 
@@ -522,13 +540,76 @@ $(document).ready(function () {
         editFechaEstimada.value = "";
         editFechaEstimada.value = proyecto.fechaFinalizacionEstimada;
 
-        editFechaFin.value = "";
-        editFechaFin.value = proyecto.fechaFinalizacion;
-
         editDescripcionGeneral.value = "";
         editDescripcionGeneral.value = proyecto.descripcionActividadGeneral;
       });
+
       buttonCell.appendChild(button);
     });
   }
+
+  btnRunEdit.addEventListener("click", function () {
+    tableBodyTasksEdit.innerHTML = "";
+    btnRunEdit.style.display = "none";
+    btnSaveChange.style.display = "";
+
+    detalleTicket.forEach((tarea) => {
+      const row = tableBodyTasksEdit.insertRow();
+
+      row.insertCell().textContent = tarea.TareaPrincipal || "";
+      row.insertCell().textContent = tarea.horasPrincipales || "";
+      row.insertCell().textContent = tarea.nomAgentTareaPrincipal || "";
+
+      const tareasSecundariasCell = row.insertCell();
+      const inputTareasSecundarias = document.createElement("input");
+      inputTareasSecundarias.type = "text";
+      inputTareasSecundarias.value = tarea.TareaSecundaria || "";
+      tareasSecundariasCell.appendChild(inputTareasSecundarias);
+
+      const horasSecundariasCell = row.insertCell();
+      const inputHorasSecundarias = document.createElement("input");
+      inputHorasSecundarias.type = "text";
+      inputHorasSecundarias.value = tarea.horasSecundarias || "";
+      horasSecundariasCell.appendChild(inputHorasSecundarias);
+
+      const actionCell = row.insertCell();
+      const buttonAddTaskSecond = document.createElement("button");
+      buttonAddTaskSecond.type = "button";
+      buttonAddTaskSecond.className = "btn btn-success btn-sm btn-block";
+      buttonAddTaskSecond.textContent = "+";
+      actionCell.appendChild(buttonAddTaskSecond);
+    });
+  });
+
+  function obtenerFechaActual() {
+    const fechaActual = new Date();
+    const formatoFecha = fechaActual
+      .toISOString()
+      .slice(0, 19)
+      .replace("T", " ");
+    return formatoFecha;
+  }
+
+  btnSaveChange.addEventListener("click", function () {
+    let objInfoGeneral = {
+      id: infoGeneralProject.NumTicket,
+      tituloProyecto: inputEditTitleProject.value,
+      descripcionActividadGeneral: editDescripcionGeneral.value,
+      idAgente: parseInt(editAgenteSolicitado.value),
+      idSolicitante: parseInt(editSolicitante.value),
+      fechaCreacion: infoGeneralProject.fechaCreacion,
+      fechaAsignacion:
+        parseInt(editAgenteSolicitado.value) == 2 ? null : obtenerFechaActual(),
+      fechaFinalizacion: infoGeneralProject.fechaFinalizacion,
+      fechaFinalizacionEstimada: editFechaEstimada.value,
+      idestado:
+        parseInt(editAgenteSolicitado.value) == 2
+          ? infoGeneralProject.idEstado
+          : 2,
+      facturar: true,
+      horasCompletasProyecto: inputEditNumHoras.value,
+    };
+
+    console.log(objInfoGeneral);
+  });
 });

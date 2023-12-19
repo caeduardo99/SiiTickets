@@ -388,6 +388,27 @@ def detalleTicketDesarrollo(request, ticket_id):
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
+def infoAgenteSolicitado(request, id_agente):
+    consulta_sql = """
+    SELECT au.id, au.first_name, au.last_name, au.date_joined,
+	st.tituloProyecto, sa.descripcion, st.horasCompletasProyecto, sa.horasDiariasAsignadas as horasPrincipales,
+	sa2.horasDiariasAsignadas as horasSecundarias
+	FROM auth_user au 
+	LEFT JOIN soporte_ticketdesarrollo st ON st.idAgente_id = au.id 
+	LEFT JOIN soporte_actividadprincipal sa ON sa.idAgente_id = au.id
+	LEFT JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id = sa.id 
+	WHERE au.id = %s
+    """
+    connection = connections["default"]
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql, [id_agente])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
 
 @require_POST
 def crear_ticket_soporte(request):
@@ -532,6 +553,11 @@ def crear_ticket_desarrollo(request):
     else:
         id_agente = 2
 
+    if id_agente != 2:
+        fechaAsignacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
+    else:
+        fechaAsignacion = None
+
     try:
         # Obtener los datos del formulario
         inputTitleProject = request.POST.get("inputTitleProject")
@@ -542,10 +568,7 @@ def crear_ticket_desarrollo(request):
         fechaCreacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
         fechaEstimada = request.POST.get("fecha_estimado")
         fechaFinalizacion = request.POST.get("fecha_finalizacion")
-        fechaAsignacion = request.POST.get("fecha_ticket_asignacion")
-        textDescripcionRequerimiento = request.POST.get(
-            "textDescripcionRequerimiento", ""
-        )
+        textDescripcionRequerimiento = request.POST.get("textDescripcionRequerimiento", "")
         numHorasCompletas = request.POST.get("inputNumHorasCompletas", "")
         estado = EstadosTicket.objects.get(id=id_estado)
         facturar = True
@@ -970,29 +993,16 @@ LEFT JOIN soporte_estadosticket se2 ON se2.id = st.idestado_id
 def editar_ticket_actualizar(request):
     if request.method in ('PUT', 'POST'):
         ticket_id = request.POST.get('numeroticketedit')
-        print('editar', ticket_id)
         # Obtener los datos del formulario
         id_agente = request.POST.get('agentesolicitadoedit', '')
-        print(id_agente)
         id_solicitante = request.POST.get('solicitanteEdit', '')
-        print(id_solicitante)
         horasAsignadas = request.POST.get('horasDiariasAsignadasedit', '')
-        print(horasAsignadas)
-        # fecha_inicio = request.POST.get('fecha_asignacionedit', '')
-        # fecha_finalizacion = request.POST.get('fecha_estimadoedit', '')
-        # fecha_finalizacion_real = request.POST.get('fechafinalizacionedit', '')
         descripcion = request.POST.get('descripcionGeneraledit', '')
-        print(descripcion)
         prioridad = request.POST.get('prioridadEdit', '')
-        print(prioridad)
         observacion = request.POST.get('observacionesedit', '')
-        print(observacion)
         id_estado = request.POST.get('estadoEdit', '')
-        print(id_estado)
         id_modulo = request.POST.get('moduloEdit', '')
-        print(id_modulo)
         facturar = request.POST.get('facturaEdit', '')
-        print(facturar)
 
         try:
             # Obtener la instancia del solicitante
@@ -1012,16 +1022,12 @@ def editar_ticket_actualizar(request):
             ticket.idAgente = agente
             ticket.idSolicitante = solicitante
             ticket.horasDiariasAsignadas = horasAsignadas
-            # ticket.fechaInicio = fecha_inicio
-            # ticket.fechaFinalizacion = fecha_finalizacion
-            # ticket.fechaFinalizacionReal = fecha_finalizacion_real
             ticket.descripcion = descripcion
             ticket.prioridad = prioridad
             ticket.observacion = observacion
             ticket.idestado = estado
             ticket.moduloActualizar_id = modulo
             ticket.facturar = facturar
-            print('ticket: ', ticket)
             # Guardar los cambios en el ticket
             ticket.save()
 
@@ -1038,3 +1044,8 @@ def editar_ticket_actualizar(request):
             return JsonResponse({'status': 'error', 'message': f'Error al editar el ticket: {str(e)}'}, status=400)
     else:
         return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+
+
+@csrf_exempt
+def editar_desarrollo(request):
+    pass

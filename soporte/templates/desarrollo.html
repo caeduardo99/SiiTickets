@@ -157,7 +157,7 @@
                 <div class="card-header bg-success text-white">Detalles de los proyectos creados</div>
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table class="table" id="tickets-table">
+                        <table class="table table-hover" id="tickets-table">
                             <thead>
                                 <tr>
                                     <th># Proyecto</th>
@@ -192,7 +192,6 @@
             </div>
             <div class="modal-body">
                 <form class="form-row">
-                    {% csrf_token %}
                     <div class="form-group col-md-8">
                         <div class="form-group">
                             <label>Proyecto</label>
@@ -242,26 +241,20 @@
                             </div>
                         </div>
                     </div>
-                    <div class="form-group col-md-6">
-                        <label>Fecha Finalización:</label>
-                        <div class="input-group">
-                            <input type="text" id="editFechaFin" name="editFechaFin"
-                                class="form-control" placeholder="Seleccione una fecha de culminacion" />
-                            <div class="input-group-append">
-                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                            </div>
-                        </div>
-                    </div>
 
                     <div class="form-group col-md-12">
                         <label for="editDescripcionGeneral">Descripcion General</label>
-                        <textarea class="form-control" id="editDescripcionGeneral"
-                            name="editDescripcionGeneral" rows="3"></textarea>
+                        <textarea class="form-control" id="editDescripcionGeneral" name="editDescripcionGeneral"
+                            rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group col-md-12">
+                        <button type="button" id="btnAddTaskMainEdit" class="btn btn-success btn-sm btn-block">+ Agregar tarea principal</button>
                     </div>
 
                     <div class="form-group col-md-12">
                         <div class="table-responsive">
-                            <table class="table table-hover table-sm">
+                            <table class="table table-hover table-sm" id="tableTasksEdit">
                                 <thead style="text-align: center;">
                                     <tr>
                                         <th scope="col">Tarea principal</th>
@@ -282,13 +275,35 @@
                 </form>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-warning btn-sm" id="btnSaveChange" style="display: none;">Guardar cambios</button>
+                <button type="button" class="btn btn-info btn-sm" id="btnRunEdit">Comenzar edición de tareas</button>
                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-warning btn-sm" style="display: none;">Guardar cambios</button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="modalInfoAgente" tabindex="-1" aria-labelledby="modalInfoAgenteLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="titleModalAgente"></h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          ...
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 
 <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>

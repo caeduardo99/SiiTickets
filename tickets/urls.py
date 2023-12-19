@@ -50,6 +50,7 @@ urlpatterns = [
     path('ticketDesarrolloCreados/', views.ticketDesarrolloCreados, name='ticketDesarrolloCreados'),
     path('crear_ticket_desarrollo/', views.crear_ticket_desarrollo, name='crear_ticket_desarrollo'),
     path('detalleTicketDesarrollo/<int:ticket_id>/', views.detalleTicketDesarrollo, name='detalleTicketDesarrollo'),
+    path('infoAgenteSolicitado/<int:id_agente>/', views.infoAgenteSolicitado, name='infoAgenteSolicitado'),
 
     path('empresascreados/', views.empresascreados, name='empresascreados'),
     path('moduloscreados/', views.moduloscreados, name='moduloscreados'),
@@ -59,5 +60,7 @@ urlpatterns = [
     path('detalles_modulo/', views.detalles_modulo, name='detalles_modulo'),
     path('actualizar_empresa/', views.actualizar_empresa, name='actualizar_empresa'),
     path('actualizar_modulo/', views.actualizar_modulo, name='actualizar_modulo'),
+
+    path('editar_desarrollo/', views.editar_desarrollo, name='editar_desarrollo'),
 
 ]
