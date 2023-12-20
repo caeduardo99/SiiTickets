@@ -81,15 +81,14 @@ DATABASES = {
         'NAME': str(BASE_DIR / 'db.sqlite3'),
     },
     'sql_server': {
-        'ENGINE': 'sql_server.pyodbc',
-        'NAME': config('SQL_SERVER_NAME', default=''),
-        'USER': config('SQL_SERVER_USER', default=''),
-        'PASSWORD': config('SQL_SERVER_PASSWORD', default=''),
-        'HOST': config('SQL_SERVER_HOST', default=''),
-        'PORT': config('SQL_SERVER_PORT', default=''),
+        'ENGINE': config("ENGINE"),
+        'NAME': config("EMPRESA_DB1"),
+        'USER': config("USUARIO_DB"),
+        'PASSWORD': config("PASSWORD_DB"),
+        'HOST': config("SERVER_DB"),
         'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',  # Puedes necesitar ajustar esto según tu versión
-        },
+            'driver': "ODBC Driver 17 for SQL Server",
+        }
     },
 }
 

@@ -18,6 +18,7 @@ from .models import Solicitante, EstadosTicket
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from .models import TicketSoporte, TicketActualizacion, ModuloSii4, Empresa
+from django.contrib.auth.decorators import user_passes_test
 
 
 def login_user(request):
@@ -91,6 +92,7 @@ def soporte(request):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def desarrollo(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
     print("nombre_usuario", nombre_usuario)
@@ -111,6 +113,7 @@ def desarrollo(request):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def desarrolloact(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
 
@@ -143,7 +146,9 @@ def desarrolloact(request):
     }
     return render(request, 'desarrollo_actualizacion.html', context)
 
+
 @login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def empresas(request):
     # nombre_usuario = request.user.username if request.user.is_authenticated else None
     # print('nombre_usuario', nombre_usuario)
@@ -159,6 +164,7 @@ def empresas(request):
 
 
 @login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def modulos(request):
     # nombre_usuario = request.user.username if request.user.is_authenticated else None
     # print('nombre_usuario', nombre_usuario)
@@ -177,19 +183,45 @@ def modulos(request):
 
 
 def solicitantesjson(request):
-    # Construir la consulta SQL
-    consulta_sql = """
-      SELECT ss.id,ss.nombreApellido,se.nombreEmpresa 
-FROM soporte_solicitante ss
-INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id;
-    """
-    connection = connections["default"]
+    # Obtener el nombre de usuario logeado
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
 
-    # Ejecutar la consulta SQL y obtener los resultados
-    with connection.cursor() as cursor:
-        cursor.execute(consulta_sql)
-        columns = [col[0] for col in cursor.description]
-        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    # Construir la primera consulta SQL
+    consulta_sql = """
+        SELECT ss.id, ss.nombreApellido, se.nombreEmpresa 
+        FROM soporte_solicitante ss
+        INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
+    """
+
+    resultados = []  # Inicializar la variable de resultados
+
+    # Agregar condición de filtro si hay un nombre de usuario logeado
+    if nombre_usuario:
+        consulta_sql += " WHERE se.nombreEmpresa = %s;"
+
+        connection = connections["default"]
+
+        # Ejecutar la primera consulta SQL y obtener los resultados
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_sql, [nombre_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        # Imprimir los resultados y nombre de usuario (para depuración)
+        print("Nombre de usuario:", nombre_usuario)
+        print("Resultados de la primera consulta JSON:", resultados)
+
+    # Si la primera consulta devuelve un conjunto vacío, ejecutar la segunda consulta sin la condición WHERE
+    if not resultados:
+        print("La primera consulta devolvió un conjunto vacío. Ejecutando la segunda consulta.")
+        connection = connections["default"]
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_sql.replace("WHERE se.nombreEmpresa = %s", ""))
+            columns = [col[0] for col in cursor.description]
+            resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            # Imprimir los resultados de la segunda consulta (para depuración)
+            print("Resultados de la segunda consulta JSON:", resultados)
 
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
@@ -198,7 +230,9 @@ INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id;
 def agentesjson(request):
     # Construir la consulta SQL
     consulta_sql = """
-    SELECT id, first_name || ' ' || last_name AS full_name FROM auth_user;
+    SELECT id, first_name || ' ' || last_name AS full_name
+FROM auth_user
+WHERE (first_name IS NOT NULL AND first_name <> '') OR (last_name IS NOT NULL AND last_name <> '')
     """
     connection = connections["default"]
 
@@ -227,6 +261,7 @@ def estadosjson(request):
 
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
+
 
 def modulojson(request):
     # Construir la consulta SQL
@@ -262,27 +297,57 @@ def empresasjson(request):
 
 def ticketsoportescreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
-    # Construir la consulta SQL
+
+    # Construir la consulta SQL original
     consulta_sql = """
-         SELECT st.id as NumTicket , st.comentario as Motivo, ss.nombreapellido as Solicitante,
-      st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa
-      FROM soporte_ticketsoporte st
-      LEFT JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-      LEFT JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
-      LEFT JOIN soporte_estadosticket ses ON ses.id = st.idestado_id
-      LEFT JOIN auth_user au ON au.id = st.idAgente_id
-      WHERE au.username = %s
-      """
-    connection = connections['default']
+        SELECT st.id as NumTicket, st.comentario as Motivo, ss.nombreapellido as Solicitante,
+        st.prioridad as Prioridad, ses.descripcion as Estado, se.nombreEmpresa as NombreEmpresa
+        FROM soporte_ticketsoporte st
+        LEFT JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+        LEFT JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
+        LEFT JOIN soporte_estadosticket ses ON ses.id = st.idestado_id
+        LEFT JOIN auth_user au ON au.id = st.idAgente_id
+    """
+
+    # Crear una copia de la consulta original
+    consulta_sql_copia = consulta_sql
+
+    # Agregar condición de filtro si hay un nombre de usuario logeado
+    if nombre_usuario:
+        consulta_sql_copia += " WHERE au.username = %s "
+    consulta_sql_copia += " ORDER BY st.id DESC "
+
+    print('consulta_sql_copia', consulta_sql_copia)
+    connection = connections["default"]
 
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        cursor.execute(consulta_sql, [nombre_usuario])
-        columns = [col[0] for col in cursor.description]
-        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        cursor.execute(consulta_sql_copia, [nombre_usuario])
+        resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+        # Imprimir los resultados y nombre de usuario (para depuración)
+        print("Nombre de usuario:", nombre_usuario)
+        print("Resultados de la consulta JSON:", resultados)
+
+    # Si la consulta devuelve un conjunto vacío y había un nombre de usuario, ejecutar la segunda consulta sin la condición WHERE original
+    if not resultados and nombre_usuario:
+        print("La consulta devolvió un conjunto vacío. Ejecutando la segunda consulta.")
+        # Imprimir la consulta_sql_sin_filtro con el valor de nombre_usuario
+
+        consulta_sql_sin_filtro = consulta_sql.replace("WHERE au.username = %s", "")
+        consulta_sql_sin_filtro += " WHERE se.nombreEmpresa = %s"  # Nueva condición WHERE
+        consulta_sql_sin_filtro += " ORDER BY st.id DESC "  # Cláusula ORDER BY agregada
+        print("Consulta SQL sin filtro:", consulta_sql_sin_filtro % nombre_usuario)
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_sql_sin_filtro, [nombre_usuario])
+            resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+            # Imprimir los resultados de la segunda consulta (para depuración)
+            print("Resultados de la segunda consulta JSON:", resultados)
 
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
+
 
 def ticketactualizacioncreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
@@ -354,7 +419,7 @@ def ticketDesarrolloCreados(request):
 
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        cursor.execute(consulta_sql,[nombre_usuario])
+        cursor.execute(consulta_sql, [nombre_usuario])
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
@@ -397,6 +462,7 @@ def crear_ticket_soporte(request):
     id_solicitante = request.POST.get('solicitante', '')
     fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
     fecha_inicio = request.POST.get('fecha_asignacion', '')
+    print('fecha_inicio', fecha_inicio)
     fecha_finalizacion = request.POST.get('fecha_estimado', '')
     fecha_finalizacion_real = request.POST.get('fecha_finalizacion', '')
     comentario = request.POST.get('motivo', '')
@@ -414,12 +480,19 @@ def crear_ticket_soporte(request):
         # Obtener la instancia del usuario (agente)
         agente = User.objects.get(id=id_agente)
 
-        estado = EstadosTicket.objects.get(id=id_estado)
+        if id_estado:
+            estado = EstadosTicket.objects.get(id=id_estado)
+        else:
+            # Si id_estado es vacío o None, asignar el estado por defecto (id=1)
+            estado = EstadosTicket.objects.get(id=1)
 
         # Verificar y asignar fechas
+
         fecha_inicio = fecha_inicio if fecha_inicio else None
         fecha_finalizacion = fecha_finalizacion if fecha_finalizacion else None
         fecha_finalizacion_real = fecha_finalizacion_real if fecha_finalizacion_real else None
+        prioridad = prioridad if prioridad else None
+        facturar = "" if facturar != 'True' and facturar != 'False' else facturar
 
         # Crear una instancia de TicketSoporte con los datos del formulario
         nuevo_ticket = TicketSoporte(
@@ -662,6 +735,7 @@ def crear_ticket_desarrollo(request):
             status=400,
         )
 
+
 def ticketactualizacioncreadosid(request):
     # Obtener el valor del parámetro "id" de la solicitud
     ticket_id = request.GET.get('id', None)
@@ -809,6 +883,7 @@ def crear_empresa(request):
 
     return JsonResponse({'status': 'success', 'message': 'Empresa creada con éxito'})
 
+
 @require_POST
 def crear_modulo(request):
     fecha_actual = datetime.now()
@@ -906,6 +981,7 @@ def actualizar_empresa(request):
     else:
         print('Error: Método no permitido')
         return JsonResponse({'error': 'Método no permitido'})
+
 
 def actualizar_modulo(request):
     print('Ingresó a la vista actualizar_modulo')  # Agregado para verificar si se llega a la función

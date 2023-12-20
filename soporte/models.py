@@ -67,14 +67,14 @@ class TicketSoporte(models.Model):
     idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ticket_soporte_agente')
     idSolicitante = models.ForeignKey(Solicitante, on_delete=models.CASCADE, related_name='ticket_soporte_solicitante')
     fechaCreacion = models.DateTimeField()
-    fechaInicio = models.DateTimeField()
-    fechaFinalizacion = models.DateTimeField()
+    fechaInicio = models.DateTimeField(null=True, blank=True)
+    fechaFinalizacion = models.DateTimeField(null=True, blank=True)
     fechaFinalizacionReal = models.DateTimeField(null=True, blank=True)
     comentario = models.CharField(max_length=255)
-    prioridad = models.CharField(max_length=100)
+    prioridad = models.CharField(null=True, blank=True,max_length=255)
     observacion = models.CharField(max_length=255)
     idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE,related_name='ticket_soporte_estado')  # Cambio aquí
-    facturar = models.BooleanField()
+    facturar = models.BooleanField(null=True, blank=True)
     chat = models.CharField(max_length=255, blank=True, null=True)
 
 class ActividadPrincipal(models.Model):
