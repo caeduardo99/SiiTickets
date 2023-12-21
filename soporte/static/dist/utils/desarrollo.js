@@ -95,6 +95,9 @@ $(document).ready(function () {
   // METODO PARA CONTROLAR LAS ACCIONES DEL SELECT DEL AGENTE
   $("#agentesolicitado").on("change", function () {
     var agenteValue = $(this).val();
+    nameAgente = agentesolicitado.options[agentesolicitado.selectedIndex].text;
+
+    let horasSecundariasArray = [];
 
     // Realizar la solicitud AJAX
     $.ajax({
@@ -103,16 +106,89 @@ $(document).ready(function () {
       dataType: "json",
       success: function (data) {
         $("#modalInfoAgente").modal("show");
-        console.log(data)
-        const titleModalAgente = document.getElementById('titleModalAgente');
-        titleModalAgente.textContent = `${data[0].first_name} ${data[0].last_name}`;
+        infoProject = data.infoProject;
+        infoTareasPrincipales = data.infoTareasPrincipales;
+        infoTareasAdicionales = data.infoTareasAdicionales;
 
+        const titleModalAgente = document.getElementById("titleModalAgente");
+        let tbodyCargaTrabajo = document.getElementById("tbodyCargaTrabajo");
+        let tbodyTareasPrincipales = document.getElementById("tbodyTareasPrincipales");
+        let rowTableTaskMain = document.getElementById("rowTableTaskMain");
+        let tbodyActividadesSecundarias = document.getElementById("tbodyActividadesSecundarias");
+        let rowTableTaskSecond = document.getElementById("rowTableTaskSecond");
 
+        tbodyCargaTrabajo.innerHTML = "";
+        tbodyTareasPrincipales.innerHTML = "";
+        tbodyActividadesSecundarias.innerHTML = "";
+        rowTableTaskMain.style.display = "";
+        rowTableTaskSecond.style.display = "";
+
+        titleModalAgente.textContent = `${infoProject[0].first_name} ${infoProject[0].last_name}`;
+
+        infoProject.forEach((project) => {
+          let row = tbodyCargaTrabajo.insertRow();
+
+          let cellProyecto = row.insertCell(0);
+          let cellHorasTotales = row.insertCell(1);
+
+          cellProyecto.textContent = project.tituloProyecto;
+          cellHorasTotales.textContent = `${project.horasCompletasProyecto} horas`;
+        });
+
+        infoTareasPrincipales.forEach((project) => {
+          let row = tbodyTareasPrincipales.insertRow();
+
+          let cellTarea = row.insertCell(0);
+          let cellHoras = row.insertCell(1);
+
+          cellTarea.textContent =
+            project.actividadPrincipal == null
+              ? (rowTableTaskMain.style.display = "none")
+              : project.actividadPrincipal;
+          cellHoras.textContent =
+            project.horasPrincipales == null
+              ? (rowTableTaskMain.style.display = "none")
+              : `${project.horasPrincipales} horas`;
+        });
+
+        infoTareasAdicionales.forEach((project) => {
+          let row = tbodyActividadesSecundarias.insertRow();
+
+          let cellTask = row.insertCell(0);
+          let cellHorasSecundarias = row.insertCell(1);
+
+          cellTask.textContent = project.tareaSecundaria == null ? "Sin tareas" : project.tareaSecundaria;
+          cellHorasSecundarias.textContent = project.horasSecundarias == null ? "Sin tareas" : `${project.horasSecundarias} horas`;
+          horasSecundariasArray.push(project.horasSecundarias)
+        });
+
+        let sumaHoras = horasSecundariasArray.reduce((a, b) => a + b, 0);
+        let porcentaje = (sumaHoras / 8) * 100;
+        $(".progress-bar").css("width", porcentaje + "%").attr("aria-valuenow", porcentaje);
+        $(".progress-bar").text(porcentaje.toFixed(2) + "%");
       },
       error: function (error) {
         console.error("Error en la solicitud AJAX:", error);
       },
     });
+
+    if (agentesolicitado.value != "") {
+      rowFechaInformacionFinalizacionEstimada.style.display = "";
+      rowFechaInformacionFinalizacion.style.display = "";
+      estadoTicket = 2;
+
+      const today = new Date();
+      const formattedDateTime = today.toISOString();
+      fechaTicketAsignacion.value = formattedDateTime;
+    } else {
+      fechaTicketAsignacion.value = "";
+      fechaTicketEstimado.value = "";
+      fechaTicketFinalizacion.value = "";
+      rowFechaInformacionFinalizacionEstimada.style.display = "none";
+      rowFechaInformacionFinalizacion.style.display = "none";
+      estadoTicket = 1;
+    }
+    
   });
 
   // METODO PARA CONTROLAR EL AGENTE DEL SELECT SOLICITANTE
@@ -161,6 +237,7 @@ $(document).ready(function () {
     inputHoras.type = "number";
     inputHoras.className = "form-control";
     inputHoras.name = "inputHorasAdicionales";
+    inputHoras.placeholder = "Horas diarias";
     celdaHoras.appendChild(inputHoras);
     nuevaFila.appendChild(celdaHoras);
 
@@ -326,7 +403,7 @@ $(document).ready(function () {
       const horasAsignadasInput = fila.querySelector('[name="inputHoras"]');
       const selectResponsable = fila.querySelector('[name="responsableTarea"]');
       const descripcion = descripcionInput ? descripcionInput.value : "";
-      const responsable = selectResponsable ? selectResponsable.value || 2 : 2;
+      const responsable = selectResponsable ? selectResponsable.value || 5 : 5;
       const horasAsignadas = horasAsignadasInput
         ? horasAsignadasInput.value
         : 0;

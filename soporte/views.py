@@ -419,7 +419,7 @@ def ticketDesarrolloCreados(request):
 
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        cursor.execute(consulta_sql, [nombre_usuario])
+        cursor.execute(consulta_sql,[nombre_usuario])
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
@@ -453,15 +453,29 @@ def detalleTicketDesarrollo(request, ticket_id):
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
+
 def infoAgenteSolicitado(request, id_agente):
     consulta_sql = """
     SELECT au.id, au.first_name, au.last_name, au.date_joined,
-	st.tituloProyecto, sa.descripcion, st.horasCompletasProyecto, sa.horasDiariasAsignadas as horasPrincipales,
-	sa2.horasDiariasAsignadas as horasSecundarias
+	sa.descripcion as tareaPrincipal,
+	sa2.descripcion as tareaSecundaria,sa2.horasDiariasAsignadas as horasSecundarias
 	FROM auth_user au 
-	LEFT JOIN soporte_ticketdesarrollo st ON st.idAgente_id = au.id 
 	LEFT JOIN soporte_actividadprincipal sa ON sa.idAgente_id = au.id
 	LEFT JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id = sa.id 
+	WHERE au.id = %s and sa2.idestado_id = 3
+    """
+    consulta_proyecto = """
+    SELECT au.id, au.first_name, au.last_name, au.date_joined as fechaGrabado,
+    st.id as idProject, st.tituloProyecto, st.horasCompletasProyecto 
+    FROM auth_user au 
+    LEFT JOIN soporte_ticketdesarrollo st ON st.idAgente_id = au.id 
+    WHERE au.id = %s
+    """
+    consulta_actividad_principal = """
+    SELECT au.id, au.first_name, au.last_name, au.date_joined as fechaGrabado,
+	sa.descripcion as actividadPrincipal, sa.horasDiariasAsignadas as horasPrincipales
+	FROM auth_user au 
+	LEFT JOIN soporte_actividadprincipal sa ON sa.idAgente_id = au.id
 	WHERE au.id = %s
     """
     connection = connections["default"]
@@ -472,8 +486,23 @@ def infoAgenteSolicitado(request, id_agente):
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_proyecto, [id_agente])
+        columns = [col[0] for col in cursor.description]
+        resultados_project = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_actividad_principal, [id_agente])
+        columns = [col[0] for col in cursor.description]
+        resultados_main = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    context = {
+        "infoProject": resultados_project,
+        "infoTareasPrincipales": resultados_main,
+        "infoTareasAdicionales": resultados,
+    }
     # Devolver la respuesta JSON
-    return JsonResponse(resultados, safe=False)
+    return JsonResponse(context, safe=False)
 
 @require_POST
 def crear_ticket_soporte(request):
@@ -622,11 +651,11 @@ def crear_ticket_desarrollo(request):
         try:
             id_agente = int(agentesolicitado)
         except ValueError:
-            id_agente = 2
+            id_agente = 5
     else:
-        id_agente = 2
+        id_agente = 5
 
-    if id_agente != 2:
+    if id_agente != 5:
         fechaAsignacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
     else:
         fechaAsignacion = None
