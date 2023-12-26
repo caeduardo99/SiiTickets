@@ -23,10 +23,14 @@ class Rol(models.Model):
     id = models.AutoField(primary_key=True)
     descripcion = models.CharField(max_length=255)
 
+
 class Solicitante(models.Model):
     id = models.AutoField(primary_key=True)
+    ruc = models.CharField(max_length=13)
     nombreApellido = models.CharField(max_length=255)
     telefonoSolicitante = models.CharField(max_length=255)
+    direccion = models.CharField(max_length=255)
+    correo = models.CharField(max_length=100)
     idEmpresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
 
 class TicketActualizacion(models.Model):

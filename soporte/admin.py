@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
-from .models import Empresa, Rol, TicketActualizacion, TicketDesarrollo, TicketSoporte, ActividadPrincipal, ActividadSecundaria, Solicitante, EstadosTicket
+from .models import *
 
 # Eliminar la clase ExtendedUserAdmin, ya que ahora estamos usando la UserAdmin predeterminada
 # Personalizar la visualización de User en el admin si es necesario

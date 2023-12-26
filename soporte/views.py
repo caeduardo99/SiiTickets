@@ -178,6 +178,20 @@ def modulos(request):
     }
     return render(request, 'modulos.html', context)
 
+@login_required
+def usuarios(request):
+    # nombre_usuario = request.user.username if request.user.is_authenticated else None
+    # print('nombre_usuario', nombre_usuario)
+
+    resultados_empresas = empresasjson(request)
+
+    resultados_empresas_data = json.loads(resultados_empresas.content)
+
+    context = {
+        'resultados_empresas_data': resultados_empresas_data,
+    }
+    return render(request, 'usuarios.html', context)
+
 
 ########## BACKEND ##################
 
@@ -291,6 +305,29 @@ def empresasjson(request):
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+def clienteconsultajson(request):
+    ruc_parametro = request.GET.get('ruc', 'valor_predeterminado')
+    # Construir la consulta SQL
+    consulta_sql = """
+   SELECT 
+    nombre,
+    ruc,
+    direccion1,
+    telefono1,
+    email,
+    fechagrabado
+FROM 
+    dbo.fn_TabletClientesjson('0102070612aq')  WHERE ruc = %s
+    """
+    connection = connections['sql_server']
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql,[ruc_parametro])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
@@ -569,6 +606,39 @@ def crear_ticket_soporte(request):
         return JsonResponse({'status': 'error', 'message': 'Usuario (agente) no encontrado'}, status=400)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
+
+@require_POST
+def crear_solicitante(request):
+    fecha_actual = datetime.now()
+    # Obtener los datos del formulario
+    nombre = request.POST.get('nombreUsuario', '')
+    ruc = request.POST.get('rucUsuario','')
+    direccion = request.POST.get('direccionUsuario','')
+    telefono = request.POST.get('telefonoUsuario','')
+    correo = request.POST.get('correoUsuario','')
+    idempresa = request.POST.get('empresaSolicitante','')
+    print('empresa', idempresa)
+
+    try:
+        # Obtener la instancia del solicitante
+        empresa = Empresa.objects.get(id=idempresa)
+
+        # Crear una instancia de TicketSoporte con los datos del formulario
+        nuevo_solicitante = Solicitante(
+            nombreApellido=nombre,
+            telefonoSolicitante=telefono,
+            idEmpresa_id=idempresa,
+            ruc=ruc,
+            direccion=direccion,
+            correo=correo,
+        )
+
+        # Guardar el nuevo ticket en la base de datos
+        nuevo_solicitante.save()
+
+        return JsonResponse({'status': 'success', 'message': 'Usuario creado con éxito'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
 
 
 @csrf_exempt

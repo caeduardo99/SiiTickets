@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h3>Usuarios</h3>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+    <div class="content">
+        <ul class="nav nav-tabs" id="myTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="nuevousuario-tab" data-toggle="tab" href="#nuevousuario">Nuevo
+                    Usuario</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="verusuario-tab" data-toggle="tab" href="#verusuario">Usuarios</a>
+            </li>
+        </ul>
+        <div class="tab-content mt-2">
+            <!-- Contenido de la pestaña Nuevo Ticket -->
+            <div class="tab-pane fade show active" id="nuevousuario">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">Detalles del Usuario</div>
+                    <div class="card-body">
+                        <form class="form-row" method="post" action="{% url 'crear_solicitante' %}">
+                            {% csrf_token %}
+                            <div class="form-group col-md-6">
+                                <label for="rucUsuario">Ruc:</label>
+                                <input class="form-control" id="rucUsuario" name="rucUsuario"
+                                       placeholder="Ingrese el RUC"></input>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="nombreUsuario">Nombres:</label>
+                                <input class="form-control" id="nombreUsuario" name="nombreUsuario"
+                                       placeholder="Ingrese los Nombres"></input>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="direccionUsuario">Dirección:</label>
+                                <input class="form-control" id="direccionUsuario" name="direccionUsuario"
+                                       placeholder="Ingrese la Dirección"></input>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="telefonoUsuario">Teléfono:</label>
+                                <input class="form-control" id="telefonoUsuario" name="telefonoUsuario"
+                                       placeholder="Ingrese la Dirección"></input>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="correoUsuario">Email:</label>
+                                <input class="form-control" id="correoUsuario" name="correoUsuario"
+                                       placeholder="Ingrese la Dirección"></input>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="empresaSolicitante">Empresa:</label>
+                                <select class="select2" id="empresaSolicitante" style="width: 100%;"
+                                        name="empresaSolicitante">
+                                    <option value="">Seleccione Empresa</option>
+                                    {% for empresa in resultados_empresas_data %}
+                                        <option value="{{ empresa.id }}">
+                                            {{ empresa.nombreEmpresa }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-12">
+                                <button type="submit" class="btn btn-dark">Crear Solicitante</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="vertickets">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">Detalles del Ticket</div>
+                    <div class="card-body">
+                        <table class="table" id="tickets-table">
+                            <thead>
+                            <tr>
+                                <th>NumTicket</th>
+                                <th>Empresa</th>
+                                <th>Modulo Actualizar</th>
+                                <th>Solicitante</th>
+                                <th>Prioridad</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
+    <script src="../static/dist/utils/soporte.js"></script>
+    <script>
+        // consulta_ruc.js
+        document.getElementById('rucUsuario').addEventListener('keydown', function (event) {
+            // Verificar si la tecla presionada es "Enter"
+            if (event.key === 'Enter') {
+                // Evitar el comportamiento predeterminado del "Enter" en un formulario
+                event.preventDefault();
+
+                // Llamar a la función para consultar el RUC
+                consultarRUC();
+            }
+        });
+
+        function consultarRUC() {
+            // Obtener el valor del input
+            var ruc = document.getElementById('rucUsuario').value;
+
+            // Construir la URL de la vista Django
+            var url = '{% url "clienteconsultajson" %}?ruc=' + ruc;
+
+            // Hacer la solicitud GET con AJAX
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    // Manejar la respuesta del servidor aquí
+                    if (data.length > 0) {
+                        // Llenar los demás campos con la información del JSON
+                        document.getElementById('nombreUsuario').value = data[0].nombre;
+                        document.getElementById('direccionUsuario').value = data[0].direccion1;
+                        document.getElementById('telefonoUsuario').value = data[0].telefono1;
+                        document.getElementById('correoUsuario').value = data[0].email;
+                    } else {
+                        // Limpiar los campos si no se encuentra información
+                        document.getElementById('nombreUsuario').value = '';
+                        document.getElementById('direccionUsuario').value = '';
+                        document.getElementById('telefonoUsuario').value = '';
+                        document.getElementById('correoUsuario').value = '';
+                        console.log('No se encontraron datos para el RUC proporcionado.');
+                    }
+                },
+                error: function (error) {
+                    // Manejar errores aquí
+                    console.error('Error en la solicitud:', error);
+                }
+            });
+        }
+
+
+    </script>
+{% endblock %}

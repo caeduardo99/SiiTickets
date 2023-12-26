@@ -27,6 +27,7 @@ urlpatterns = [
     path('desarrolloact', views.desarrolloact, name='desarrolloact'),
     path('empresas', views.empresas, name='empresas'),
     path('modulos', views.modulos, name='modulos'),
+    path('usuarios', views.usuarios, name='usuarios'),
     path('logout/', views.signout, name='logout'),
 
     path('solicitantesjson/', views.solicitantesjson, name='solicitantesjson'),
@@ -34,6 +35,7 @@ urlpatterns = [
     path('estadosjson/', views.estadosjson, name='estadosjson'),
     path('modulojson/', views.modulojson, name='modulojson'),
     path('empresasjson/', views.empresasjson, name='empresasjson'),
+    path('clienteconsultajson/', views.clienteconsultajson, name='clienteconsultajson'),
     path('modulojson/', views.modulojson, name='modulojson'),
 
     path('ticketsoportescreados/', views.ticketsoportescreados, name='ticketsoportescreados'),
@@ -62,5 +64,6 @@ urlpatterns = [
     path('actualizar_modulo/', views.actualizar_modulo, name='actualizar_modulo'),
 
     path('editar_desarrollo/', views.editar_desarrollo, name='editar_desarrollo'),
+    path('crear_solicitante/', views.crear_solicitante, name='crear_solicitante'),
 
 ]
