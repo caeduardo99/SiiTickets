@@ -178,6 +178,7 @@ def modulos(request):
     }
     return render(request, 'modulos.html', context)
 
+
 @login_required
 def usuarios(request):
     # nombre_usuario = request.user.username if request.user.is_authenticated else None
@@ -308,6 +309,7 @@ def empresasjson(request):
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
+
 def clienteconsultajson(request):
     ruc_parametro = request.GET.get('ruc', 'valor_predeterminado')
     # Construir la consulta SQL
@@ -325,7 +327,7 @@ FROM
     connection = connections['sql_server']
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        cursor.execute(consulta_sql,[ruc_parametro])
+        cursor.execute(consulta_sql, [ruc_parametro])
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
     # Devolver la respuesta JSON
@@ -382,6 +384,19 @@ def ticketsoportescreados(request):
             # Imprimir los resultados de la segunda consulta (para depuración)
             print("Resultados de la segunda consulta JSON:", resultados)
 
+    # Si la segunda consulta también devuelve un conjunto vacío y el nombre de usuario es "mafer", ejecutar una tercera consulta sin la condición WHERE original
+    if not resultados and nombre_usuario == "mafer":
+        print("La segunda consulta también devolvió un conjunto vacío y el nombre de usuario es 'mafer'. Ejecutando la tercera consulta.")
+        consulta_sql_tercera = consulta_sql.replace("WHERE au.username = %s", "")
+        consulta_sql_tercera += " ORDER BY st.id DESC "  # Cláusula ORDER BY agregada
+        print("Consulta SQL tercera sin filtro")
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_sql_tercera)
+            resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+            # Imprimir los resultados de la tercera consulta (para depuración)
+            print("Resultados de la tercera consulta JSON:", resultados)
+
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
@@ -419,12 +434,39 @@ def ticketsoportescreadosid(request):
 
     # Construir la consulta SQL
     consulta_sql = """
-    SELECT * FROM soporte_ticketsoporte
+    SELECT 
+  st.id,
+  st.fechaCreacion,
+  st.fechaInicio,
+  st.fechaFinalizacion,
+  st.fechaFinalizacionReal,
+  st.comentario,
+  st.causaerror ,
+  st.facturar,
+  st.idAgente_id,
+  au.first_name || ' ' || au.last_name AS agente_nombre,
+  st.idSolicitante_id,
+  st.idestado_id,
+  st.chat,
+  st.prioridad,
+  ss.nombreApellido,
+  st.imagenes,
+  st.imagensoporte,
+  st.trabajoRealizado,
+  se.nombreEmpresa
+FROM 
+  soporte_ticketsoporte st
+LEFT JOIN 
+  auth_user au ON au.id = st.idAgente_id
+LEFT JOIN
+  soporte_solicitante ss ON ss.id = st.idSolicitante_id
+LEFT JOIN 
+  soporte_empresa se on se.id = ss.idEmpresa_id 
     """
 
     # Agregar un filtro por ID si se proporciona el parámetro "id"
     if ticket_id is not None:
-        consulta_sql += f" WHERE id = {ticket_id}"
+        consulta_sql += f" WHERE st.id = {ticket_id}"
 
     connection = connections['default']
 
@@ -456,7 +498,7 @@ def ticketDesarrolloCreados(request):
 
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        cursor.execute(consulta_sql,[nombre_usuario])
+        cursor.execute(consulta_sql, [nombre_usuario])
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
@@ -541,6 +583,7 @@ def infoAgenteSolicitado(request, id_agente):
     # Devolver la respuesta JSON
     return JsonResponse(context, safe=False)
 
+
 @require_POST
 def crear_ticket_soporte(request):
     fecha_actual = datetime.now()
@@ -559,6 +602,8 @@ def crear_ticket_soporte(request):
     id_estado = request.POST.get('estado', '')
     print('id_estado', id_estado)
     facturar = request.POST.get('factura', '')
+    imagenes = request.FILES.get('imagenes')
+    imagensoporte = request.FILES.get('imagensoporte')
 
     try:
         # Obtener la instancia del solicitante
@@ -580,6 +625,7 @@ def crear_ticket_soporte(request):
         fecha_finalizacion_real = fecha_finalizacion_real if fecha_finalizacion_real else None
         prioridad = prioridad if prioridad else None
         facturar = "" if facturar != 'True' and facturar != 'False' else facturar
+        imagensoporte = imagensoporte if imagensoporte else None
 
         # Crear una instancia de TicketSoporte con los datos del formulario
         nuevo_ticket = TicketSoporte(
@@ -591,9 +637,11 @@ def crear_ticket_soporte(request):
             fechaFinalizacionReal=fecha_finalizacion_real,
             comentario=comentario,
             prioridad=prioridad,
-            observacion=observacion,
+            causaerror=observacion,
             idestado=estado,
-            facturar=facturar
+            facturar=facturar,
+            imagenes=imagenes,
+            imagensoporte=imagensoporte
         )
 
         # Guardar el nuevo ticket en la base de datos
@@ -607,16 +655,17 @@ def crear_ticket_soporte(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
 
+
 @require_POST
 def crear_solicitante(request):
     fecha_actual = datetime.now()
     # Obtener los datos del formulario
     nombre = request.POST.get('nombreUsuario', '')
-    ruc = request.POST.get('rucUsuario','')
-    direccion = request.POST.get('direccionUsuario','')
-    telefono = request.POST.get('telefonoUsuario','')
-    correo = request.POST.get('correoUsuario','')
-    idempresa = request.POST.get('empresaSolicitante','')
+    ruc = request.POST.get('rucUsuario', '')
+    direccion = request.POST.get('direccionUsuario', '')
+    telefono = request.POST.get('telefonoUsuario', '')
+    correo = request.POST.get('correoUsuario', '')
+    idempresa = request.POST.get('empresaSolicitante', '')
     print('empresa', idempresa)
 
     try:
@@ -660,6 +709,9 @@ def editar_ticket_soporte(request):
         facturar = request.POST.get('facturaedit', '')
         contenido_chat = request.POST.get('chat', '')
         print('chat', contenido_chat)
+        trabajo_realizado = request.POST.get('trabajo_realizado', '')
+        imagensoporte_actual = request.POST.get('imagensoporte_actual')
+        imagensoporte = imagensoporte_actual if imagensoporte_actual else request.FILES.get('imagensoporte')
 
         try:
             # Obtener la instancia del solicitante
@@ -686,10 +738,12 @@ def editar_ticket_soporte(request):
             ticket.fechaFinalizacionReal = fecha_finalizacion_real
             ticket.comentario = comentario
             ticket.prioridad = prioridad
-            ticket.observacion = observacion
+            ticket.causaerror = observacion
             ticket.idestado = estado
             ticket.facturar = facturar
+            ticket.trabajoRealizado = trabajo_realizado
             ticket.chat = contenido_chat
+            ticket.imagensoporte = imagensoporte
 
             # Guardar los cambios en el ticket
             ticket.save()

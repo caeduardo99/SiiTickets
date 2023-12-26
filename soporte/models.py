@@ -75,11 +75,16 @@ class TicketSoporte(models.Model):
     fechaFinalizacion = models.DateTimeField(null=True, blank=True)
     fechaFinalizacionReal = models.DateTimeField(null=True, blank=True)
     comentario = models.CharField(max_length=255)
-    prioridad = models.CharField(null=True, blank=True,max_length=255)
-    observacion = models.CharField(max_length=255)
-    idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE,related_name='ticket_soporte_estado')  # Cambio aquí
+    prioridad = models.CharField(null=True, blank=True, max_length=255)
+    causaerror = models.CharField(max_length=255)
+    idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE,
+                                 related_name='ticket_soporte_estado')  # Cambio aquí
     facturar = models.BooleanField(null=True, blank=True)
     chat = models.CharField(max_length=255, blank=True, null=True)
+    trabajoRealizado = models.TextField(null=True, blank=True)  # Campo para describir el trabajo realizado
+    imagenes = models.ImageField(upload_to='ticket_images/', null=True, blank=True)
+    imagensoporte = models.ImageField(upload_to='ticket_images_soporte/', null=True, blank=True)
+
 
 class ActividadPrincipal(models.Model):
     id = models.AutoField(primary_key=True)
