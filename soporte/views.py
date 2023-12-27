@@ -196,7 +196,6 @@ def usuarios(request):
 
 ########## BACKEND ##################
 
-
 def solicitantesjson(request):
     # Obtener el nombre de usuario logeado
     nombre_usuario = request.user.username if request.user.is_authenticated else None
@@ -224,7 +223,6 @@ def solicitantesjson(request):
 
         # Imprimir los resultados y nombre de usuario (para depuración)
         print("Nombre de usuario:", nombre_usuario)
-        print("Resultados de la primera consulta JSON:", resultados)
 
     # Si la primera consulta devuelve un conjunto vacío, ejecutar la segunda consulta sin la condición WHERE
     if not resultados:
@@ -234,9 +232,6 @@ def solicitantesjson(request):
             cursor.execute(consulta_sql.replace("WHERE se.nombreEmpresa = %s", ""))
             columns = [col[0] for col in cursor.description]
             resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-            # Imprimir los resultados de la segunda consulta (para depuración)
-            print("Resultados de la segunda consulta JSON:", resultados)
 
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
@@ -380,9 +375,6 @@ def ticketsoportescreados(request):
         with connection.cursor() as cursor:
             cursor.execute(consulta_sql_sin_filtro, [nombre_usuario])
             resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
-
-            # Imprimir los resultados de la segunda consulta (para depuración)
-            print("Resultados de la segunda consulta JSON:", resultados)
 
     # Si la segunda consulta también devuelve un conjunto vacío y el nombre de usuario es "mafer", ejecutar una tercera consulta sin la condición WHERE original
     if not resultados and nombre_usuario == "mafer":
@@ -537,11 +529,13 @@ def infoAgenteSolicitado(request, id_agente):
     consulta_sql = """
     SELECT au.id, au.first_name, au.last_name, au.date_joined,
 	sa.descripcion as tareaPrincipal,
-	sa2.descripcion as tareaSecundaria,sa2.horasDiariasAsignadas as horasSecundarias
+	sa2.descripcion as tareaSecundaria,sa2.horasDiariasAsignadas as horasSecundarias, sa2.fechaDesarrollo,
+	st.tituloProyecto as Proyecto
 	FROM auth_user au 
 	LEFT JOIN soporte_actividadprincipal sa ON sa.idAgente_id = au.id
-	LEFT JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id = sa.id 
-	WHERE au.id = %s and sa2.idestado_id = 3
+	LEFT JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id = sa.id
+	LEFT JOIN soporte_ticketdesarrollo st ON st.id = sa.idTicketDesarrollo_id  
+	WHERE au.id = %s and sa2.idestado_id = 2
     """
     consulta_proyecto = """
     SELECT au.id, au.first_name, au.last_name, au.date_joined as fechaGrabado,
@@ -775,11 +769,11 @@ def crear_ticket_desarrollo(request):
         try:
             id_agente = int(agentesolicitado)
         except ValueError:
-            id_agente = 5
+            id_agente = 2
     else:
-        id_agente = 5
+        id_agente = 2
 
-    if id_agente != 5:
+    if id_agente != 2:
         fechaAsignacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
     else:
         fechaAsignacion = None
@@ -856,7 +850,7 @@ def crear_ticket_desarrollo(request):
                 if id_agente_principal == 2:
                     id_estado_principal = 1
                 else:
-                    id_estado_principal = 3
+                    id_estado_principal = 2
 
                 new_task_main = ActividadPrincipal(
                     descripcion=task["descripcion"],
@@ -893,6 +887,7 @@ def crear_ticket_desarrollo(request):
                     descripcion_secundaria = obj_task_second.get("descripcionPrincipal")
                     descripcion_adicional = obj_task_second.get("descripcionSecundaria")
                     horas_secundarias = obj_task_second.get("horasAsignadas")
+                    fecha_desarrollo = obj_task_second.get("fechaDesarrollo")
                     task_main_obj = ActividadPrincipal.objects.get(id=id_objeto)
 
                     if descripcion_objeto == descripcion_secundaria:
@@ -901,6 +896,7 @@ def crear_ticket_desarrollo(request):
                             idActividadPrincipal=task_main_obj,
                             horasDiariasAsignadas=horas_secundarias,
                             idestado=EstadosTicket.objects.get(id=id_estado_principal),
+                            fechaDesarrollo=fecha_desarrollo
                         )
                         new_task_second.save()
 
@@ -1278,3 +1274,17 @@ def editar_ticket_actualizar(request):
 @csrf_exempt
 def editar_desarrollo(request):
     pass
+
+@csrf_exempt
+def tareas_desarrollo_success(request):
+    if request.method == 'POST':
+        array_id_main_task = request.POST.getlist('arrayIdMainTask[]')
+        array_id_seconds_task = request.POST.getlist('arrayIdSecondsTask[]')
+
+        # Realiza las acciones necesarias con los datos, como imprimirlos
+        print(f'Tareas Main: {array_id_main_task}, Tareas secundarias: {array_id_seconds_task}')
+
+        # Devuelve una respuesta JSON opcional
+        return JsonResponse({'status': 'success','message': 'Datos recibidos correctamente'})
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)

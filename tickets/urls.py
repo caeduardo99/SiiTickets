@@ -66,6 +66,7 @@ urlpatterns = [
 
     path('editar_desarrollo/', views.editar_desarrollo, name='editar_desarrollo'),
     path('crear_solicitante/', views.crear_solicitante, name='crear_solicitante'),
+    path('tareas_desarrollo_success/', views.tareas_desarrollo_success, name='tareas_desarrollo_success'),
 
 ]
 if settings.DEBUG:

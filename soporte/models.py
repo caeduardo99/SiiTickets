@@ -101,3 +101,4 @@ class ActividadSecundaria(models.Model):
     idActividadPrincipal = models.ForeignKey(ActividadPrincipal, on_delete=models.CASCADE)
     horasDiariasAsignadas = models.IntegerField()
     idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_secundaria_estado')
+    fechaDesarrollo = models.DateTimeField(blank=True, null=True)
