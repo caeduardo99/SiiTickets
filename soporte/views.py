@@ -1284,6 +1284,12 @@ def tareas_desarrollo_success(request):
         # Realiza las acciones necesarias con los datos, como imprimirlos
         print(f'Tareas Main: {array_id_main_task}, Tareas secundarias: {array_id_seconds_task}')
 
+        if len(array_id_main_task) > 0:
+            print('Si hay datos en el arreglo main de tareas')
+        
+        if len(array_id_seconds_task) > 0:
+            print('Si hay datos en el arreglo de tareas secundarias')
+
         # Devuelve una respuesta JSON opcional
         return JsonResponse({'status': 'success','message': 'Datos recibidos correctamente'})
     else:
