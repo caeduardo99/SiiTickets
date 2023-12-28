@@ -41,7 +41,7 @@
                         </div>
                         <div class="form-group col-md-4">
                             <div class="form-group">
-                                <label>Número de Horas completas</label>
+                                <label>Horas completas del Proyecto</label>
                                 <input type="number" id="inputNumHorasCompletas" class="form-control"
                                     placeholder="Escriba el número de Horas completas" name="inputNumHorasCompletas">
                             </div>
@@ -291,7 +291,7 @@
 
 <!-- Modal CARGA DE TRABAJO -->
 <div class="modal fade" id="modalInfoAgente" tabindex="-1" aria-labelledby="modalInfoAgenteLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="titleModalAgente"></h5>
@@ -305,32 +305,15 @@
                         <h3>Este wey no esta haciendo nada, ponganlo a Trabajar!</h3>
                     </div>
                 </div>
-                <div class="row g-1" id="rowTableTaskMain">
-                    <div class="col-md-12">
-                        <h6>Tareas pricipales</h6>
-                        <table class="table table-sm table-borderless">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Nombre de la actividad</th>
-                                    <th scope="col">Horas principales de la tarea</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyTareasPrincipales">
-
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
                 <div class="row g-1" id="rowTableTaskSecond">
                     <div class="col-md-12">
-                        <hr>
-                        <h6>Tareas secundarias</h6>
+                        <h6>Carga de trabajo</h6>
                         <table class="table table-sm table-borderless table-hover">
                             <thead>
                                 <tr>
                                     <th scope="col">Proyecto</th>
-                                    <th scope="col">Actividades secundarias</th>
-                                    <th scope="col">Horas diarias</th>
+                                    <th scope="col">Actividades</th>
+                                    <th scope="col">Horas por día</th>
                                     <th scope="col">Fecha de desarrollo</th>
                                 </tr>
                             </thead>
@@ -339,6 +322,7 @@
                             </tbody>
                         </table>
                     </div>
+                    <hr>
                 </div>
                 <div class="row">
                     <div class="col-md-12" id="divProgressBarTime">
@@ -347,6 +331,7 @@
                 </div>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="btnGenerarExcelModal">Generar Excel</button>
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>

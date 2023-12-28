@@ -35,6 +35,7 @@ $(document).ready(function () {
   const rowTableTask = document.getElementById("rowTableTask");
   const btnNewTask = document.getElementById("btnNewTask");
   const rowAgente = document.getElementById("rowAgente");
+  const btnGenerarExcelModal = document.getElementById("btnGenerarExcelModal");
   const agentesolicitado = document.getElementById("agentesolicitado");
   const solicitante = document.getElementById("solicitante");
   const fechaTicketAsignacion = document.getElementById(
@@ -58,6 +59,7 @@ $(document).ready(function () {
   const editDescripcionGeneral = document.getElementById(
     "editDescripcionGeneral"
   );
+  const inputNumHorasCompletas = document.getElementById('inputNumHorasCompletas')
   const btnRunEdit = document.getElementById("btnRunEdit");
   const tableBodyTasksEdit = document.getElementById("tableBodyTasksEdit");
   const tableTasksEdit = document.getElementById("tableTasksEdit");
@@ -73,9 +75,13 @@ $(document).ready(function () {
     arrayTaskMain = [],
     arrayTaskSecond = [],
     infoGeneralProject,
+    sumaTotalHorasPrincipales,
     detalleTicket,
     arrayIdMainTask = [],
-    arrayIdSecondsTask = [];
+    arrayIdSecondsTask = [],
+    arrayHorasInputProject = [],
+    infoProject = [],
+    infoTareasAdicionales = [];
 
   // FUNCIONAMIENTO DEL INPUT TITULO
   inputTitleProject.addEventListener("input", function () {
@@ -108,53 +114,23 @@ $(document).ready(function () {
       dataType: "json",
       success: function (data) {
         $("#modalInfoAgente").modal("show");
-        let infoProject = [],
-          infoTareasPrincipales = [],
-          infoTareasAdicionales = [];
+        infoProject = []
+        infoTareasAdicionales = []
 
         infoProject = data.infoProject;
-        infoTareasPrincipales = data.infoTareasPrincipales;
         infoTareasAdicionales = data.infoTareasAdicionales;
 
         const titleModalAgente = document.getElementById("titleModalAgente");
-        let tbodyTareasPrincipales = document.getElementById(
-          "tbodyTareasPrincipales"
-        );
-        let rowTableTaskMain = document.getElementById("rowTableTaskMain");
         let tbodyActividadesSecundarias = document.getElementById(
           "tbodyActividadesSecundarias"
         );
         let rowTableTaskSecond = document.getElementById("rowTableTaskSecond");
         let rowTrabajo = document.getElementById("rowTrabajo");
 
-        tbodyTareasPrincipales.innerHTML = "";
         tbodyActividadesSecundarias.innerHTML = "";
-        rowTableTaskMain.style.display = "";
         rowTableTaskSecond.style.display = "";
 
         titleModalAgente.textContent = `${infoProject[0].first_name} ${infoProject[0].last_name}`;
-
-        if (infoTareasPrincipales.length != 0) {
-          rowTrabajo.style.display = "none";
-          infoTareasPrincipales.forEach((project) => {
-            let row = tbodyTareasPrincipales.insertRow();
-
-            let cellTarea = row.insertCell(0);
-            let cellHoras = row.insertCell(1);
-
-            cellTarea.textContent =
-              project.actividadPrincipal == null
-                ? (rowTableTaskMain.style.display = "none")
-                : project.actividadPrincipal;
-            cellHoras.textContent =
-              project.horasPrincipales == null
-                ? (rowTableTaskMain.style.display = "none")
-                : `${project.horasPrincipales} horas`;
-          });
-        } else {
-          rowTableTaskMain.style.display = "none";
-          rowTrabajo.style.display = "";
-        }
 
         let sumasPorFecha = {};
 
@@ -284,6 +260,7 @@ $(document).ready(function () {
     inputHoras.className = "form-control";
     inputHoras.name = "inputHorasAdicionales";
     inputHoras.placeholder = "Horas diarias";
+
     celdaHoras.appendChild(inputHoras);
     nuevaFila.appendChild(celdaHoras);
 
@@ -386,66 +363,36 @@ $(document).ready(function () {
         success: function (data) {
           $("#modalInfoAgente").modal("show");
           let infoProject = [],
-            infoTareasPrincipales = [],
             infoTareasAdicionales = [];
-
+  
           infoProject = data.infoProject;
-          infoTareasPrincipales = data.infoTareasPrincipales;
           infoTareasAdicionales = data.infoTareasAdicionales;
-
+  
           const titleModalAgente = document.getElementById("titleModalAgente");
-          let tbodyTareasPrincipales = document.getElementById(
-            "tbodyTareasPrincipales"
-          );
-          let rowTableTaskMain = document.getElementById("rowTableTaskMain");
           let tbodyActividadesSecundarias = document.getElementById(
             "tbodyActividadesSecundarias"
           );
-          let rowTableTaskSecond =
-            document.getElementById("rowTableTaskSecond");
+          let rowTableTaskSecond = document.getElementById("rowTableTaskSecond");
           let rowTrabajo = document.getElementById("rowTrabajo");
-
-          tbodyTareasPrincipales.innerHTML = "";
+  
           tbodyActividadesSecundarias.innerHTML = "";
-          rowTableTaskMain.style.display = "";
           rowTableTaskSecond.style.display = "";
-
+  
           titleModalAgente.textContent = `${infoProject[0].first_name} ${infoProject[0].last_name}`;
-
-          if (infoTareasPrincipales.length != 0) {
-            rowTrabajo.style.display = "none";
-            infoTareasPrincipales.forEach((project) => {
-              let row = tbodyTareasPrincipales.insertRow();
-
-              let cellTarea = row.insertCell(0);
-              let cellHoras = row.insertCell(1);
-
-              cellTarea.textContent =
-                project.actividadPrincipal == null
-                  ? (rowTableTaskMain.style.display = "none")
-                  : project.actividadPrincipal;
-              cellHoras.textContent =
-                project.horasPrincipales == null
-                  ? (rowTableTaskMain.style.display = "none")
-                  : `${project.horasPrincipales} horas`;
-            });
-          } else {
-            rowTableTaskMain.style.display = "none";
-            rowTrabajo.style.display = "";
-          }
-
+  
+  
           let sumasPorFecha = {};
-
+  
           if (infoTareasAdicionales.length != 0) {
             infoTareasAdicionales.forEach((project) => {
               rowTrabajo.style.display = "none";
               let row = tbodyActividadesSecundarias.insertRow();
-
+  
               let cellProject = row.insertCell(0);
               let cellTask = row.insertCell(1);
               let cellHorasSecundarias = row.insertCell(2);
               let cellFechaDesarrollo = row.insertCell(3);
-
+  
               cellProject.textContent = project.Proyecto;
               cellTask.textContent =
                 project.tareaSecundaria == null
@@ -455,20 +402,21 @@ $(document).ready(function () {
                 project.horasSecundarias == null
                   ? "Sin tareas"
                   : `${project.horasSecundarias} hora/s`;
-              cellFechaDesarrollo.textContent =
-                project.fechaDesarrollo.substring(0, 10);
+              cellFechaDesarrollo.textContent = project.fechaDesarrollo.substring(
+                0,
+                10
+              );
               if (!sumasPorFecha[project.fechaDesarrollo]) {
                 sumasPorFecha[project.fechaDesarrollo] = 0;
               }
-              sumasPorFecha[project.fechaDesarrollo] +=
-                project.horasSecundarias;
+              sumasPorFecha[project.fechaDesarrollo] += project.horasSecundarias;
               horasSecundariasArray.push(project.horasSecundarias);
             });
           } else {
             rowTableTaskSecond.style.display = "none";
             rowTrabajo.style.display = "";
           }
-
+  
           const horasTotales = 8;
           $("#divProgressBarTime").empty();
           const divProgressBarSelector = "#divProgressBarTime";
@@ -481,10 +429,10 @@ $(document).ready(function () {
                 10
               )}</b>.</p>`;
               let progressBarHTML = `<div class="progress">
-                              <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${porcentajePorFecha}%" aria-valuenow="${porcentajePorFecha}" aria-valuemin="0" aria-valuemax="100">
-                                ${porcentajePorFecha.toFixed(2)}%
-                              </div>
-                            </div>`;
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: ${porcentajePorFecha}%" aria-valuenow="${porcentajePorFecha}" aria-valuemin="0" aria-valuemax="100">
+                                  ${porcentajePorFecha.toFixed(2)}%
+                                </div>
+                              </div>`;
               $(divProgressBarSelector).append(progressBarHTML + parrafoHTML);
               progressBarHTML.innerHTML = "";
               parrafoHTML.innerHTML = "";
@@ -501,7 +449,18 @@ $(document).ready(function () {
     var inputHoras = document.createElement("input");
     inputHoras.type = "number";
     inputHoras.className = "form-control";
+    inputHoras.placeholder = 'Tiempo de desarrollo';
     inputHoras.name = "inputHoras";
+    let timeoutId;
+    // FUNCIONAMIENTO DEL INPUT PARA QUE RELLENE AUTOMATICAMENTE EL NUMERO DE HORAS COMPLETAS DEL PROYECTO
+    inputHoras.addEventListener('input', function(){
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(function() {
+        arrayHorasInputProject.push(inputHoras.value);
+        sumaTotalHorasPrincipales = arrayHorasInputProject.reduce((total, valor) => total + parseInt(valor, 10), 0);
+        inputNumHorasCompletas.value = sumaTotalHorasPrincipales;
+      }, 2000);
+    });
     celdaHoras.appendChild(inputHoras);
     nuevaFila.appendChild(celdaHoras);
 
@@ -726,7 +685,7 @@ $(document).ready(function () {
     return svg;
   }
 
-  // FUNCION PARA LA CARGA DE LA TABLA
+  // FUNCION PARA LA CARGA DE LA TABLA EN LA VISTA DE PROYECTO GENERAL
   function loadListProjects() {
     ticketsTable.innerHTML = "";
     resultadosProyectos.forEach((proyecto) => {
@@ -947,7 +906,7 @@ $(document).ready(function () {
   });
 
   btnChangeState.addEventListener("click", function(){
-    console.log(`Tareas Main:${arrayIdMainTask}, tareas secundarias:${arrayIdSecondsTask}`)
+    
     $.ajax({
       type: "POST",
       url: "/tareas_desarrollo_success/",
@@ -972,5 +931,23 @@ $(document).ready(function () {
         console.error("Error en la solicitud AJAX:", error);
       },
     });
-  })
+  });
+
+  btnGenerarExcelModal.addEventListener('click', function(){
+    const objGenerateExcel = {
+      arrayProyectosInfo: infoProject,
+      arrayCargaTrabajo: infoTareasAdicionales,
+    }
+
+    console.log(objGenerateExcel)
+    const workbook = XLSX.utils.book_new();
+    const worksheetProyectos = XLSX.utils.json_to_sheet(objGenerateExcel.arrayProyectosInfo);
+    XLSX.utils.book_append_sheet(workbook, worksheetProyectos, 'Proyectos');
+    const worksheetCargaTrabajo = XLSX.utils.json_to_sheet(objGenerateExcel.arrayCargaTrabajo);
+    XLSX.utils.book_append_sheet(workbook, worksheetCargaTrabajo, 'CargaTrabajo');
+    const fecha = obtenerFechaActual()
+    XLSX.writeFile(workbook, `Carga_trabajo_${infoProject[0].NombreAgente}_${fecha}.xlsx`);
+    console.log('Archivo Excel generado con éxito.');
+  });
+
 });

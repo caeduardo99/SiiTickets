@@ -541,11 +541,12 @@ def infoAgenteSolicitado(request, id_agente):
 	WHERE au.id = %s and sa2.idestado_id = 2
     """
     consulta_proyecto = """
-    SELECT au.id, au.first_name, au.last_name, au.date_joined as fechaGrabado,
-    st.id as idProject, st.tituloProyecto, st.horasCompletasProyecto 
-    FROM auth_user au 
-    LEFT JOIN soporte_ticketdesarrollo st ON st.idAgente_id = au.id 
-    WHERE au.id = %s
+    SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion, sa.horasDiariasAsignadas as HorasTotales,
+	au.first_name as NombreAgente
+	from soporte_ticketdesarrollo st 
+	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id 
+	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
+    WHERE sa.idAgente_id = %s
     """
     consulta_actividad_principal = """
     SELECT au.id, au.first_name, au.last_name, au.date_joined as fechaGrabado,
