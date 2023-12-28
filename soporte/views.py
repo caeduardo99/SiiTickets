@@ -502,14 +502,17 @@ def detalleTicketDesarrollo(request, ticket_id):
     consulta_sql = """
     SELECT st.id as NumTicket, st.tituloProyecto , st.idAgente_id as idAgenteAdmin, au.first_name as nomAgenteAdmin,
 	sa.id as idTareaPrincipal, sa.descripcion as TareaPrincipal, sa.idAgente_id as idAgenteTarPrincipal, 
-	sa.horasDiariasAsignadas as horasPrincipales,
+	sa.horasDiariasAsignadas as horasPrincipales, se.id as idEstadoActividadPrincipal ,se.descripcion as estadoActividadPrincipal,
 	au2.first_name as nomAgentTareaPrincipal,
-	sa2.id as idTareaSecundaria, sa2.descripcion as TareaSecundaria, sa2.horasDiariasAsignadas as horasSecundarias
+	sa2.id as idTareaSecundaria, sa2.descripcion as TareaSecundaria, sa2.horasDiariasAsignadas as horasSecundarias,
+	se2.id as idEstadoActividadSecundaria, se2.descripcion as estadoActividadSecundaria
     FROM soporte_ticketdesarrollo st 
     LEFT JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id
     LEFT JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id = sa.id 
     LEFT JOIN auth_user au ON au.id = st.idAgente_id
     LEFT JOIN auth_user au2 ON au2.id = sa.idAgente_id
+    LEFT JOIN soporte_estadosticket se ON se.id = sa.idestado_id 
+    LEFT JOIN soporte_estadosticket se2 ON se2.id = sa2.idestado_id
     WHERE st.id = %s
     """
 
@@ -1280,15 +1283,44 @@ def tareas_desarrollo_success(request):
     if request.method == 'POST':
         array_id_main_task = request.POST.getlist('arrayIdMainTask[]')
         array_id_seconds_task = request.POST.getlist('arrayIdSecondsTask[]')
-
+    
         # Realiza las acciones necesarias con los datos, como imprimirlos
         print(f'Tareas Main: {array_id_main_task}, Tareas secundarias: {array_id_seconds_task}')
 
         if len(array_id_main_task) > 0:
             print('Si hay datos en el arreglo main de tareas')
+            for id_principal in array_id_main_task:
+                try:
+                    actividad_principal = ActividadPrincipal.objects.get(id=id_principal)
+                    actividad_principal.idestado_id = 5
+                    actividad_principal.save()
+                
+                except ActividadSecundaria.DoesNotExist:
+                    return JsonResponse({'error': 'No se han encontrado los IDs'}, status=405)
         
+
         if len(array_id_seconds_task) > 0:
             print('Si hay datos en el arreglo de tareas secundarias')
+            for id_secundaria in array_id_seconds_task:
+                try:
+                    actividad_secundaria = ActividadSecundaria.objects.get(id=id_secundaria)
+                    actividad_secundaria.idestado_id = 5
+                    actividad_secundaria.save()
+
+                    actividades_secundarias_filtradas = ActividadSecundaria.objects.filter(idActividadPrincipal_id=actividad_secundaria.idActividadPrincipal_id)
+                    
+                    if all(actividad.idestado_id == 5 for actividad in actividades_secundarias_filtradas):
+                        try:
+                            actividad_principal = ActividadPrincipal.objects.get(id=actividad_secundaria.idActividadPrincipal_id)
+                            actividad_principal.idestado_id = 5
+                            actividad_principal.save()
+                        except ActividadPrincipal.DoesNotExist:
+                            return JsonResponse({'error': 'Revisar la funcion de creado total de la Actividad Principal'}, status=405)
+
+
+                except ActividadSecundaria.DoesNotExist:
+                    return JsonResponse({'error': 'No se han encontrado los IDs'}, status=405)
+
 
         # Devuelve una respuesta JSON opcional
         return JsonResponse({'status': 'success','message': 'Datos recibidos correctamente'})

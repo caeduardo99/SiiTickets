@@ -785,63 +785,67 @@ $(document).ready(function () {
                 tableTasksEdit.style.display = "";
                 // btnRunEdit.style.display = "";
                 const row = tableBodyTasksEdit.insertRow();
-
+                
                 row.insertCell().textContent = tarea.TareaPrincipal || "";
+                row.insertCell().textContent = tarea.estadoActividadPrincipal || "";
                 row.insertCell().textContent = tarea.horasPrincipales || "";
                 row.insertCell().textContent = tarea.nomAgentTareaPrincipal || "";
                 row.insertCell().textContent = tarea.TareaSecundaria || "Sin datos";
                 row.insertCell().textContent = tarea.horasSecundarias || "Sin datos";
+                row.insertCell().textContent = tarea.estadoActividadSecundaria || "Sin datos";
 
                 // Agregar una nueva celda con un checkbox
-                const checkboxCell = row.insertCell();
-                const checkbox = document.createElement("input");
-                checkbox.type = "checkbox";
-                checkboxCell.appendChild(checkbox);
+                if (tarea.idEstadoActividadSecundaria !== 5) {
+                  const checkboxCell = row.insertCell();
+                  const checkbox = document.createElement("input");
+                  checkbox.type = "checkbox";
+                  checkboxCell.appendChild(checkbox);
 
-                checkbox.addEventListener("change", function () {
-                  if (this.checked) {
-                    if (tarea.idTareaSecundaria !== null) {
-                      arrayIdSecondsTask.push(tarea.idTareaSecundaria);
-                      const allSecundariasPresentes = tarea.idTareaPrincipal &&
-                        detalleTicket
-                          .filter((item) => item.idTareaPrincipal === tarea.idTareaPrincipal)
-                          .every((item) => arrayIdSecondsTask.includes(item.idTareaSecundaria));
-                      if (allSecundariasPresentes) {
+                  checkbox.addEventListener("change", function () {
+                    if (this.checked) {
+                      if (tarea.idTareaSecundaria !== null) {
+                        arrayIdSecondsTask.push(tarea.idTareaSecundaria);
+                        const allSecundariasPresentes = tarea.idTareaPrincipal &&
+                          detalleTicket
+                            .filter((item) => item.idTareaPrincipal === tarea.idTareaPrincipal)
+                            .every((item) => arrayIdSecondsTask.includes(item.idTareaSecundaria));
+                        if (allSecundariasPresentes) {
+                          arrayIdMainTask.push(tarea.idTareaPrincipal);
+                        }
+                      } else {
                         arrayIdMainTask.push(tarea.idTareaPrincipal);
                       }
                     } else {
-                      arrayIdMainTask.push(tarea.idTareaPrincipal);
-                    }
-                  } else {
-                    if (tarea.idTareaSecundaria !== null) {
-                      const indexSeconds = arrayIdSecondsTask.indexOf(tarea.idTareaSecundaria);
-                      if (indexSeconds !== -1) {
-                        arrayIdSecondsTask.splice(indexSeconds, 1);
-                      }
-                      const allSecundariasPresentes = tarea.idTareaPrincipal &&
-                        detalleTicket
-                          .filter((item) => item.idTareaPrincipal === tarea.idTareaPrincipal)
-                          .every((item) => arrayIdSecondsTask.includes(item.idTareaSecundaria));
-                      if (!allSecundariasPresentes) {
+                      if (tarea.idTareaSecundaria !== null) {
+                        const indexSeconds = arrayIdSecondsTask.indexOf(tarea.idTareaSecundaria);
+                        if (indexSeconds !== -1) {
+                          arrayIdSecondsTask.splice(indexSeconds, 1);
+                        }
+                        const allSecundariasPresentes = tarea.idTareaPrincipal &&
+                          detalleTicket
+                            .filter((item) => item.idTareaPrincipal === tarea.idTareaPrincipal)
+                            .every((item) => arrayIdSecondsTask.includes(item.idTareaSecundaria));
+                        if (!allSecundariasPresentes) {
+                          const indexMain = arrayIdMainTask.indexOf(tarea.idTareaPrincipal);
+                          if (indexMain !== -1) {
+                            arrayIdMainTask.splice(indexMain, 1);
+                          }
+                        }
+                      } else {
                         const indexMain = arrayIdMainTask.indexOf(tarea.idTareaPrincipal);
                         if (indexMain !== -1) {
                           arrayIdMainTask.splice(indexMain, 1);
                         }
                       }
-                    } else {
-                      const indexMain = arrayIdMainTask.indexOf(tarea.idTareaPrincipal);
-                      if (indexMain !== -1) {
-                        arrayIdMainTask.splice(indexMain, 1);
-                      }
                     }
-                  }
-
-                  if(arrayIdMainTask.length > 0 || arrayIdSecondsTask.length > 0){
-                    btnChangeState.style.display = '';
-                  }else{
-                    btnChangeState.style.display = 'none';
-                  }
-                });
+  
+                    if(arrayIdMainTask.length > 0 || arrayIdSecondsTask.length > 0){
+                      btnChangeState.style.display = '';
+                    }else{
+                      btnChangeState.style.display = 'none';
+                    }
+                  });
+                }
               });
             }
           })
@@ -955,11 +959,11 @@ $(document).ready(function () {
       success: function (response) {
         if(response.status == 'success'){
           toastr.success(response.status, "Tareas hechas existosamente.");
-
+          
         // Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
         setTimeout(function () {
           window.location.reload();
-        }, 1000);
+        }, 2000);
         } else {
           toastr.error("Error al crear el ticket: " + response.message, "Error");
         }
