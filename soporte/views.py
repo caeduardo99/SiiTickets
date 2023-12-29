@@ -530,9 +530,9 @@ def detalleTicketDesarrollo(request, ticket_id):
 
 def infoAgenteSolicitado(request, id_agente):
     consulta_sql = """
-    SELECT au.id, au.first_name, au.last_name, au.date_joined,
+    SELECT au.id, au.first_name as Nombre, au.last_name as Apellido, au.date_joined as FechaIngreso,
 	sa.descripcion as tareaPrincipal,
-	sa2.descripcion as tareaSecundaria,sa2.horasDiariasAsignadas as horasSecundarias, sa2.fechaDesarrollo,
+	sa2.descripcion as tareaSecundaria,sa2.horasDiariasAsignadas as horasDiariasTrabajo, sa2.fechaDesarrollo,
 	st.tituloProyecto as Proyecto
 	FROM auth_user au 
 	LEFT JOIN soporte_actividadprincipal sa ON sa.idAgente_id = au.id
@@ -542,15 +542,15 @@ def infoAgenteSolicitado(request, id_agente):
     """
     consulta_proyecto = """
     SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion, sa.horasDiariasAsignadas as HorasTotales,
-	au.first_name as NombreAgente
+	au.first_name as NombreAgente, au.last_name as ApellidoAgente
 	from soporte_ticketdesarrollo st 
 	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id 
 	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
     WHERE sa.idAgente_id = %s
     """
     consulta_actividad_principal = """
-    SELECT au.id, au.first_name, au.last_name, au.date_joined as fechaGrabado,
-	sa.descripcion as actividadPrincipal, sa.horasDiariasAsignadas as horasPrincipales
+    SELECT au.id, au.first_name as Nombre, au.last_name as Apellido, au.date_joined as fechaIngreso,
+	sa.descripcion as actividadPrincipal, sa.horasDiariasAsignadas as horasPrincipalesDesarrollo
 	FROM auth_user au 
 	LEFT JOIN soporte_actividadprincipal sa ON sa.idAgente_id = au.id
 	WHERE au.id = %s
