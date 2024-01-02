@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h3>Usuarios de Empresas</h3>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+<div class="content">
+    <ul class="nav nav-tabs" id="myTabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="nuevoUsuarioEmpresa-tab" data-toggle="tab" href="#nuevoUsuarioEmpresa">Nuevo
+                usuario empresa</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="verusuario-tab" data-toggle="tab" href="#verUsuariosEmpresa">Usuarios empresa</a>
+        </li>
+    </ul>
+    <div class="tab-content mt-2">
+        <div class="tab-pane fade show active" id="nuevoUsuarioEmpresa">
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">Datos del usuario Empresa</div>
+                <div class="card-body">
+                    <form class="form-row" method="post" action="{% url 'crear_usuario_empresa' %}">
+                        {% csrf_token %}
+                        <div class="form-group col-md-6">
+                            <div class="form-group">
+                                <label>Nombres Completos</label>
+                                <input type="text" id="inputNombres" class="form-control"
+                                    placeholder="Escriba el Nombre de usuario" name="inputNombres">
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <div class="form-group">
+                                <label>Apellidos</label>
+                                <input type="text" id="inputApellidos" class="form-control"
+                                    placeholder="Escriba el Apellido" name="inputApellidos">
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <div class="form-group">
+                                <label>Contraseña</label>
+                                <input type="password" id="inputPassword" class="form-control"
+                                    placeholder="Contraseña" name="inputPassword">
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <div class="form-group">
+                                <label>Verificar Contraseña</label>
+                                <input type="password" id="inputPasswordVerificacion" class="form-control"
+                                    placeholder="Verificar Contraseña" name="inputPasswordVerificacion">
+                                <span style="color: red; display: none;" id="spanPasswordValid">El texto no corresponde</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-6">
+                            <div class="form-group">
+                                <label>Usuario</label>
+                                <input type="text" id="inputNickname" class="form-control"
+                                    placeholder="Escriba el Usuario" name="inputNickname">
+                            </div>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <div class="form-group">
+                                <label>Correo Electronico</label>
+                                <input type="email" id="inputEmail" class="form-control"
+                                    placeholder="Escriba el Apellido" name="inputEmail">
+                            </div>
+                        </div>
+
+                        <div class="form-group col-md-12" id="rowBtnNewUser" style="display: none;">
+                            <button type="submit" class="btn btn-info btn-block" id="btnNewUser">+ Crear nuevo usuario</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="verUsuariosEmpresa">
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">Detalles de los usuarios Empresa</div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombres</th>
+                                <th>Apellidos</th>
+                                <th>Último Ingreso</th>
+                                <th>Correo Electronico</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyTableUsuariosEmpresa">
+                            {% for user in users %}
+                                <tr>
+                                    <td>{{ user.first_name }}</td>
+                                    <td>{{ user.last_name }}</td>
+                                    <td>{{ user.last_login }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>{% if user.is_active %}Activo{% else %}Inactivo{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+<script src="../static/dist/utils/usuariosEmpresa.js"></script>
+
+{% endblock %}

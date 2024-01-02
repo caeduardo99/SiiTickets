@@ -173,9 +173,15 @@
                                         </a>
                                         <ul class="nav nav-treeview">
                                             <li class="nav-item">
-                                                <a href="{% url 'usuarios' %}" class="nav-link active">
+                                                <a href="{% url 'usuariosSolicitantes' %}" class="nav-link active">
                                                     <i class="far fa-circle nav-icon"></i>
-                                                    <p>Usuarios</p>
+                                                    <p>Solicitantes</p>
+                                                </a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a href="{% url 'usuariosEmpresas' %}" class="nav-link">
+                                                    <i class="far fa-circle nav-icon"></i>
+                                                    <p>Usuarios Empresas</p>
                                                 </a>
                                             </li>
                                         </ul>
@@ -293,7 +299,6 @@
 <script src="{% static 'plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js' %}"></script>
 <script src="{% static 'plugins/select2/js/select2.full.min.js' %}"></script>
 <script src="{% static 'plugins/toastr/toastr.min.js' %}"></script>
-
 
 <script>
     $(function () {

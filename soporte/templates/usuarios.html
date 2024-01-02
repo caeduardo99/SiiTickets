@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h3>Usuarios</h3>
+                    <h3>Solicitantes</h3>
                 </div>
             </div>
         </div><!-- /.container-fluid -->
@@ -15,17 +14,17 @@
         <ul class="nav nav-tabs" id="myTabs">
             <li class="nav-item">
                 <a class="nav-link active" id="nuevousuario-tab" data-toggle="tab" href="#nuevousuario">Nuevo
-                    Usuario</a>
+                    Solicitante</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="verusuario-tab" data-toggle="tab" href="#verusuario">Usuarios</a>
+                <a class="nav-link" id="verusuario-tab" data-toggle="tab" href="#verusuario">Solicitante</a>
             </li>
         </ul>
         <div class="tab-content mt-2">
             <!-- Contenido de la pestaña Nuevo Ticket -->
             <div class="tab-pane fade show active" id="nuevousuario">
                 <div class="card mb-3">
-                    <div class="card-header bg-danger text-white">Detalles del Usuario</div>
+                    <div class="card-header bg-info text-white">Datos del Solicitante</div>
                     <div class="card-body">
                         <form class="form-row" method="post" action="{% url 'crear_solicitante' %}">
                             {% csrf_token %}
@@ -67,29 +66,31 @@
                                 </select>
                             </div>
                             <div class="form-group col-12">
-                                <button type="submit" class="btn btn-dark">Crear Solicitante</button>
+                                <button type="submit" class="btn bg-info">Crear Solicitante</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="vertickets">
+            <div class="tab-pane fade" id="verusuario">
                 <div class="card mb-3">
-                    <div class="card-header bg-danger text-white">Detalles del Ticket</div>
+                    <div class="card-header bg-info text-white">Detalles del Solicitante</div>
                     <div class="card-body">
-                        <table class="table" id="tickets-table">
+                        <table class="table table-responsive" id="solicitantes-table">
                             <thead>
                             <tr>
-                                <th>NumTicket</th>
+                                <th>NumSolicitante</th>
+                                <th>Ruc</th>
+                                <th>Nombre</th>
+                                <th>Teléfono</th>
+                                <th>Dirección</th>
+                                <th>Correo</th>
                                 <th>Empresa</th>
-                                <th>Modulo Actualizar</th>
-                                <th>Solicitante</th>
-                                <th>Prioridad</th>
-                                <th>Estado</th>
                                 <th>Acción</th>
                             </tr>
                             </thead>
                             <tbody>
+
                             </tbody>
                         </table>
                     </div>
@@ -102,6 +103,35 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
     <script src="../static/dist/utils/soporte.js"></script>
     <script>
+        function cargarTablaTickets() {
+            $.ajax({
+                url: '{% url "solicitantescreados" %}',
+                method: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    // Limpiar el cuerpo de la tabla
+                    $('#solicitantes-table tbody').empty();
+                    // Iterar sobre los datos y agregar filas a la tabla
+                    $.each(data, function (index, solicitante) {
+                        var newRow = '<tr>' +
+                            '<td>' + `000-${solicitante.NumSolicitante}` + '</td>' +
+                            '<td>' + solicitante.Ruc + '</td>' +
+                            '<td>' + solicitante.Nombre + '</td>' +
+                            '<td>' + solicitante.Telefono + '</td>' +
+                            '<td>' + solicitante.Direccion + '</td>' +
+                            '<td>' + solicitante.Correo + '</td>' +
+                            '<td>' + solicitante.Empresa + '</td>' +
+                            '<td><button class="btn btn-info btn-sm ver-button" data-ticket-id="' + solicitante.NumSolicitante + '">Ver</button></td>' +
+                            '</tr>';
+                        $('#solicitantes-table tbody').append(newRow);
+                    });
+                },
+                error: function (error) {
+                    console.log('Error en la solicitud AJAX:', error);
+                }
+            });
+        }
+
         // consulta_ruc.js
         document.getElementById('rucUsuario').addEventListener('keydown', function (event) {
             // Verificar si la tecla presionada es "Enter"
@@ -117,10 +147,8 @@
         function consultarRUC() {
             // Obtener el valor del input
             var ruc = document.getElementById('rucUsuario').value;
-
             // Construir la URL de la vista Django
             var url = '{% url "clienteconsultajson" %}?ruc=' + ruc;
-
             // Hacer la solicitud GET con AJAX
             $.ajax({
                 url: url,
@@ -139,8 +167,8 @@
                         document.getElementById('nombreUsuario').value = '';
                         document.getElementById('direccionUsuario').value = '';
                         document.getElementById('telefonoUsuario').value = '';
-                        document.getElementById('correoUsuario').value = '';
-                        console.log('No se encontraron datos para el RUC proporcionado.');
+                        document.getElementById('correoUsuario').value = '';    
+                        toastr.error("No se ha podido encontrar información del Ruc proporcionado");
                     }
                 },
                 error: function (error) {
@@ -150,6 +178,11 @@
             });
         }
 
-
+        $(document).ready(function () {
+            cargarTablaTickets();
+            $('#vertickets-tab').on('click', function () {
+                cargarTablaTickets();
+            });
+        });
     </script>
 {% endblock %}

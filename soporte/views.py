@@ -13,12 +13,13 @@ from .models import (
     ActividadPrincipal,
     ActividadSecundaria,
 )
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from .models import Solicitante, EstadosTicket
 from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from .models import TicketSoporte, TicketActualizacion, ModuloSii4, Empresa
 from django.contrib.auth.decorators import user_passes_test
+from django.core.mail import send_mail
 
 
 def login_user(request):
@@ -150,7 +151,7 @@ def desarrolloact(request):
 @login_required
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def empresas(request):
-    # nombre_usuario = request.user.username if request.user.is_authenticated else None
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
     # print('nombre_usuario', nombre_usuario)
 
     resultados_empresas = empresasjson(request)
@@ -158,6 +159,7 @@ def empresas(request):
     resultados_empresas_data = json.loads(resultados_empresas.content)
 
     context = {
+        'nombre_usuario': nombre_usuario,
         'resultados_solicitantes_data': resultados_empresas_data,
     }
     return render(request, 'empresas.html', context)
@@ -166,32 +168,41 @@ def empresas(request):
 @login_required
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def modulos(request):
-    # nombre_usuario = request.user.username if request.user.is_authenticated else None
-    # print('nombre_usuario', nombre_usuario)
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
 
     resultados_modulos = modulojson(request)
 
     resultados_modulos_data = json.loads(resultados_modulos.content)
 
     context = {
+        'nombre_usuario': nombre_usuario,
         'resultados_modulos_data': resultados_modulos_data,
     }
     return render(request, 'modulos.html', context)
 
 
 @login_required
-def usuarios(request):
-    # nombre_usuario = request.user.username if request.user.is_authenticated else None
-    # print('nombre_usuario', nombre_usuario)
-
+def usuariosSolicitantes(request):
     resultados_empresas = empresasjson(request)
-
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
     resultados_empresas_data = json.loads(resultados_empresas.content)
 
     context = {
+        'nombre_usuario': nombre_usuario,
         'resultados_empresas_data': resultados_empresas_data,
     }
     return render(request, 'usuarios.html', context)
+
+@login_required
+def usuariosEmpresas(request):
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
+    users = User.objects.all()
+    context = {
+        'users': users,
+        'nombre_usuario': nombre_usuario
+    }
+    
+    return render(request, 'usuariosEmpresa.html', context)
 
 
 ########## BACKEND ##################
@@ -325,6 +336,27 @@ FROM
         cursor.execute(consulta_sql, [ruc_parametro])
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
+
+
+def solicitantescreados(request):
+    # Construir la consulta SQL
+    consulta_sql = """
+        select ss.id as NumSolicitante, ss.ruc as Ruc, ss.nombreApellido as Nombre,
+ss.telefonoSolicitante as Telefono, ss.direccion as Direccion, ss.correo as Correo,
+se.nombreEmpresa as Empresa
+from soporte_solicitante ss
+left join soporte_empresa se on se.id = ss.idEmpresa_id 
+        """
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
@@ -653,6 +685,31 @@ def crear_ticket_soporte(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
 
+@require_POST
+def crear_usuario_empresa(request):
+    try:
+        fecha_actual = datetime.now()
+        fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
+        nickName = request.POST.get('inputNickname', '')
+        password = request.POST.get('inputPassword', '')
+        nombres = request.POST.get('inputNombres','')
+        apellidos = request.POST.get('inputApellidos', '')
+        email = request.POST.get('inputEmail', '')
+
+        nuevo_usuario = User.objects.create_user(password=password, last_login=None, username=nickName, last_name=apellidos, email=email, is_staff=False, is_active=True, date_joined=fecha_creacion, first_name=nombres)
+
+        grupo = Group.objects.get(id=1)
+        nuevo_usuario.groups.add(grupo)
+
+        # CREACION Y ENVIO DEL CORREO ELECTRONICO
+        asunto = 'Credenciales de acceso SiiTicket'
+        mensaje = f'Tus credenciales de acceso:\n\nUsuario: {nickName}\nContraseña: {password}'
+        send_mail(asunto, mensaje, 'ishida.desarrollo@ishidasoftwarecue.com', [email])
+
+        return JsonResponse({'status': 'success', 'message': 'Usuario creado con éxito'})
+    
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
 
 @require_POST
 def crear_solicitante(request):

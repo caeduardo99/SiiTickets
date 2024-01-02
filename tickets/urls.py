@@ -28,7 +28,8 @@ urlpatterns = [
     path('desarrolloact', views.desarrolloact, name='desarrolloact'),
     path('empresas', views.empresas, name='empresas'),
     path('modulos', views.modulos, name='modulos'),
-    path('usuarios', views.usuarios, name='usuarios'),
+    path('usuariosSolicitantes', views.usuariosSolicitantes, name='usuariosSolicitantes'),
+    path('usuariosEmpresas', views.usuariosEmpresas, name='usuariosEmpresas'),
     path('logout/', views.signout, name='logout'),
 
     path('solicitantesjson/', views.solicitantesjson, name='solicitantesjson'),
@@ -59,6 +60,7 @@ urlpatterns = [
     path('moduloscreados/', views.moduloscreados, name='moduloscreados'),
     path('crear_empresa/', views.crear_empresa, name='crear_empresa'),
     path('crear_modulo/', views.crear_modulo, name='crear_modulo'),
+    path('crear_usuario_empresa/', views.crear_usuario_empresa, name='crear_usuario_empresa'),
     path('detalles_empresa/', views.detalles_empresa, name='detalles_empresa'),
     path('detalles_modulo/', views.detalles_modulo, name='detalles_modulo'),
     path('actualizar_empresa/', views.actualizar_empresa, name='actualizar_empresa'),
@@ -67,6 +69,7 @@ urlpatterns = [
     path('editar_desarrollo/', views.editar_desarrollo, name='editar_desarrollo'),
     path('crear_solicitante/', views.crear_solicitante, name='crear_solicitante'),
     path('tareas_desarrollo_success/', views.tareas_desarrollo_success, name='tareas_desarrollo_success'),
+    path('solicitantescreados/', views.solicitantescreados, name='solicitantescreados'),
 
 ]
 if settings.DEBUG:
