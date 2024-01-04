@@ -19,7 +19,8 @@ from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from .models import TicketSoporte, TicketActualizacion, ModuloSii4, Empresa
 from django.contrib.auth.decorators import user_passes_test
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
+from django.conf import settings
 
 
 def login_user(request):
@@ -93,10 +94,16 @@ def soporte(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def desarrollo(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
-    print("nombre_usuario", nombre_usuario)
+    
+    consultGroupUser = """
+    SELECT au.id AS idUser, au.first_name, aug.group_id 
+ 	FROM auth_user au
+ 	INNER JOIN auth_user_groups aug ON aug.user_id = au.id
+ 	WHERE au.username = %s
+    """
+    connection = connections['default']
 
     resultados_solicitantes = solicitantesjson(request)
 
@@ -105,10 +112,17 @@ def desarrollo(request):
 
     resultados_agentes_data = json.loads(resultados_agentes.content)
 
+    # CONSULTA
+    with connection.cursor() as cursor:
+        cursor.execute(consultGroupUser, [nombre_usuario])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
     context = {
         "nombre_usuario": nombre_usuario,
         "resultados_solicitantes_data": resultados_solicitantes_data,
         "resultados_agentes_data": resultados_agentes_data,
+        "resultados": resultados,
     }
     return render(request, "desarrollo.html", context)
 
@@ -251,9 +265,10 @@ def solicitantesjson(request):
 def agentesjson(request):
     # Construir la consulta SQL
     consulta_sql = """
-    SELECT id, first_name || ' ' || last_name AS full_name
-FROM auth_user
-WHERE (first_name IS NOT NULL AND first_name <> '') OR (last_name IS NOT NULL AND last_name <> '')
+    SELECT au.id, au.first_name || ' ' || au.last_name AS full_name, aug.group_id 
+    FROM auth_user au 
+    INNER JOIN auth_user_groups aug ON aug.user_id = au.id
+    WHERE aug.group_id <> 2
     """
     connection = connections["default"]
 
@@ -506,6 +521,8 @@ LEFT JOIN
 
 def ticketDesarrolloCreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    email_usuario = request.user.email if request.user.is_authenticated else None
+    
     consulta_sql = """
     SELECT st.id as NumTicket, ss.id as idCliente, ss.nombreApellido as Cliente, au.id as idAgente, au.first_name as Agente,
 	se.nombreEmpresa as Empresa , st.tituloProyecto,st.idestado_id as idEstado, ses.descripcion as EstadoProyecto, 
@@ -518,6 +535,22 @@ def ticketDesarrolloCreados(request):
     LEFT JOIN auth_user au on au.id = st.idAgente_id
     WHERE au.username = %s
     """
+    consulta_info_solicitantes = """
+    SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
+    """
+    consulta_get_projects = """
+    SELECT st.id as NumTicket, ss.id as idCliente, ss.nombreApellido as Cliente, au.id as idAgente, au.first_name as Agente,
+	se.nombreEmpresa as Empresa , st.tituloProyecto,st.idestado_id as idEstado, ses.descripcion as EstadoProyecto, 
+	st.descripcionActividadGeneral, st.horasCompletasProyecto as HorasTotales,
+	st.fechaCreacion, st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion 
+    FROM soporte_ticketdesarrollo st 
+    LEFT JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+    LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
+    LEFT JOIN soporte_estadosticket ses on ses.id = st.idestado_id
+    LEFT JOIN auth_user au on au.id = st.idAgente_id
+    WHERE ss.id = %s
+    """
+    
     connection = connections["default"]
 
     # Ejecutar la consulta SQL y obtener los resultados
@@ -526,8 +559,27 @@ def ticketDesarrolloCreados(request):
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    # Devolver la respuesta JSON
-    return JsonResponse(resultados, safe=False)
+    # COMPROBAR SI ESTA VACIO O NO
+    if resultados:
+        # Devolver la respuesta JSON
+        return JsonResponse(resultados, safe=False)
+    else:
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_info_solicitantes, [email_usuario])
+            columns = [col[0] for col in cursor.description]
+            info_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        idSolicitante = info_solicitante[0]['id']
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_get_projects, [idSolicitante])
+            columns = [col[0] for col in cursor.description]
+            resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
+        return JsonResponse(resultados, safe=False)
+        
+
+
 
 
 def detalleTicketDesarrollo(request, ticket_id):
@@ -698,15 +750,24 @@ def crear_usuario_empresa(request):
 
         nuevo_usuario = User.objects.create_user(password=password, last_login=None, username=nickName, last_name=apellidos, email=email, is_staff=False, is_active=True, date_joined=fecha_creacion, first_name=nombres)
 
-        grupo = Group.objects.get(id=1)
+        grupo = Group.objects.get(id=2)
         nuevo_usuario.groups.add(grupo)
 
         # CREACION Y ENVIO DEL CORREO ELECTRONICO
-        asunto = 'Credenciales de acceso SiiTicket'
-        mensaje = f'Tus credenciales de acceso:\n\nUsuario: {nickName}\nContraseña: {password}'
-        send_mail(asunto, mensaje, 'ishida.desarrollo@ishidasoftwarecue.com', [email])
+        asunto = 'Credenciales para el acceso a SiiTickets.'
+        cuerpo = f'Las credenciales de acceso para el sistema SiiTickets de Ishida son:\n\nUsuario: {nickName}\nContraseña: {password}'
+        complet_email = EmailMessage(
+            subject=asunto,
+            body=cuerpo,
+            to=[email],
+        )
 
-        return JsonResponse({'status': 'success', 'message': 'Usuario creado con éxito'})
+        complet_email.send()
+
+        if(nickName != '' and password != ''):
+            return JsonResponse({'status': 'success', 'message': 'Usuario creado con éxito'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'No se pudo enviar el correo por falta de información'})
     
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)

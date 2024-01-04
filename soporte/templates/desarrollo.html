@@ -25,7 +25,16 @@
 
     <div class="tab-content mt-2">
         <div class="tab-pane fade show active" id="nuevoticket">
-            <div class="card mb-3">
+            <div class="card mb-3" id="cardAlertNoPermissions">
+                <div class="card-header bg-warning text-white">Alerta!</div>
+                <div class="card-body">
+                    <h4>El usuario no tiene los permisos para crear un proyecto.</h4>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Verificar que el grupo de usuario logeado sea <b><i>empresas_soporte</i></b>.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card mb-3" id="cardFormNewProjectDevelop">
                 <div class="card-header bg-success text-white">Detalles del Proyecto</div>
                 <div class="card-body">
                     <form class="form-row" method="post" action="{% url 'crear_ticket_desarrollo' %}">
@@ -129,7 +138,7 @@
                         </div>
 
                         <div class="form-group col-md-12" id="rowTableTask" style="display: none;">
-                            <div class="table-responsive">
+                            <div class="table-responsive" id="tableResponsiveTasks" style="overflow-y: auto; max-height: 240px;">
                                 <table class="table table-hover table-sm">
                                     <thead>
                                         <tr>
@@ -153,6 +162,7 @@
                 </div>
             </div>
         </div>
+
         <div class="tab-pane fade" id="vertickets">
             <div class="card mb-3">
                 <div class="card-header bg-success text-white">Detalles de los proyectos creados</div>
@@ -200,6 +210,7 @@
                                 placeholder="Escriba el título del Proyecto" name="inputEditTitleProject">
                         </div>
                     </div>
+
                     <div class="form-group col-md-4">
                         <div class="form-group">
                             <label>Horas del Proyecto</label>
@@ -255,7 +266,7 @@
                     </div> -->
 
                     <div class="form-group col-md-12">
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="overflow-y: auto; max-height: 240px;">
                             <table class="table table-hover table-sm" id="tableTasksEdit">
                                 <thead style="text-align: center;">
                                     <tr>
@@ -294,7 +305,7 @@
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="titleModalAgente"></h5>
+                <h3 class="modal-title" id="titleModalAgente"></h3>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -307,23 +318,27 @@
                 </div>
                 <div class="row g-1" id="rowTableTaskSecond">
                     <div class="col-md-12">
-                        <h6>Carga de trabajo</h6>
-                        <table class="table table-sm table-borderless table-hover">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Proyecto</th>
-                                    <th scope="col">Actividades</th>
-                                    <th scope="col">Horas por día</th>
-                                    <th scope="col">Fecha de desarrollo</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyActividadesSecundarias">
-
-                            </tbody>
-                        </table>
+                        <h5>Carga de trabajo</h5>
+                        <div class="table-responsive" style="overflow-y: auto; max-height: 240px;">
+                            <table class="table table-sm table-borderless table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Proyecto</th>
+                                        <th scope="col">Fecha y hora de creación</th>
+                                        <th scope="col">Actividades</th>
+                                        <th scope="col">Horas por día</th>
+                                        <th scope="col">Fecha de desarrollo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyActividadesSecundarias">
+    
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     <hr>
                 </div>
+                <br>
                 <div class="row">
                     <div class="col-md-12" id="divProgressBarTime">
                         
@@ -351,6 +366,7 @@
     },
     {% endfor %}
         ];
+    var resultadosConsulta = {{ resultados|safe }};
 </script>
 <script src="../static/dist/utils/desarrollo.js"></script>
 <link rel="stylesheet" href="../static/dist/css/desarrollo.css">

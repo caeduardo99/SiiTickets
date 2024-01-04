@@ -67,6 +67,8 @@ $(document).ready(function () {
   const tableBodyTasksEdit = document.getElementById("tableBodyTasksEdit");
   const tableTasksEdit = document.getElementById("tableTasksEdit");
   const btnChangeState = document.getElementById("btnChangeState");
+  const cardAlertNoPermissions = document.getElementById('cardAlertNoPermissions');
+  const cardFormNewProjectDevelop = document.getElementById('cardFormNewProjectDevelop');
 
   var resultadosAgentesData = window.resultados_agentes_data;
   var resultadosProyectos;
@@ -117,7 +119,6 @@ $(document).ready(function () {
       url: `infoAgenteSolicitado/${agenteValue}/`, // La URL de tu vista con el id_agente
       dataType: "json",
       success: function (data) {
-        console.log(data);
         $("#modalInfoAgente").modal("show");
         infoProject = [];
         infoTareasPrincipales = [];
@@ -147,11 +148,13 @@ $(document).ready(function () {
             let row = tbodyActividadesSecundarias.insertRow();
 
             let cellProject = row.insertCell(0);
-            let cellTask = row.insertCell(1);
-            let cellHorasSecundarias = row.insertCell(2);
-            let cellFechaDesarrollo = row.insertCell(3);
+            let cellFechaProyecto = row.insertCell(1)
+            let cellTask = row.insertCell(2);
+            let cellHorasSecundarias = row.insertCell(3);
+            let cellFechaDesarrollo = row.insertCell(4);
 
             cellProject.textContent = project.Proyecto;
+            cellFechaProyecto.textContent = project.FechaIngreso;
             cellTask.textContent =
               project.tareaSecundaria == null
                 ? "Sin tareas"
@@ -753,7 +756,8 @@ $(document).ready(function () {
             {
                 text: "Firma del Cliente: ____________________________",
                 fontSize: 12,
-                margin: [40, 5, 0, 0], // Ajusta el margen según tus necesidades
+                margin: [35, 5, 0, 0], // Ajusta el margen según tus necesidades
+                paddin: [10, 0, 0, 0],
             },
             {
                 text: `Página ${currentPage} de ${pageCount}`,
@@ -789,6 +793,13 @@ $(document).ready(function () {
   fetch("ticketDesarrolloCreados/")
     .then((response) => response.json())
     .then((data) => {
+      if(resultadosConsulta[0].group_id != 2){
+        cardAlertNoPermissions.style.display = 'none';
+        cardFormNewProjectDevelop.style.display = '';
+      }else{
+        cardAlertNoPermissions.style.display = '';
+        cardFormNewProjectDevelop.style.display = 'none';
+      }
       resultadosProyectos = data;
     })
     .catch((error) => console.error("Error:", error));
@@ -881,9 +892,9 @@ $(document).ready(function () {
                   tarea.horasSecundarias || "Sin datos";
                 row.insertCell().textContent =
                   tarea.estadoActividadSecundaria || "Sin datos";
-
+                  
                 // Agregar una nueva celda con un checkbox
-                if (tarea.idEstadoActividadSecundaria !== 5) {
+                if (tarea.idEstadoActividadSecundaria !== 5 && resultadosConsulta[0].group_id !== 2) {
                   const checkboxCell = row.insertCell();
                   const checkbox = document.createElement("input");
                   checkbox.type = "checkbox";
@@ -1055,8 +1066,6 @@ $(document).ready(function () {
       facturar: true,
       horasCompletasProyecto: inputEditNumHoras.value,
     };
-
-    console.log(objInfoGeneral);
   });
 
   btnChangeState.addEventListener("click", function () {

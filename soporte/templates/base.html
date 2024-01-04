@@ -116,7 +116,7 @@
                                     </ul>
                                 </li>
                             {% endif %}
-                            {% if group.name == 'agentes' %}
+                            {% if group.name == 'agentes' or group.name == 'empresas_soporte' %}
                                 <li class="nav-header">Tickets Desarrollo</li>
                                 <li class="nav-item">
                                     <a href="#" class="nav-link">
@@ -133,13 +133,14 @@
                                                 <p>Desarrollo</p>
                                             </a>
                                         </li>
+                                        {% if group.name == 'agentes' %}
                                         <li class="nav-item">
                                             <a href="{% url 'desarrolloact' %}" class="nav-link active">
                                                 <i class="far fa-circle nav-icon"></i>
                                                 <p>Desarrollo Actualización</p>
                                             </a>
                                         </li>
-
+                                        {% endif %}
                                     </ul>
                                 </li>
                             {% endif %}
