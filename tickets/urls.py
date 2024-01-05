@@ -30,6 +30,7 @@ urlpatterns = [
     path('modulos', views.modulos, name='modulos'),
     path('usuariosSolicitantes', views.usuariosSolicitantes, name='usuariosSolicitantes'),
     path('usuariosEmpresas', views.usuariosEmpresas, name='usuariosEmpresas'),
+    path('reportes', views.views_reports, name='views_reports'),
     path('logout/', views.signout, name='logout'),
 
     path('solicitantesjson/', views.solicitantesjson, name='solicitantesjson'),

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% block content %}
+
+<!-- Contenido específico de la página de dashboard -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h3>Reportes</h3>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+
+<div class="content">
+    <ul class="nav nav-tabs" id="myTabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="nuevoReporte-tab" data-toggle="tab" href="#nuevoReporte">Generar Reporte</a>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-2">
+        <div class="tab-pane fade show active" id="nuevoReporte">
+            <div class="card mb-3" id="cardFormNewReport">
+                <div class="card-header text-white bg-dark">Generar nuevo reporte</div>
+                <div class="card-body">
+                    <div class="row g-1">
+                        <div class="col-md-6">
+                            <label>Tipo de Ticket</label>
+                            <select class="custom-select" id="selectTypeTicket">
+                                <option selected>Seleccione el tipo de ticket que necesite</option>
+                                <option value="1">Soporte</option>
+                                <option value="2">Actualización</option>
+                                <option value="3">Desarrollo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Esado del ticket</label>
+                            <select class="custom-select" id="selectStateTicket">
+                                <option selected>Seleccione el estado del ticket</option>
+                                {% for estado in estados_tickets %}
+                                <option value="{{ estado.id }}">
+                                    {{ estado.descripcion }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row g-1" id="optionTimeTickets" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="radiosTicketsTime" id="radiosTicketsTime1" value="masNuevos" checked>
+                                <label class="form-check-label" for="radiosTicketsTime1">
+                                  Más recientes
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="radiosTicketsTime" id="radiosTicketsTime2" value="masAntiguos">
+                                <label class="form-check-label" for="radiosTicketsTime2">
+                                  Más antiguos
+                                </label>
+                              </div>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row g-1" id="optionsAgentPeriodo" style="display: none;">
+                        <div class="col-md-4">
+                            <label>Agente</label>
+                            <select class="select2" id="agentesolicitado" style="width: 100%;" name="agentesolicitado">
+                                <option value="">Seleccione Agente</option>
+                                {% for agente in resultados_agentes_data %}
+                                <option value="{{ agente.id }}">
+                                    {{ agente.full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4" id="colFechaInicio" style="display: none;">
+                            <label>Fecha de inicio</label>
+                            <input type="date" class="form-control" id="inputDateStar">
+                        </div>
+                        <div class="col-md-4" id="colFechaFinal" style="display: none;">
+                            <label>Fecha de fin</label>
+                            <input type="date" class="form-control" id="inputDateEnd">
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row g-1" id="rowGenerateReport" style="display: none;">
+                        <button class="btn btn-block btn-dark" id="btnGenerateReport">Generar reporte</button>
+                    </div>
+                    <br>
+                    <hr>
+                    <div class="row g-1" id="rowTableTickets" style="display: none;">
+                        <div class="col-md-12">
+                            <div class="table-responsive" id="tableResponsiveTickets" style="overflow-y: auto; max-height: 240px;">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                      <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col">Numero de Ticket</th>
+                                        <th scope="col">Fecha de inicio/creación</th>
+                                        <th scope="col">Fecha de Finalización</th>
+                                        <th scope="col">Estado</th>
+                                        <th scope="col">Agente Encargado</th>
+                                        <th scope="col">Tipo de ticket</th>
+                                        <th scope="col">Acciones</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody id="tableBodyFilterProjects">
+                                      
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+<script src="../static/dist/utils/reportes.js"></script>
+
+
+{% endblock %}

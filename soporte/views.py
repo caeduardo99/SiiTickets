@@ -218,6 +218,43 @@ def usuariosEmpresas(request):
     
     return render(request, 'usuariosEmpresa.html', context)
 
+@login_required
+@user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
+def views_reports(request):
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
+
+    # Llamar a la función solicitantes para obtener los resultados
+    resultados_solicitantes = solicitantesjson(request)
+
+    resultados_solicitantes_data = json.loads(resultados_solicitantes.content)
+
+    # Llamar a la función agentes para obtener los resultados
+    resultados_agentes = agentesjson(request)
+    resultados_agentes_data = json.loads(resultados_agentes.content)
+    resultados_estados = estadosjson(request)
+    resultados_estados_data = json.loads(resultados_estados.content)
+
+    # ESTADO DE LOS TICKETS
+    consulta_estado = """
+    SELECT * from soporte_estadosticket se WHERE se.id <> 3 AND se.id <> 4
+    """
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_estado)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+
+    context = {
+        'nombre_usuario': nombre_usuario,
+        'resultados_solicitantes_data': resultados_solicitantes_data,
+        'resultados_agentes_data': resultados_agentes_data,
+        'resultados_estados_data': resultados_estados_data,
+        'estados_tickets' : resultados
+    }
+    return render(request, 'reportes.html', context)
 
 ########## BACKEND ##################
 
@@ -578,9 +615,6 @@ def ticketDesarrolloCreados(request):
             
         return JsonResponse(resultados, safe=False)
         
-
-
-
 
 def detalleTicketDesarrollo(request, ticket_id):
     consulta_sql = """

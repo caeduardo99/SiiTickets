@@ -970,6 +970,14 @@ $(document).ready(function () {
                     }
                   });
                 }
+                if(resultadosConsulta[0].group_id === 2){
+                  inputEditTitleProject.disabled = true;
+                  inputEditNumHoras.disabled = true;
+                  editSolicitante.disabled = true;
+                  editAgenteSolicitado.disabled = true;
+                  editFechaEstimada.disabled = true;
+                  editDescripcionGeneral.disabled = true;
+                }
               });
             }
           })
