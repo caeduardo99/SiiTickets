@@ -52,19 +52,21 @@
                     <div class="row g-1" id="optionTimeTickets" style="display: none;">
                         <div class="col-md-6">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="radiosTicketsTime" id="radiosTicketsTime1" value="masNuevos" checked>
+                                <input class="form-check-input" type="radio" name="radiosTicketsTime"
+                                    id="radiosTicketsTime1" value="masNuevos" checked>
                                 <label class="form-check-label" for="radiosTicketsTime1">
-                                  Más recientes
+                                    Más recientes
                                 </label>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="radiosTicketsTime" id="radiosTicketsTime2" value="masAntiguos">
+                                <input class="form-check-input" type="radio" name="radiosTicketsTime"
+                                    id="radiosTicketsTime2" value="masAntiguos">
                                 <label class="form-check-label" for="radiosTicketsTime2">
-                                  Más antiguos
+                                    Más antiguos
                                 </label>
-                              </div>
+                            </div>
                         </div>
                     </div>
                     <br>
@@ -80,11 +82,11 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4" id="colFechaInicio" style="display: none;">
+                        <div class="col-md-4" id="colFechaInicio">
                             <label>Fecha de inicio</label>
                             <input type="date" class="form-control" id="inputDateStar">
                         </div>
-                        <div class="col-md-4" id="colFechaFinal" style="display: none;">
+                        <div class="col-md-4" id="colFechaFinal">
                             <label>Fecha de fin</label>
                             <input type="date" class="form-control" id="inputDateEnd">
                         </div>
@@ -97,22 +99,21 @@
                     <hr>
                     <div class="row g-1" id="rowTableTickets" style="display: none;">
                         <div class="col-md-12">
-                            <div class="table-responsive" id="tableResponsiveTickets" style="overflow-y: auto; max-height: 240px;">
+                            <div class="table-responsive" id="tableResponsiveTickets"
+                                style="overflow-y: auto; max-height: 240px;">
                                 <table class="table table-sm table-hover">
                                     <thead>
-                                      <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Numero de Ticket</th>
-                                        <th scope="col">Fecha de inicio/creación</th>
-                                        <th scope="col">Fecha de Finalización</th>
-                                        <th scope="col">Estado</th>
-                                        <th scope="col">Agente Encargado</th>
-                                        <th scope="col">Tipo de ticket</th>
-                                        <th scope="col">Acciones</th>
-                                      </tr>
+                                        <tr>
+                                            <th scope="col"># Ticket</th>
+                                            <th scope="col">Nombre del proyecto</th>
+                                            <th scope="col">Fecha de inicio/creación</th>
+                                            <th scope="col">Fecha de Finalización</th>
+                                            <th scope="col">Estado</th>
+                                            <th scope="col">Agente Encargado</th>
+                                        </tr>
                                     </thead>
                                     <tbody id="tableBodyFilterProjects">
-                                      
+
                                     </tbody>
                                 </table>
                             </div>
@@ -125,6 +126,4 @@
 </div>
 <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
 <script src="../static/dist/utils/reportes.js"></script>
-
-
 {% endblock %}

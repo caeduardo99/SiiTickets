@@ -51,6 +51,7 @@ urlpatterns = [
     path('detalles_actualizacion/', views.detalles_actualizacion, name='detalles_actualizacion'),
     path('editar_ticket_actualizar/', views.editar_ticket_actualizar, name='editar_ticket_actualizar'),
     path('ticketactualizacioncreadosid/', views.ticketactualizacioncreadosid, name='ticketactualizacioncreadosid'),
+    path('generateReport/', views.generateReport, name='generateReport'),
 
     path('ticketDesarrolloCreados/', views.ticketDesarrolloCreados, name='ticketDesarrolloCreados'),
     path('crear_ticket_desarrollo/', views.crear_ticket_desarrollo, name='crear_ticket_desarrollo'),

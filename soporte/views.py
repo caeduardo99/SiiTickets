@@ -288,7 +288,6 @@ def solicitantesjson(request):
 
     # Si la primera consulta devuelve un conjunto vacío, ejecutar la segunda consulta sin la condición WHERE
     if not resultados:
-        print("La primera consulta devolvió un conjunto vacío. Ejecutando la segunda consulta.")
         connection = connections["default"]
         with connection.cursor() as cursor:
             cursor.execute(consulta_sql.replace("WHERE se.nombreEmpresa = %s", ""))
@@ -395,11 +394,11 @@ FROM
 def solicitantescreados(request):
     # Construir la consulta SQL
     consulta_sql = """
-        select ss.id as NumSolicitante, ss.ruc as Ruc, ss.nombreApellido as Nombre,
-ss.telefonoSolicitante as Telefono, ss.direccion as Direccion, ss.correo as Correo,
-se.nombreEmpresa as Empresa
-from soporte_solicitante ss
-left join soporte_empresa se on se.id = ss.idEmpresa_id 
+    select ss.id as NumSolicitante, ss.ruc as Ruc, ss.nombreApellido as Nombre,
+    ss.telefonoSolicitante as Telefono, ss.direccion as Direccion, ss.correo as Correo,
+    se.nombreEmpresa as Empresa
+    from soporte_solicitante ss
+    left join soporte_empresa se on se.id = ss.idEmpresa_id 
         """
     connection = connections['default']
 
@@ -476,6 +475,64 @@ def ticketsoportescreados(request):
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
+def generateReport(request):
+    consulta = ""
+    tipo_ticket = request.GET.get('tipo_ticket')
+    estado_ticket = request.GET.get('estado_ticket')
+    masNuevos = request.GET.get('recientes')
+    masAntiguos = request.GET.get('antiguos')
+    idAgente = request.GET.get('agente')
+    fechaInicio = request.GET.get('fechaInicio')
+    fechaFin = request.GET.get('fechaFin')
+    
+    if tipo_ticket == '1':
+        print('Consulta para tickets de soporte')
+        consulta = """
+        select * from soporte_ticketsoporte st
+        """
+    elif tipo_ticket == '2':
+        print('Consulta para tickets de actualizacion')
+        consulta = """
+        select * from soporte_ticketactualizacion st
+        """
+    elif tipo_ticket == '3':
+        consulta = """
+        SELECT st.*, se.descripcion as Estado, au.first_name as Nombre, au.last_name as Apellido FROM soporte_ticketdesarrollo st 
+        INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
+        INNER JOIN auth_user au ON au.id = st.idAgente_id
+        """
+    
+    if estado_ticket is not None and estado_ticket != "":
+        consulta += f" WHERE st.idestado_id = {estado_ticket}"
+        
+    if idAgente != "":
+        consulta += f" AND st.idAgente_id = {idAgente}"
+
+    if fechaInicio != "" and fechaFin == "":
+        consulta += f" AND DATE(st.fechaCreacion) = '{fechaInicio}'"
+
+    if fechaFin != "" and fechaInicio == "":
+        consulta += f" AND st.fechaCreacion >= '1900-01-01' AND st.fechaCreacion <= '{fechaFin}'"
+
+    if fechaInicio != "" and fechaFin != "":
+        consulta += f" AND st.fechaCreacion >= '{fechaInicio}' AND st.fechaCreacion <= '{fechaFin}'"
+
+    if masNuevos == "true":
+        consulta += f" ORDER BY st.fechaCreacion DESC"
+
+    if masAntiguos == "true":
+        consulta += f" ORDER BY st.fechaCreacion"
+
+
+    connection = connections['default']
+    
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+    return JsonResponse(resultados, safe=False)
 
 def ticketactualizacioncreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
@@ -1441,19 +1498,27 @@ def tareas_desarrollo_success(request):
         print(f'Tareas Main: {array_id_main_task}, Tareas secundarias: {array_id_seconds_task}')
 
         if len(array_id_main_task) > 0:
-            print('Si hay datos en el arreglo main de tareas')
             for id_principal in array_id_main_task:
                 try:
                     actividad_principal = ActividadPrincipal.objects.get(id=id_principal)
                     actividad_principal.idestado_id = 5
                     actividad_principal.save()
+
+                    actividades_principal_filtradas = ActividadPrincipal.objects.filter(idTicketDesarrollo_id=actividad_principal.idTicketDesarrollo_id)
+
+                    if all(actividad.idestado_id == 5 for actividad in actividades_principal_filtradas):
+                        try:
+                            actividad_ticket = TicketDesarrollo.objects.get(id=actividad_principal.idTicketDesarrollo_id)
+                            actividad_ticket.idestado_id = 4
+                            actividad_ticket.save()
+                        except ActividadPrincipal.DoesNotExist:
+                            return JsonResponse({'error': 'Revisar la funcion de creado total de la Actividad Principal'}, status=405)
                 
                 except ActividadSecundaria.DoesNotExist:
                     return JsonResponse({'error': 'No se han encontrado los IDs'}, status=405)
         
 
         if len(array_id_seconds_task) > 0:
-            print('Si hay datos en el arreglo de tareas secundarias')
             for id_secundaria in array_id_seconds_task:
                 try:
                     actividad_secundaria = ActividadSecundaria.objects.get(id=id_secundaria)
