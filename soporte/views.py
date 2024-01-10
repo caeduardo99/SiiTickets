@@ -742,6 +742,9 @@ def ticketDesarrolloCreados(request):
     LEFT JOIN auth_user au on au.id = st.idAgente_id
     WHERE au.username = %s
     """
+    if nombre_usuario == 'mafer':
+        consulta_sql += " OR ses.id = 4"
+        
     consulta_info_solicitantes = """
     SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
     """

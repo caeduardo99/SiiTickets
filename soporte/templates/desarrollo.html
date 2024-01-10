@@ -22,7 +22,7 @@
             <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Lista de Proyectos</a>
         </li>
     </ul>
-
+    <input type="hidden" id="nombreUsuario" value="{{ user.username }}">
     <div class="tab-content mt-2">
         <div class="tab-pane fade show active" id="nuevoticket">
             <div class="card mb-3" id="cardAlertNoPermissions">
@@ -207,7 +207,7 @@
                         <div class="form-group">
                             <label>Proyecto</label>
                             <input type="text" id="inputEditTitleProject" class="form-control"
-                                placeholder="Escriba el título del Proyecto" name="inputEditTitleProject">
+                                placeholder="Escriba el título del Proyecto" name="inputEditTitleProject" disabled>
                         </div>
                     </div>
 
@@ -215,13 +215,13 @@
                         <div class="form-group">
                             <label>Horas del Proyecto</label>
                             <input type="number" id="inputEditNumHoras" class="form-control"
-                                placeholder="Escriba el número de Horas completas" name="inputEditNumHoras">
+                                placeholder="Escriba el número de Horas completas" name="inputEditNumHoras" disabled>
                         </div>
                     </div>
 
                     <div class="form-group col-md-6">
                         <label for="solicitante">Solicitante:</label>
-                        <select class="select2" id="editSolicitante" style="width: 100%;" name="editSolicitante">
+                        <select class="select2" id="editSolicitante" style="width: 100%;" name="editSolicitante" disabled>
                             <option value="">Seleccione Solicitante</option>
                             {% for solicitante in resultados_solicitantes_data %}
                             <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
@@ -247,7 +247,7 @@
                         <label>Fecha Estimada Fin:</label>
                         <div class="input-group">
                             <input type="text" id="editFechaEstimada" name="editFechaEstimada" class="form-control"
-                                placeholder="Seleccione una Fecha de culminacion estimada" />
+                                placeholder="Seleccione una Fecha de culminacion estimada" disabled />
                             <div class="input-group-append">
                                 <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                             </div>
@@ -259,11 +259,6 @@
                         <textarea class="form-control" id="editDescripcionGeneral" name="editDescripcionGeneral"
                             rows="3"></textarea>
                     </div>
-
-                    <!-- <div class="form-group col-md-12">
-                        <button type="button" id="btnAddTaskMainEdit" class="btn btn-success btn-sm btn-block">+ Agregar
-                            tarea principal</button>
-                    </div> -->
 
                     <div class="form-group col-md-12">
                         <div class="table-responsive" style="overflow-y: auto; max-height: 240px;">
@@ -290,9 +285,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-warning btn-sm" id="btnSaveChange" style="display: none;">Guardar
-                    cambios</button>
-                <button type="button" class="btn btn-info btn-sm" id="btnRunEdit" style="display: none;">Comenzar edición de tareas</button>
+                <button type="button" class="btn btn-danger btn-sm" id="btnGenerateReport">Generar Reporte</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnFinishProject" style="display: none;">Concluir proyecto</button>
                 <button type="button" class="btn btn-success btn-sm" id="btnChangeState" style="display: none;">Hacer tareas</button>
                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
             </div>
