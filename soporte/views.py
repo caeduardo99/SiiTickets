@@ -20,7 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import TicketSoporte, TicketActualizacion, ModuloSii4, Empresa
 from django.contrib.auth.decorators import user_passes_test
 from django.core.mail import EmailMessage
-from django.conf import settings
+from collections import defaultdict
 
 
 def login_user(request):
@@ -236,7 +236,7 @@ def views_reports(request):
 
     # ESTADO DE LOS TICKETS
     consulta_estado = """
-    SELECT * from soporte_estadosticket se WHERE se.id <> 3 AND se.id <> 4
+    SELECT * from soporte_estadosticket se WHERE se.id <> 3
     """
     connection = connections['default']
 
@@ -533,6 +533,119 @@ def generateReport(request):
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
         
     return JsonResponse(resultados, safe=False)
+
+def getInfoReport(request, id_ticket):
+    consulta_general = """
+    SELECT st.id, st.tituloProyecto, st.descripcionActividadGeneral, st.fechaCreacion, st.fechaFinalizacionEstimada, st.horasCompletasProyecto,
+	au.id as idAgenteAdministrador, au.first_name as NombreAgenteAdministrador, au.last_name as ApellidoAgenteAdministrador,
+	ss.id as idSolicitante, ss.nombreApellido as NombreCompletoSolicitante, ss.ruc as RucSolicitante, ss.direccion as direccionSolicitante,
+	se.id as idEstado, se.descripcion as EstadoProyecto,
+	se2.id as idEmpresa, se2.nombreEmpresa
+	FROM soporte_ticketdesarrollo st
+	INNER JOIN auth_user au ON au.id = st.idAgente_id
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
+	INNER JOIN soporte_empresa se2 ON se2.id = ss.idEmpresa_id
+	WHERE st.id = %s
+    """
+    consulta_actividad_principal = """
+    SELECT sa.id as idActividadPrincipal, sa.descripcion as actividadPrincipal, sa.horasDiariasAsignadas as horasPrincipales,
+	au.id as idAgenteActividad, au.first_name as NombreAgenteActividad, au.last_name as ApellidoActividad,
+	se.id as idEstadoActividad, se.descripcion as EstadoActividad,
+	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante, 
+	se2.id as idEmpresa, se2.nombreEmpresa
+	FROM soporte_ticketdesarrollo st
+	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
+	INNER JOIN soporte_empresa se2 ON se2.id = ss.idEmpresa_id 
+	INNER JOIN soporte_estadosticket se ON se.id = sa.idestado_id  
+	WHERE st.id = %s
+    """
+    consulta_actividad_secundaria = """
+    SELECT sa2.id as idActividadSecundaria, sa2.descripcion as actividadSecundaria, sa2.horasDiariasAsignadas as horasDiarias, sa2.fechaDesarrollo, st.id as idProyecto, st.tituloProyecto,
+	sa.idAgente_id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+	se.id as idEstadoActividad, se.descripcion as EstadoActividad,
+	ss.id as idSolicitante, ss.nombreApellido fullNameSolicitante,
+	se2.id as idEmpresa, se2.nombreEmpresa
+	FROM soporte_ticketdesarrollo st 
+	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id
+	INNER JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id = sa.id
+	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
+	INNER JOIN soporte_estadosticket se ON se.id = sa2.idestado_id
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+	INNER JOIN soporte_empresa se2 ON se2.id = ss.idEmpresa_id 
+	WHERE st.id = %s
+    """
+    connection = connections["default"]
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_general, [id_ticket])
+        columns = [col[0] for col in cursor.description]
+        resultados_info_general = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_actividad_principal, [id_ticket])
+        columns = [col[0] for col in cursor.description]
+        resultados_actividad_principal = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_actividad_secundaria, [id_ticket])
+        columns = [col[0] for col in cursor.description]
+        resultados_actividad_secundaria = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Extraer las propiedades del objeto y adjuntar las horas para determinar el trabajo realizado por AGENTE
+    agrupado_por_agente = defaultdict(lambda: {"idAgente": None, "idEstadoActividad": None, "horasPrincipales": 0, "NombreAgente": None, "EstadoActividad": None})
+    
+    for obj in resultados_actividad_secundaria:
+        if obj["idEstadoActividad"] == 5:
+            id_agente = obj["idAgente"]
+            agrupado_por_agente[id_agente]["idAgente"] = id_agente
+            agrupado_por_agente[id_agente]["idEstadoActividad"] = obj["idEstadoActividad"]
+            agrupado_por_agente[id_agente]["NombreAgente"] = obj["NombreAgente"]
+            agrupado_por_agente[id_agente]["ApellidoAgente"] = obj["ApellidoAgente"]
+            agrupado_por_agente[id_agente]["EstadoActividad"] = obj["EstadoActividad"]
+            agrupado_por_agente[id_agente]["horasPrincipales"] += obj["horasDiarias"]
+
+    horas_agente = list(agrupado_por_agente.values())
+
+    # Extraer las propiedades del objeto y adjuntar las horas para determinar el trabajo realizado por EMPRESA
+    agrupado_por_empresa = defaultdict(lambda: {"idEmpresa": None, "idEstadoActividad": None, "horasPrincipales": 0, "nombreEmpresa": None, "ApellidoAgente": None, "EstadoActividad": None})
+    for obj in resultados_actividad_secundaria:
+        if obj["idEstadoActividad"] == 5:
+            id_empresa = obj["idEmpresa"]
+            agrupado_por_empresa[id_empresa]["idEmpresa"] = id_empresa
+            agrupado_por_empresa[id_empresa]["idEstadoActividad"] = obj["idEstadoActividad"]
+            agrupado_por_empresa[id_empresa]["nombreEmpresa"] = obj["nombreEmpresa"]
+            agrupado_por_empresa[id_empresa]["EstadoActividad"] = obj["EstadoActividad"]
+            agrupado_por_empresa[id_empresa]["horasPrincipales"] += obj["horasDiarias"]
+
+    horas_empresa = list(agrupado_por_empresa.values())
+
+    # Extraer las propiedades del objeto y adjuntar las horas para determinar el trabajo realizado por PROYECTO
+    agrupado_por_proyecto = defaultdict(lambda: {"idProyecto": None, "idEstadoActividad": None, "horasPrincipales": 0, "tituloProyecto": None, "EstadoActividad": None})
+
+    for obj in resultados_actividad_secundaria:
+        if obj["idEstadoActividad"] == 5:
+            id_proyect = obj["idProyecto"]
+            agrupado_por_proyecto[id_proyect]["idProyecto"] = id_proyect
+            agrupado_por_proyecto[id_proyect]["idEstadoActividad"] = obj["idEstadoActividad"]
+            agrupado_por_proyecto[id_proyect]["tituloProyecto"] = obj["tituloProyecto"]
+            agrupado_por_proyecto[id_proyect]["EstadoActividad"] = obj["EstadoActividad"]
+            agrupado_por_proyecto[id_proyect]["horasPrincipales"] += obj["horasDiarias"]
+
+    horas_proyecto = list(agrupado_por_proyecto.values())
+
+    context = {
+        'infoGeneralProject': resultados_info_general[0],
+        'tasksMain': resultados_actividad_principal,
+        'tasksSecundary': resultados_actividad_secundaria,
+        'hourWorkAgent': horas_agente,
+        'hourWorkEnterprise': horas_empresa,
+        'hourWorlProject': horas_proyecto
+    }
+
+    return JsonResponse(context, safe=False)
 
 def ticketactualizacioncreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None

@@ -13,7 +13,7 @@
         </div>
     </div><!-- /.container-fluid -->
 </section>
-
+<input type="hidden" id="nombreUsuario" value="{{ user.username }}">
 <div class="content">
     <ul class="nav nav-tabs" id="myTabs">
         <li class="nav-item">
@@ -49,27 +49,6 @@
                         </div>
                     </div>
                     <br>
-                    <div class="row g-1" id="optionTimeTickets" style="display: none;">
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="radiosTicketsTime"
-                                    id="radiosTicketsTime1" value="masNuevos" checked>
-                                <label class="form-check-label" for="radiosTicketsTime1">
-                                    Más recientes
-                                </label>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="radiosTicketsTime"
-                                    id="radiosTicketsTime2" value="masAntiguos">
-                                <label class="form-check-label" for="radiosTicketsTime2">
-                                    Más antiguos
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <br>
                     <div class="row g-1" id="optionsAgentPeriodo" style="display: none;">
                         <div class="col-md-4">
                             <label>Agente</label>
@@ -89,6 +68,27 @@
                         <div class="col-md-4" id="colFechaFinal">
                             <label>Fecha de fin</label>
                             <input type="date" class="form-control" id="inputDateEnd">
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row g-1" id="optionTimeTickets" style="display: none;">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="radiosTicketsTime"
+                                    id="radiosTicketsTime1" value="masNuevos" checked>
+                                <label class="form-check-label" for="radiosTicketsTime1">
+                                    Más recientes
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="radiosTicketsTime"
+                                    id="radiosTicketsTime2" value="masAntiguos">
+                                <label class="form-check-label" for="radiosTicketsTime2">
+                                    Más antiguos
+                                </label>
+                            </div>
                         </div>
                     </div>
                     <br>
