@@ -211,9 +211,13 @@ def usuariosSolicitantes(request):
 def usuariosEmpresas(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
     users = User.objects.all()
+    resultados_empresas = empresasjson(request)
+    resultados_empresas_data = json.loads(resultados_empresas.content)
+    
     context = {
         'users': users,
-        'nombre_usuario': nombre_usuario
+        'nombre_usuario': nombre_usuario,
+        'resultados_empresas_data': resultados_empresas_data,
     }
     
     return render(request, 'usuariosEmpresa.html', context)
@@ -954,28 +958,75 @@ def crear_usuario_empresa(request):
         nombres = request.POST.get('inputNombres','')
         apellidos = request.POST.get('inputApellidos', '')
         email = request.POST.get('inputEmail', '')
+        fullName = nombres + ' ' + apellidos
+        idempresa = request.POST.get('empresaSolicitante', '')
+        telefono = request.POST.get('telefonoUsuario', '')
+        ruc = request.POST.get('rucUsuario', '')
+        direccion = request.POST.get('direccionUsuario', '')
 
-        nuevo_usuario = User.objects.create_user(password=password, last_login=None, username=nickName, last_name=apellidos, email=email, is_staff=False, is_active=True, date_joined=fecha_creacion, first_name=nombres)
+        consulta_comprobacion_username = """
+        SELECT au.id as idUser, au.username, au.email 
+	    FROM auth_user au 
+        """
 
-        grupo = Group.objects.get(id=2)
-        nuevo_usuario.groups.add(grupo)
+        if nickName != '':
+            # CONSULTA PARA COMPROBAR SI EL USUARIO EXISTE O NO EN LA TABLA AU
+            consulta_comprobacion_username += " WHERE au.username = %s "
+            connection = connections["default"]
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_comprobacion_username, [nickName])
+                columns = [col[0] for col in cursor.description]
+                resultados_comprobados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
+            if len(resultados_comprobados) == 0:
+                # CONSULTA DE COMPROBACION EN CASO DE QUE EXISTA EL SUAURIO EN LA TABLA SOLICITANTE
+                consulta_comprobacion_solcitante = """
+                SELECT * FROM soporte_solicitante ss WHERE ss.nombreApellido = %s
+                """
+                
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_comprobacion_solcitante, [fullName])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                
+                if len(resultados_solicitante) == 0:
+                    # CREACION DEL USUARIO EN LA TABLA AU
+                    nuevo_usuario = User.objects.create_user(password=password, last_login=None, username=nickName, last_name=apellidos, email=email, is_staff=False, is_active=True, date_joined=fecha_creacion, first_name=nombres)
+                    
+                    # CREACION DEL SOLICITANTE
+                    nuevo_solicitante = nuevo_solicitante = Solicitante(
+                                nombreApellido=fullName,
+                                telefonoSolicitante=telefono,
+                                idEmpresa_id=idempresa,
+                                ruc=ruc,
+                                direccion=direccion,
+                                correo=email,
+                            )
 
-        # CREACION Y ENVIO DEL CORREO ELECTRONICO
-        asunto = 'Credenciales para el acceso a SiiTickets.'
-        cuerpo = f'Las credenciales de acceso para el sistema SiiTickets de Ishida son:\n\nUsuario: {nickName}\nContraseña: {password}'
-        complet_email = EmailMessage(
-            subject=asunto,
-            body=cuerpo,
-            to=[email],
-        )
+                    grupo = Group.objects.get(id=2)
+                    nuevo_usuario.groups.add(grupo)
+                    nuevo_solicitante.save()
+                    # CREACION Y ENVIO DEL CORREO ELECTRONICO
+                    asunto = 'Credenciales para el acceso a SiiTickets.'
+                    cuerpo = f'Las credenciales de acceso para el sistema SiiTickets de Ishida son:\n\nUsuario: {nickName}\nContraseña: {password}'
+                    complet_email = EmailMessage(
+                        subject=asunto,
+                        body=cuerpo,
+                        to=[email],
+                    )
+                    complet_email.send()
 
-        complet_email.send()
-
-        if(nickName != '' and password != ''):
-            return JsonResponse({'status': 'success', 'message': 'Usuario creado con éxito'})
+                    if(nickName != '' and password != ''):
+                        return JsonResponse({'status': 'success', 'message': 'Usuario creado con éxito'})
+                    else:
+                        return JsonResponse({'status': 'error', 'message': 'No se pudo enviar el correo por falta de información'})
+                else:
+                    return JsonResponse({'status': 'error', 'message': 'Ya existe un solicitante con ese nombre'})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'El usuario ya existe'} )
         else:
             return JsonResponse({'status': 'error', 'message': 'No se pudo enviar el correo por falta de información'})
-    
+        
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
 

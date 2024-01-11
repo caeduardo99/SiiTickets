@@ -48,7 +48,7 @@ $(document).ready(function () {
         }, 1000);
       } else {
         // Manejar otros casos o mostrar mensajes de error
-        toastr.error("Error al crear el ticket: " + data.message, "Error");
+        toastr.error("Error al crear el usuario agente: " + data.message, "Error");
       }
     }).fail(function (xhr, status, error) {
       // Manejar errores de la solicitud AJAX
