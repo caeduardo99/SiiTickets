@@ -22,6 +22,7 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.login_user, name='login'),
+    path('view_control_panel', views.view_control_panel, name='view_control_panel'),
     path('contacto', views.contact, name='contact'),
     path('soporte', views.soporte, name='soporte'),
     path('desarrollo', views.desarrollo, name='desarrollo'),
@@ -44,6 +45,7 @@ urlpatterns = [
     path('ticketsoportescreados/', views.ticketsoportescreados, name='ticketsoportescreados'),
     path('ticketsoportescreadosid/', views.ticketsoportescreadosid, name='ticketsoportescreadosid'),
     path('crear_ticket_soporte/', views.crear_ticket_soporte, name='crear_ticket_soporte'),
+    path('get_tickets_cpanel/', views.get_tickets_cpanel, name='get_tickets_cpanel'),
     path('editar_ticket_soporte/', views.editar_ticket_soporte, name='editar_ticket_soporte'),
 
     path('ticketactualizacioncreados/', views.ticketactualizacioncreados, name='ticketactualizacioncreados'),
@@ -57,7 +59,7 @@ urlpatterns = [
     path('crear_ticket_desarrollo/', views.crear_ticket_desarrollo, name='crear_ticket_desarrollo'),
     path('detalleTicketDesarrollo/<int:ticket_id>/', views.detalleTicketDesarrollo, name='detalleTicketDesarrollo'),
     path('getInfoReport/<int:id_ticket>/', views.getInfoReport, name='getInfoReport'),
-    path('asignar_agente/<int:id_ticket>', views.asignar_agente, name='asignar_agente'),
+    path('finalizar_proyecto/<int:id_ticket>', views.finalizar_proyecto, name='finalizar_proyecto'),
     path('infoAgenteSolicitado/<int:id_agente>/', views.infoAgenteSolicitado, name='infoAgenteSolicitado'),
 
     path('empresascreados/', views.empresascreados, name='empresascreados'),

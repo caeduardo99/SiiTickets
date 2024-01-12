@@ -1439,7 +1439,7 @@ $(document).ready(function () {
   btnFinishProject.addEventListener("click", function () {
     $.ajax({
       type: "POST",
-      url: `asignar_agente/${ticketId}`,
+      url: `finalizar_proyecto/${ticketId}`,
       success: function (data) {
         if (data.status == "success") {
           toastr.success(data.status, "Proyecto finalizado con Exito!");

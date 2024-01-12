@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% block content %}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h2>Panel General</h2>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+</section>
+<div class="content">
+    <div class="row">
+        <div class="col-md-12">
+            <h5 id="textBienvenida"></h5>
+        </div>
+    </div>
+    <hr>
+    <h4>Proyectos</h4>
+    <div class="row g-1">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-secondary">Proyectos por asignar</div>
+                <div class="card-body">
+                    <div class="row g-1">
+                        <div class="col-md-12">
+                            <table class="table table-sm table-hover">
+                                <tbody id="bodyTableProyectos">
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-danger">Proyectos atrasados</div>
+                <div class="card-body">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-1">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-warning">Proyectos esperando finalización</div>
+                <div class="card-body">
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-success">Proyectos Finalizados</div>
+                <div class="card-body">
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <h4>Tareas</h4>
+    <div class="row g-1">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-info">Tareas en proceso</div>
+                <div class="card-body">
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-danger">Tareas atrasadas</div>
+                <div class="card-body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row g-1">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-warning">Tareas esperando finalización</div>
+                <div class="card-body">
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-success">Tareas finalizadas</div>
+                <div class="card-body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <h4>Agentes</h4>
+    <div class="row g-1">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-info">Tareas esperando finalización</div>
+                <div class="card-body">
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header text-white bg-success">Tareas Finalizadas</div>
+                <div class="card-body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+<script src="../static/dist/utils/controlPanel.js"></script>
+<script>
+    // Coloca la información del usuario en una variable global accesible para el JavaScript
+    var infoUsuario = {{ info_user|safe }};
+</script>
+{% endblock %}

@@ -21,12 +21,12 @@ from .models import TicketSoporte, TicketActualizacion, ModuloSii4, Empresa
 from django.contrib.auth.decorators import user_passes_test
 from django.core.mail import EmailMessage
 from collections import defaultdict
-
+from django.utils import timezone
 
 def login_user(request):
     # Verificar si el usuario ya está autenticado
     if request.user.is_authenticated:
-        return redirect("contact")
+        return redirect("view_control_panel")
 
     if request.method == "POST":
         username = request.POST.get("username")
@@ -194,7 +194,6 @@ def modulos(request):
     }
     return render(request, 'modulos.html', context)
 
-
 @login_required
 def usuariosSolicitantes(request):
     resultados_empresas = empresasjson(request)
@@ -259,6 +258,55 @@ def views_reports(request):
         'estados_tickets' : resultados
     }
     return render(request, 'reportes.html', context)
+
+@login_required
+def get_tickets_cpanel(request):
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
+    # CONSULTA PARA LOS PROYECTOS POR ASIGNAR
+    consulta_proyectos_por_asignar = """
+    SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion, st.fechaAsignacion,
+	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente
+	FROM soporte_ticketdesarrollo st 
+	INNER JOIN auth_user au ON au.id = st.idAgente_id
+	WHERE st.idestado_id = 1
+    """
+    connection = connections['default']
+
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_proyectos_por_asignar)
+        columns = [col[0] for col in cursor.description]
+        resultados_project_por_asignar = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    context = {
+        'project_por_agente': resultados_project_por_asignar,
+    }
+    
+    return JsonResponse(context, safe=False)
+    
+@login_required
+def view_control_panel(request):
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
+
+    consulta_info_agente = """
+    SELECT au.id as idUsuario, au.username, au.first_name as Nombre, au.last_name as Apellido
+	FROM auth_user au 
+    WHERE au.username = %s
+    """
+    connection = connections['default']
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_info_agente, [nombre_usuario])
+        columns = [col[0] for col in cursor.description]
+        resultados_info_user = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    context = {
+        'nombre_usuario': nombre_usuario,
+        'info_user': resultados_info_user[0],
+    }
+
+    return render(request, 'panelControl.html', context)
+
 
 ########## BACKEND ##################
 
@@ -1671,13 +1719,17 @@ def editar_desarrollo(request):
     pass
 
 @csrf_exempt
-def asignar_agente(request, id_ticket):
+def finalizar_proyecto(request, id_ticket):
     try:
         ticket = TicketDesarrollo.objects.get(id=id_ticket)
 
         if request.method == 'POST':
             estado_finalizado = EstadosTicket.objects.get(id=5)
             ticket.idestado = estado_finalizado
+            # Obtener la fecha y hora actuales
+            fecha_actual = timezone.now()
+            # Asignar la fecha actual a la propiedad fechaFinalizacion
+            ticket.fechaFinalizacion = fecha_actual
             ticket.save()
             return JsonResponse({'status': 'success', 'message': 'Registro actualizado correctamente'})
         
