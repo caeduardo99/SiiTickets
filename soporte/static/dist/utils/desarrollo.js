@@ -44,13 +44,13 @@ $(document).ready(function () {
   const modalInfoProyectLabel = document.getElementById(
     "modalInfoProyectLabel"
   );
-  const ticketsTable = document
+  const ticketsTableBody = document
     .getElementById("tickets-table")
     .getElementsByTagName("tbody")[0];
   const inputEditTitleProject = document.getElementById(
     "inputEditTitleProject"
   );
-  const btnFinishProject = document.getElementById('btnFinishProject');
+  const btnFinishProject = document.getElementById("btnFinishProject");
   const btnGenerateReport = document.getElementById("btnGenerateReport");
   const inputEditNumHoras = document.getElementById("inputEditNumHoras");
   const editSolicitante = document.getElementById("editSolicitante");
@@ -60,6 +60,7 @@ $(document).ready(function () {
   const editDescripcionGeneral = document.getElementById(
     "editDescripcionGeneral"
   );
+  const btnAsignarProyecto = document.getElementById("btnAsignarProyecto");
   const fechaTicketCreacion = document.getElementById("fecha_ticket_creacion");
   const inputNumHorasCompletas = document.getElementById(
     "inputNumHorasCompletas"
@@ -93,7 +94,8 @@ $(document).ready(function () {
     infoProject = [],
     infoTareasAdicionales = [],
     infoTareasPrincipales = [],
-    dataReport = [];
+    dataReport = [],
+    ticketId;
 
   // FUNCIONAMIENTO DEL INPUT TITULO
   inputTitleProject.addEventListener("input", function () {
@@ -830,131 +832,152 @@ $(document).ready(function () {
 
   // FUNCION PARA LA CARGA DE LA TABLA EN LA VISTA DE PROYECTO GENERAL
   function loadListProjects() {
-    ticketsTable.innerHTML = "";
-    resultadosProyectos.forEach((proyecto) => {
-      const row = ticketsTable.insertRow();
-
-      // Agregar celdas con los valores de cada propiedad
-      row.insertCell().textContent = `000-${proyecto.NumTicket}`;
-      row.insertCell().textContent = proyecto.Empresa;
-      row.insertCell().textContent = proyecto.tituloProyecto;
-      row.insertCell().textContent = proyecto.Cliente;
-      row.insertCell().textContent = proyecto.Agente;
-
-      // Condición para verificar el EstadoProyecto y agregar el SVG
-      if (proyecto.idEstado === 2) {
-        const svg = createSVG(
-          "M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"
-        );
-        row.insertCell().appendChild(svg);
-      } else if (proyecto.idEstado === 1) {
-        const svg = createSVG(
-          "M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
-        );
-        row.insertCell().appendChild(svg);
-      } else if (proyecto.idEstado === 4) {
-        const svg = createSVG(
-          "M192 0c-41.8 0-77.4 26.7-90.5 64H64C28.7 64 0 92.7 0 128V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64H282.5C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM305 273L177 401c-9.4 9.4-24.6 9.4-33.9 0L79 337c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L271 239c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"
-        );
-        row.insertCell().appendChild(svg);
-      }
-
-      // Agregar la nueva celda con un botón
-      const buttonCell = row.insertCell();
-      const button = document.createElement("button");
-      button.className = "btn btn-info btn-block btn-sm";
-      button.textContent = "Ver";
-      button.dataset.toggle = "modal";
-      button.dataset.target = "#modalInfoProyect";
-
-      // FUNCIONALIDAD DEL BOTON PARA OTRO MODAL
-      button.addEventListener("click", function () {
-        const ticketId = proyecto.NumTicket;
-        infoGeneralProject = proyecto;
-        btnChangeState.style.display = "none";
-
-        // Realizar la solicitud al backend para el detalle del proyecto
-        fetch(`detalleTicketDesarrollo/${ticketId}/`)
-          .then((response) => response.json())
-          .then((data) => {
-            // TABLA PARA LA EDICION DE ACTIVIDADES PRINCIPALES Y SECUNDARIAS
-            tableBodyTasksEdit.innerHTML = "";
-            detalleTicket = data;
-
-            if (detalleTicket.length == 0) {
-              tableTasksEdit.style.display = "none";
-            } else {
-              // Iterar sobre los detalles del ticket y crear filas en la tabla
-              detalleTicket.forEach((tarea) => {
-                tableTasksEdit.style.display = "";
-                const row = tableBodyTasksEdit.insertRow();
-
-                row.insertCell().textContent = tarea.TareaPrincipal || "";
-                row.insertCell().textContent =
-                  tarea.estadoActividadPrincipal || "";
-                row.insertCell().textContent = tarea.horasPrincipales || "";
-                row.insertCell().textContent =
-                  tarea.nomAgentTareaPrincipal || "";
-                row.insertCell().textContent =
-                  tarea.TareaSecundaria || "Sin datos";
-                row.insertCell().textContent =
-                  tarea.horasSecundarias || "Sin datos";
-                row.insertCell().textContent =
-                  tarea.estadoActividadSecundaria || "Sin datos";
-
-                // Agregar una nueva celda con un checkbox
-                if (
-                  tarea.idEstadoActividadSecundaria !== 5 &&
-                  resultadosConsulta[0].group_id !== 2
-                ) {
-                  const checkboxCell = row.insertCell();
-                  const checkbox = document.createElement("input");
-                  checkbox.type = "checkbox";
-                  checkboxCell.appendChild(checkbox);
-
-                  checkbox.addEventListener("change", function () {
-                    if (this.checked) {
-                      if (tarea.idTareaSecundaria !== null) {
-                        arrayIdSecondsTask.push(tarea.idTareaSecundaria);
-                        const allSecundariasPresentes =
-                          tarea.idTareaPrincipal &&
-                          detalleTicket
-                            .filter(
-                              (item) =>
-                                item.idTareaPrincipal === tarea.idTareaPrincipal
-                            )
-                            .every((item) =>
-                              arrayIdSecondsTask.includes(
-                                item.idTareaSecundaria
+    ticketsTableBody.innerHTML = "";
+    if (resultadosProyectos[0].tituloProyecto != null){
+      resultadosProyectos.forEach((proyecto) => {
+        const row = ticketsTableBody.insertRow();
+        
+        // Agregar celdas con los valores de cada propiedad
+        row.insertCell().textContent = `000-${proyecto.NumTicket}`;
+        row.insertCell().textContent = proyecto.Empresa;
+        row.insertCell().textContent = proyecto.tituloProyecto;
+        row.insertCell().textContent = formatFecha(proyecto.fechaCreacion);
+        row.insertCell().textContent = proyecto.fechaFinalizacionEstimada == null ? 'Sin asignar' : formatFecha(proyecto.fechaFinalizacionEstimada);
+        row.insertCell().textContent = proyecto.Cliente;
+        row.insertCell().textContent = proyecto.Agente;
+  
+        // Condición para verificar el EstadoProyecto y agregar el SVG
+        if (proyecto.idEstado === 2) {
+          const svg = createSVG(
+            "M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"
+          );
+          row.insertCell().appendChild(svg);
+        } else if (proyecto.idEstado === 1) {
+          const svg = createSVG(
+            "M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
+          );
+          row.insertCell().appendChild(svg);
+        } else if (proyecto.idEstado === 4) {
+          const svg = createSVG(
+            "M192 0c-41.8 0-77.4 26.7-90.5 64H64C28.7 64 0 92.7 0 128V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64H282.5C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM305 273L177 401c-9.4 9.4-24.6 9.4-33.9 0L79 337c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L271 239c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"
+          );
+          row.insertCell().appendChild(svg);
+        } else if (proyecto.idEstado === 5){
+          const svg = createSVG("M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z")
+          row.insertCell().appendChild(svg);
+        }
+  
+        // Agregar la nueva celda con un botón
+        const buttonCell = row.insertCell();
+        const button = document.createElement("button");
+        button.className = "btn btn-info btn-block btn-sm";
+        button.textContent = "Ver";
+        button.dataset.toggle = "modal";
+        button.dataset.target = "#modalInfoProyect";
+  
+        // FUNCIONALIDAD DEL BOTON PARA OTRO MODAL
+        button.addEventListener("click", function () {
+          ticketId = proyecto.NumTicket;
+          infoGeneralProject = proyecto;
+          btnChangeState.style.display = "none";
+          btnAsignarProyecto.style.display = "none";
+          btnFinishProject.style.display = "none";
+          
+          if (proyecto.idEstado == 4 && nombreUsuario == 'mafer') {
+            btnFinishProject.style.display = "";
+          } else {
+            btnFinishProject.style.display = "none";
+          }
+          // Realizar la solicitud al backend para el detalle del proyecto
+          fetch(`detalleTicketDesarrollo/${ticketId}/`)
+            .then((response) => response.json())
+            .then(async (data) => {
+              // TABLA PARA LA EDICION DE ACTIVIDADES PRINCIPALES Y SECUNDARIAS
+              tableBodyTasksEdit.innerHTML = "";
+              detalleTicket = data;
+              
+              if (detalleTicket.length == 0) {
+                tableTasksEdit.style.display = "none";
+              } else {
+                // Iterar sobre los detalles del ticket y crear filas en la tabla
+                detalleTicket.forEach((tarea) => {
+                  tableTasksEdit.style.display = "";
+                  const row = tableBodyTasksEdit.insertRow();
+                  
+                  row.insertCell().textContent = tarea.TareaPrincipal || "";
+                  row.insertCell().textContent =
+                    tarea.estadoActividadPrincipal || "";
+                  row.insertCell().textContent = tarea.horasPrincipales || "";
+                  row.insertCell().textContent =
+                    tarea.nomAgentTareaPrincipal || "";
+                  row.insertCell().textContent =
+                    tarea.TareaSecundaria || "Sin datos";
+                  row.insertCell().textContent =
+                    tarea.horasSecundarias || "Sin datos";
+                  row.insertCell().textContent =
+                    tarea.estadoActividadSecundaria || "Sin datos";
+  
+                  // Agregar una nueva celda con un checkbox
+                  if (
+                    tarea.idEstadoActividadSecundaria !== 5 &&
+                    resultadosConsulta[0].group_id !== 2 && tarea.idEstadoProyecto !== 1
+                  ) {
+                    const checkboxCell = row.insertCell();
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkboxCell.appendChild(checkbox);
+  
+                    checkbox.addEventListener("change", function () {
+                      if (this.checked) {
+                        if (tarea.idTareaSecundaria !== null) {
+                          arrayIdSecondsTask.push(tarea.idTareaSecundaria);
+                          const allSecundariasPresentes =
+                            tarea.idTareaPrincipal &&
+                            detalleTicket
+                              .filter(
+                                (item) =>
+                                  item.idTareaPrincipal === tarea.idTareaPrincipal
                               )
-                            );
-                        if (allSecundariasPresentes) {
+                              .every((item) =>
+                                arrayIdSecondsTask.includes(
+                                  item.idTareaSecundaria
+                                )
+                              );
+                          if (allSecundariasPresentes) {
+                            arrayIdMainTask.push(tarea.idTareaPrincipal);
+                          }
+                        } else {
                           arrayIdMainTask.push(tarea.idTareaPrincipal);
                         }
                       } else {
-                        arrayIdMainTask.push(tarea.idTareaPrincipal);
-                      }
-                    } else {
-                      if (tarea.idTareaSecundaria !== null) {
-                        const indexSeconds = arrayIdSecondsTask.indexOf(
-                          tarea.idTareaSecundaria
-                        );
-                        if (indexSeconds !== -1) {
-                          arrayIdSecondsTask.splice(indexSeconds, 1);
-                        }
-                        const allSecundariasPresentes =
-                          tarea.idTareaPrincipal &&
-                          detalleTicket
-                            .filter(
-                              (item) =>
-                                item.idTareaPrincipal === tarea.idTareaPrincipal
-                            )
-                            .every((item) =>
-                              arrayIdSecondsTask.includes(
-                                item.idTareaSecundaria
+                        if (tarea.idTareaSecundaria !== null) {
+                          const indexSeconds = arrayIdSecondsTask.indexOf(
+                            tarea.idTareaSecundaria
+                          );
+                          if (indexSeconds !== -1) {
+                            arrayIdSecondsTask.splice(indexSeconds, 1);
+                          }
+                          const allSecundariasPresentes =
+                            tarea.idTareaPrincipal &&
+                            detalleTicket
+                              .filter(
+                                (item) =>
+                                  item.idTareaPrincipal === tarea.idTareaPrincipal
                               )
+                              .every((item) =>
+                                arrayIdSecondsTask.includes(
+                                  item.idTareaSecundaria
+                                )
+                              );
+                          if (!allSecundariasPresentes) {
+                            const indexMain = arrayIdMainTask.indexOf(
+                              tarea.idTareaPrincipal
                             );
-                        if (!allSecundariasPresentes) {
+                            if (indexMain !== -1) {
+                              arrayIdMainTask.splice(indexMain, 1);
+                            }
+                          }
+                        } else {
                           const indexMain = arrayIdMainTask.indexOf(
                             tarea.idTareaPrincipal
                           );
@@ -962,80 +985,77 @@ $(document).ready(function () {
                             arrayIdMainTask.splice(indexMain, 1);
                           }
                         }
-                      } else {
-                        const indexMain = arrayIdMainTask.indexOf(
-                          tarea.idTareaPrincipal
-                        );
-                        if (indexMain !== -1) {
-                          arrayIdMainTask.splice(indexMain, 1);
-                        }
                       }
-                    }
-
-                    if (
-                      arrayIdMainTask.length > 0 ||
-                      arrayIdSecondsTask.length > 0
-                    ) {
-                      btnChangeState.style.display = "";
-                    } else {
-                      btnChangeState.style.display = "none";
-                    }
-                  });
-                }
-                if (resultadosConsulta[0].group_id === 2) {
-                  inputEditTitleProject.disabled = true;
-                  inputEditNumHoras.disabled = true;
-                  editSolicitante.disabled = true;
-                  editAgenteSolicitado.disabled = true;
-                  editFechaEstimada.disabled = true;
-                  editDescripcionGeneral.disabled = true;
-                }
-                
-                if (tarea.idAgenteAdmin != 2){
-                  editAgenteSolicitado.disabled = true
-                }else{
-                  editAgenteSolicitado.disabled = false
-                }
-              });
-            }
-
-            // SEGUNDA CONSULTA
-            return fetch(`getInfoReport/${ticketId}/`)
-              .then((response) => response.json())
-              .then((data) => {
-                dataReport = data;
-              });
-          })
-          .catch((error) => console.error("Error:", error));
-
-        modalInfoProyectLabel.innerHTML = "";
-        modalInfoProyectLabel.innerHTML = proyecto.tituloProyecto;
-
-        inputEditTitleProject.value = "";
-        inputEditTitleProject.value = proyecto.tituloProyecto;
-
-        inputEditNumHoras.value = "";
-        inputEditNumHoras.value = proyecto.HorasTotales;
-
-        editSolicitante.value = "";
-        editSolicitante.value = proyecto.idCliente;
-        const changeEvent = new Event("change");
-        editSolicitante.dispatchEvent(changeEvent);
-
-        editAgenteSolicitado.value = "";
-        editAgenteSolicitado.value = proyecto.idAgente;
-        const changeEventAgente = new Event("change");
-        editAgenteSolicitado.dispatchEvent(changeEventAgente);
-
-        editFechaEstimada.value = "";
-        editFechaEstimada.value = proyecto.fechaFinalizacionEstimada;
-
-        editDescripcionGeneral.value = "";
-        editDescripcionGeneral.value = proyecto.descripcionActividadGeneral;
+  
+                      if (
+                        arrayIdMainTask.length > 0 ||
+                        arrayIdSecondsTask.length > 0
+                      ) {
+                        btnChangeState.style.display = "";
+                      } else {
+                        btnChangeState.style.display = "none";
+                      }
+                    });
+                  }
+                  if (resultadosConsulta[0].group_id === 2) {
+                    inputEditTitleProject.disabled = true;
+                    inputEditNumHoras.disabled = true;
+                    editSolicitante.disabled = true;
+                    editAgenteSolicitado.disabled = true;
+                    editFechaEstimada.disabled = true;
+                    editDescripcionGeneral.disabled = true;
+                  }
+  
+                  if (tarea.idAgenteAdmin != 2) {
+                    editAgenteSolicitado.disabled = true;
+                  } else {
+                    editAgenteSolicitado.disabled = false;
+                  }
+                });
+              }
+  
+              // SEGUNDA CONSULTA
+              const response = await fetch(`getInfoReport/${ticketId}/`);
+              const data_1 = await response.json();
+              dataReport = data_1;
+            })
+            .catch((error) => console.error("Error:", error));
+  
+          modalInfoProyectLabel.innerHTML = "";
+          modalInfoProyectLabel.innerHTML = proyecto.tituloProyecto;
+  
+          inputEditTitleProject.value = "";
+          inputEditTitleProject.value = proyecto.tituloProyecto;
+  
+          inputEditNumHoras.value = "";
+          inputEditNumHoras.value = proyecto.HorasTotales;
+  
+          editSolicitante.value = "";
+          editSolicitante.value = proyecto.idCliente;
+          const changeEvent = new Event("change");
+          editSolicitante.dispatchEvent(changeEvent);
+  
+          editAgenteSolicitado.value = "";
+          editAgenteSolicitado.value = proyecto.idAgente;
+          const changeEventAgente = new Event("change");
+          editAgenteSolicitado.dispatchEvent(changeEventAgente);
+  
+          editFechaEstimada.value = "";
+          editFechaEstimada.value = proyecto.fechaFinalizacionEstimada;
+  
+          editDescripcionGeneral.value = "";
+          editDescripcionGeneral.value = proyecto.descripcionActividadGeneral;
+        });
+  
+        buttonCell.appendChild(button);
       });
-
-      buttonCell.appendChild(button);
-    });
+    }else{
+      var row = ticketsTableBody.insertRow();
+      var cell = row.insertCell();
+      cell.innerHTML = "No hay proyectos a cargo del agente o solicitados por el usuario actual.";
+      cell.style.textAlign = "center";
+      cell.colSpan = 9;
+    }
   }
 
   function obtenerFechaActual() {
@@ -1067,14 +1087,13 @@ $(document).ready(function () {
     const hourWorkAgent = dataReport.hourWorkAgent;
     const hourWorkEnterprise = dataReport.hourWorkEnterprise;
     const hourWorlProject = dataReport.hourWorlProject;
-    const hoursSuccess = hourWorlProject.length == 0 ? null : hourWorlProject[0].horasPrincipales;
-    var fechaCreacionFormateada = formatFecha(
-      proyectoinfo.fechaCreacion
-    );
+    const hoursSuccess =
+      hourWorlProject.length == 0 ? null : hourWorlProject[0].horasPrincipales;
+    var fechaCreacionFormateada = formatFecha(proyectoinfo.fechaCreacion);
     var fechaEstimadaFormateada = formatFecha(
       proyectoinfo.fechaFinalizacionEstimada
     );
-    
+
     makePdf(
       proyectoinfo.tituloProyecto,
       proyectoinfo.descripcionActividadGeneral,
@@ -1415,4 +1434,33 @@ $(document).ready(function () {
       toastr.error("No se encuentran datos de la tabla Proyectos");
     }
   });
+
+  // FUNCIONAMIENTO PARA DAR FINALIZADO AL PROYECTO
+  btnFinishProject.addEventListener("click", function () {
+    $.ajax({
+      type: "POST",
+      url: `asignar_agente/${ticketId}`,
+      success: function (data) {
+        if (data.status == "success") {
+          toastr.success(data.status, "Proyecto finalizado con Exito!");
+
+          // Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
+          setTimeout(function () {
+            window.location.reload();
+          }, 1000);
+        } else {
+          toastr.error(
+            "Error al crear el ticket: " + response.message,
+            "Error"
+          );
+        }
+      },
+      error: function (error) {
+        console.error("Error en la solicitud AJAX:", error);
+      },
+    });
+  });
+
+  // FUNCIONALIDAD DEL BOTON PARA CAMBIO DE AGENTE ADMINISTRADOR
+
 });

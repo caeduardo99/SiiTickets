@@ -167,15 +167,17 @@
             <div class="card mb-3">
                 <div class="card-header bg-success text-white">Detalles de los proyectos creados</div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="tickets-table">
+                    <div class="table-responsive" style="overflow-y: auto; max-height: 400px;">
+                        <table class="table table-hover table-sm" id="tickets-table" >
                             <thead>
                                 <tr>
                                     <th># Proyecto</th>
                                     <th>Empresa</th>
                                     <th>Proyecto</th>
+                                    <th>F. Creación</th>
+                                    <th>F. Finalización Est.</th>
                                     <th>Cliente</th>
-                                    <th>Encargado</th>
+                                    <th>Administrador</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
@@ -231,7 +233,7 @@
                         </select>
                     </div>
                     <div class="form-group col-md-6">
-                        <label for="editAgenteSolicitado">Agente Asignado</label>
+                        <label for="editAgenteSolicitado">Administrador del proyecto</label>
                         <select class="select2" id="editAgenteSolicitado" style="width: 100%;"
                             name="editAgenteSolicitado">
                             <option value="">Seleccione Agente</option>
@@ -286,6 +288,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-danger btn-sm" id="btnGenerateReport">Generar Reporte</button>
+                <button type="button" class="btn btn-info btn-sm" id="btnAsignarProyecto" style="display: none;">Asignar proyecto</button>
                 <button type="button" class="btn btn-primary btn-sm" id="btnFinishProject" style="display: none;">Concluir proyecto</button>
                 <button type="button" class="btn btn-success btn-sm" id="btnChangeState" style="display: none;">Hacer tareas</button>
                 <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
@@ -360,6 +363,7 @@
     },
     {% endfor %}
         ];
+        
     var resultadosConsulta = {{ resultados|safe }};
 </script>
 <script src="../static/dist/utils/desarrollo.js"></script>

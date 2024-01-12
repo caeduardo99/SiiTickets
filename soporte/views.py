@@ -747,7 +747,9 @@ def ticketDesarrolloCreados(request):
     WHERE au.username = %s
     """
     if nombre_usuario == 'mafer':
-        consulta_sql += " OR ses.id = 4"
+        consulta_sql += " OR ses.id = 4 OR ses.id = 5"
+    else:
+        consulta_sql += " AND ses.id = 2"
         
     consulta_info_solicitantes = """
     SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
@@ -772,30 +774,43 @@ def ticketDesarrolloCreados(request):
         cursor.execute(consulta_sql, [nombre_usuario])
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
+        
     # COMPROBAR SI ESTA VACIO O NO
-    if resultados:
-        # Devolver la respuesta JSON
+    if len(resultados) != 0:
         return JsonResponse(resultados, safe=False)
     else:
+        print(email_usuario)
         with connection.cursor() as cursor:
             cursor.execute(consulta_info_solicitantes, [email_usuario])
             columns = [col[0] for col in cursor.description]
             info_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-        idSolicitante = info_solicitante[0]['id']
-
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_get_projects, [idSolicitante])
-            columns = [col[0] for col in cursor.description]
-            resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        if len(info_solicitante) != 0:
+            idSolicitante = info_solicitante[0]['id']
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_get_projects, [idSolicitante])
+                columns = [col[0] for col in cursor.description]
+                resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
             
-        return JsonResponse(resultados, safe=False)
+            return JsonResponse(resultados, safe=False)
+        else:
+            consulta_info_agente = """
+            SELECT au.id as idAgente, au.first_name as Agente
+            FROM auth_user au 
+            INNER JOIN auth_user_groups aug ON aug.user_id = au.id
+            WHERE au.username = %s
+            """
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_info_agente, [nombre_usuario])
+                columns = [col[0] for col in cursor.description]
+                resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            return JsonResponse(resultados, safe=False)
         
 
 def detalleTicketDesarrollo(request, ticket_id):
     consulta_sql = """
-    SELECT st.id as NumTicket, st.tituloProyecto , st.idAgente_id as idAgenteAdmin, au.first_name as nomAgenteAdmin,
+    SELECT st.id as NumTicket, st.tituloProyecto , st.idAgente_id as idAgenteAdmin, au.first_name as nomAgenteAdmin,st.idestado_id as idEstadoProyecto,
 	sa.id as idTareaPrincipal, sa.descripcion as TareaPrincipal, sa.idAgente_id as idAgenteTarPrincipal, 
 	sa.horasDiariasAsignadas as horasPrincipales, se.id as idEstadoActividadPrincipal ,se.descripcion as estadoActividadPrincipal,
 	au2.first_name as nomAgentTareaPrincipal,
@@ -1656,13 +1671,25 @@ def editar_desarrollo(request):
     pass
 
 @csrf_exempt
+def asignar_agente(request, id_ticket):
+    try:
+        ticket = TicketDesarrollo.objects.get(id=id_ticket)
+
+        if request.method == 'POST':
+            estado_finalizado = EstadosTicket.objects.get(id=5)
+            ticket.idestado = estado_finalizado
+            ticket.save()
+            return JsonResponse({'status': 'success', 'message': 'Registro actualizado correctamente'})
+        
+
+    except TicketDesarrollo.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'El ticket no existe'}, status=404)
+
+@csrf_exempt
 def tareas_desarrollo_success(request):
     if request.method == 'POST':
         array_id_main_task = request.POST.getlist('arrayIdMainTask[]')
         array_id_seconds_task = request.POST.getlist('arrayIdSecondsTask[]')
-    
-        # Realiza las acciones necesarias con los datos, como imprimirlos
-        print(f'Tareas Main: {array_id_main_task}, Tareas secundarias: {array_id_seconds_task}')
 
         if len(array_id_main_task) > 0:
             for id_principal in array_id_main_task:
@@ -1671,20 +1698,9 @@ def tareas_desarrollo_success(request):
                     actividad_principal.idestado_id = 5
                     actividad_principal.save()
 
-                    actividades_principal_filtradas = ActividadPrincipal.objects.filter(idTicketDesarrollo_id=actividad_principal.idTicketDesarrollo_id)
-
-                    if all(actividad.idestado_id == 5 for actividad in actividades_principal_filtradas):
-                        try:
-                            actividad_ticket = TicketDesarrollo.objects.get(id=actividad_principal.idTicketDesarrollo_id)
-                            actividad_ticket.idestado_id = 4
-                            actividad_ticket.save()
-                        except ActividadPrincipal.DoesNotExist:
-                            return JsonResponse({'error': 'Revisar la funcion de creado total de la Actividad Principal'}, status=405)
-                
                 except ActividadSecundaria.DoesNotExist:
                     return JsonResponse({'error': 'No se han encontrado los IDs'}, status=405)
         
-
         if len(array_id_seconds_task) > 0:
             for id_secundaria in array_id_seconds_task:
                 try:
@@ -1699,6 +1715,18 @@ def tareas_desarrollo_success(request):
                             actividad_principal = ActividadPrincipal.objects.get(id=actividad_secundaria.idActividadPrincipal_id)
                             actividad_principal.idestado_id = 5
                             actividad_principal.save()
+
+                            actividades_principales_filtradas = ActividadPrincipal.objects.filter(idTicketDesarrollo_id=actividad_principal.idTicketDesarrollo_id)
+
+                            if all(actividadMain.idestado_id == 5 for actividadMain in actividades_principales_filtradas):
+                                try:
+                                    ticket = TicketDesarrollo.objects.get(id=actividad_principal.idTicketDesarrollo_id)
+                                    ticket.idestado_id = 4
+                                    ticket.save()
+
+                                except ActividadPrincipal.DoesNotExist:
+                                    return JsonResponse({'error': 'Revisar la funcion de creado total del ticket'}, status=405)
+
                         except ActividadPrincipal.DoesNotExist:
                             return JsonResponse({'error': 'Revisar la funcion de creado total de la Actividad Principal'}, status=405)
 
