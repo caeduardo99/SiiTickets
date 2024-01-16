@@ -36,7 +36,7 @@ def login_user(request):
         if user is not None:
             auth_login(request, user)
             # Redirige a la página 'contact' después del inicio de sesión
-            return redirect("contact")
+            return redirect("view_control_panel")
         else:
             message = "Usuario o clave incorrectos!"
 
@@ -262,25 +262,204 @@ def views_reports(request):
 @login_required
 def get_tickets_cpanel(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+
     # CONSULTA PARA LOS PROYECTOS POR ASIGNAR
     consulta_proyectos_por_asignar = """
     SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion, st.fechaAsignacion,
-	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente
+	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+	se.id as idEstado, se.descripcion as Estado
 	FROM soporte_ticketdesarrollo st 
 	INNER JOIN auth_user au ON au.id = st.idAgente_id
+	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
 	WHERE st.idestado_id = 1
     """
+    consulta_proyectos_process = """
+    SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion,st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion, st.horasCompletasProyecto,
+	se.id as idEstado, se.descripcion as EstadoProject,
+	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante
+	FROM soporte_ticketdesarrollo st 
+	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
+	INNER JOIN auth_user au ON au.id = st.idAgente_id
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+	WHERE se.id = 2
+    """
+    consulta_proyectos_just_success = """
+    SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion,st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion, st.horasCompletasProyecto,
+	se.id as idEstado, se.descripcion as EstadoProject,
+	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+	ss.id as idSolicitante, ss.nombreApellido as fullName
+	FROM soporte_ticketdesarrollo st 
+	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
+	INNER JOIN auth_user au ON au.id = st.idAgente_id
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+	WHERE se.id = 4
+    """
+    consulta_proyectos_success = """
+    SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion,st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion, st.horasCompletasProyecto,
+	se.id as idEstado, se.descripcion as EstadoProject,
+	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+	ss.id as idSolicitante, ss.nombreApellido as fullName
+	FROM soporte_ticketdesarrollo st 
+	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
+	INNER JOIN auth_user au ON au.id = st.idAgente_id
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+	WHERE se.id = 5
+    """
     connection = connections['default']
+
+    if nombre_usuario != 'mafer':
+        consulta_proyectos_process += " AND au.username = %s"
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_proyectos_process, [nombre_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_project_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        consulta_proyectos_just_success += " AND au.username = %s"
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_proyectos_just_success, [nombre_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_project_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        consulta_proyectos_success += " AND au.username = %s"
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_proyectos_success, [nombre_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        # CONSULTA PARA VER LOS SOLICITANTES EN CASO DE QUE SEA NECESARIO
+        if len(resultados_project_process) == 0 and len(resultados_project_just_success) == 0 and len(resultados_project_success) == 0:
+            consulta_projects_solicitante_process = """
+            SELECT * FROM auth_user au WHERE username = %s
+            """
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_projects_solicitante_process, [nombre_usuario])
+                columns = [col[0] for col in cursor.description]
+                resultados_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            emialSolicitante =resultados_solicitante[0]['email']
+            consulta_id_solicitante = """
+            SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
+            """
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_id_solicitante, [emialSolicitante])
+                columns = [col[0] for col in cursor.description]
+                resultados_id_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
+            if len(resultados_id_solicitante) == 0:
+                id_solicitante = 1
+                consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_proyectos_process, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_project_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_proyectos_just_success, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_project_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_proyectos_success, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                
+            else:
+                id_solicitante = resultados_id_solicitante[0]['id']
+                consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_proyectos_process, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_project_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_proyectos_just_success, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_project_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_proyectos_success, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    else:
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_proyectos_process)
+            columns = [col[0] for col in cursor.description]
+            resultados_project_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_proyectos_just_success)
+            columns = [col[0] for col in cursor.description]
+            resultados_project_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_proyectos_success)
+            columns = [col[0] for col in cursor.description]
+            resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     with connection.cursor() as cursor:
         cursor.execute(consulta_proyectos_por_asignar)
         columns = [col[0] for col in cursor.description]
         resultados_project_por_asignar = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    context = {
-        'project_por_agente': resultados_project_por_asignar,
-    }
+    # PROCESOS PARA OBTENCION DE OBJETOS EN CASO DE QUE LA FECHA ACTUAL SUPERE POR DOS DIAS LA FECHA DE CREACIÓN SE DEBE CONSIDERAR EL PROYECTO COMO ATRASADO DE ASIGNAR
+    current_date = datetime.now()
+    projects_venci_no_asign = []
+    projects_process_venci = []
+    projects_just_success_venci = []
+    projects_success_venci = []
+
+    if len(resultados_project_por_asignar) != 0:
+        for project in resultados_project_por_asignar.copy():
+            fecha_creacion = project['fechaCreacion']
+            diff_days = (current_date - fecha_creacion).days
+            if diff_days >= 1:
+                projects_venci_no_asign.append(project)
+                resultados_project_por_asignar.remove(project)
     
+    if len(resultados_project_process) != 0:
+        for project in resultados_project_process.copy():
+            fecha_finalizacion = project['fechaFinalizacionEstimada']
+            diff_days_process = (current_date - fecha_finalizacion).days
+            if diff_days_process >= 1:
+                projects_process_venci.append(project)
+                resultados_project_process.remove(project)
+
+    if len(resultados_project_just_success) != 0:
+        for project in resultados_project_just_success.copy():
+            fecha_finalizacion_estimada = project['fechaFinalizacionEstimada']
+            diff_days_success = (current_date - fecha_finalizacion_estimada).days
+            if diff_days_success >= 1:
+                projects_just_success_venci.append(project)
+                resultados_project_just_success.remove(project)
+
+    if len(resultados_project_success) != 0:
+        for project in resultados_project_success.copy():
+            fecha_finalizacion_estimada = project['fechaFinalizacionEstimada']
+            fecha_finalizacion = project['fechaFinalizacion']
+            diff_days_success = (fecha_finalizacion - fecha_finalizacion_estimada).days
+            if diff_days_success >= 1:
+                projects_success_venci.append(project)
+                resultados_project_success.remove(project)
+
+    context = {
+        'resultados_project_por_asignar': resultados_project_por_asignar,
+        'projects_venci_no_asign': projects_venci_no_asign,
+        'resultados_project_process': resultados_project_process,
+        'projects_process_venci': projects_process_venci,
+        'resultados_project_just_success': resultados_project_just_success,
+        'projects_just_success_venci': projects_just_success_venci,
+        'resultados_project_success' : resultados_project_success,
+        'projects_success_venci': projects_success_venci,
+    }
+
     return JsonResponse(context, safe=False)
     
 @login_required
@@ -493,10 +672,6 @@ def ticketsoportescreados(request):
     with connection.cursor() as cursor:
         cursor.execute(consulta_sql_copia, [nombre_usuario])
         resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
-
-        # Imprimir los resultados y nombre de usuario (para depuración)
-        print("Nombre de usuario:", nombre_usuario)
-        print("Resultados de la consulta JSON:", resultados)
 
     # Si la consulta devuelve un conjunto vacío y había un nombre de usuario, ejecutar la segunda consulta sin la condición WHERE original
     if not resultados and nombre_usuario:

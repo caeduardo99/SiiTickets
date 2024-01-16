@@ -1052,7 +1052,7 @@ $(document).ready(function () {
     }else{
       var row = ticketsTableBody.insertRow();
       var cell = row.insertCell();
-      cell.innerHTML = "No hay proyectos a cargo del agente o solicitados por el usuario actual.";
+      cell.innerHTML = "No hay proyectos a cargo o solicitados por el usuario actual.";
       cell.style.textAlign = "center";
       cell.colSpan = 9;
     }
