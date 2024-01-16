@@ -306,9 +306,23 @@ def get_tickets_cpanel(request):
 	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
 	WHERE se.id = 5
     """
+    consulta_tasks_process = """
+    SELECT st.id as idProyecto, st.tituloProyecto,
+	sa2.id as idActividadSecondary, sa2.descripcion as actividadSecondary, sa2.fechaDesarrollo, 
+	se.id as idEstado, se.descripcion as Estado,
+	au.id as idAgenteTask, au.first_name as NombreAgenteTask, au.last_name as ApellidoAgenteTask,
+	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante
+	FROM soporte_ticketdesarrollo st 
+	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id 
+	INNER JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id  = sa.id 
+	INNER JOIN soporte_estadosticket se ON se.id = sa2.idestado_id
+	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+	WHERE se.id = 2
+    """
     connection = connections['default']
 
-    if nombre_usuario != 'mafer':
+    if nombre_usuario != 'mafer' and nombre_usuario != 'superadmin':
         consulta_proyectos_process += " AND au.username = %s"
         with connection.cursor() as cursor:
             cursor.execute(consulta_proyectos_process, [nombre_usuario])
@@ -327,8 +341,14 @@ def get_tickets_cpanel(request):
             columns = [col[0] for col in cursor.description]
             resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+        consulta_tasks_process += " AND au.username = %s"
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_tasks_process, [nombre_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
         # CONSULTA PARA VER LOS SOLICITANTES EN CASO DE QUE SEA NECESARIO
-        if len(resultados_project_process) == 0 and len(resultados_project_just_success) == 0 and len(resultados_project_success) == 0:
+        if len(resultados_project_process) == 0 and len(resultados_project_just_success) == 0 and len(resultados_project_success) == 0 and len(resultados_tasks_process) == 0:
             consulta_projects_solicitante_process = """
             SELECT * FROM auth_user au WHERE username = %s
             """
@@ -351,6 +371,7 @@ def get_tickets_cpanel(request):
                 consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
 
                 with connection.cursor() as cursor:
                     cursor.execute(consulta_proyectos_process, [id_solicitante])
@@ -366,12 +387,18 @@ def get_tickets_cpanel(request):
                     cursor.execute(consulta_proyectos_success, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
                     resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_tasks_process, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
                 
             else:
                 id_solicitante = resultados_id_solicitante[0]['id']
                 consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 
                 with connection.cursor() as cursor:
                     cursor.execute(consulta_proyectos_process, [id_solicitante])
@@ -387,6 +414,11 @@ def get_tickets_cpanel(request):
                     cursor.execute(consulta_proyectos_success, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
                     resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_tasks_process, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     else:
         with connection.cursor() as cursor:
@@ -404,6 +436,11 @@ def get_tickets_cpanel(request):
             columns = [col[0] for col in cursor.description]
             resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_tasks_process)
+            columns = [col[0] for col in cursor.description]
+            resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
     with connection.cursor() as cursor:
         cursor.execute(consulta_proyectos_por_asignar)
         columns = [col[0] for col in cursor.description]
@@ -415,6 +452,7 @@ def get_tickets_cpanel(request):
     projects_process_venci = []
     projects_just_success_venci = []
     projects_success_venci = []
+    tasks_process_venci = []
 
     if len(resultados_project_por_asignar) != 0:
         for project in resultados_project_por_asignar.copy():
@@ -449,6 +487,14 @@ def get_tickets_cpanel(request):
                 projects_success_venci.append(project)
                 resultados_project_success.remove(project)
 
+    if len(resultados_tasks_process) != 0:
+        for project in resultados_tasks_process.copy():
+            fecha_finalizacion = project['fechaDesarrollo']
+            diff_days_process = (current_date - fecha_finalizacion).days
+            if diff_days_process >= 1:
+                tasks_process_venci.append(project)
+                resultados_tasks_process.remove(project)
+
     context = {
         'resultados_project_por_asignar': resultados_project_por_asignar,
         'projects_venci_no_asign': projects_venci_no_asign,
@@ -458,6 +504,8 @@ def get_tickets_cpanel(request):
         'projects_just_success_venci': projects_just_success_venci,
         'resultados_project_success' : resultados_project_success,
         'projects_success_venci': projects_success_venci,
+        'resultados_tasks_process': resultados_tasks_process,
+        'tasks_process_venci': tasks_process_venci,
     }
 
     return JsonResponse(context, safe=False)

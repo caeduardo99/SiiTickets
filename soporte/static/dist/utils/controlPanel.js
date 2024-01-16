@@ -24,6 +24,11 @@ $(document).ready(function () {
   const numProjectJetFinishVenci = document.getElementById('numProjectJetFinishVenci');
   const numProjectFinish = document.getElementById('numProjectFinish');
   const numProjectFinishVenci = document.getElementById('numProjectFinishVenci');
+  const numTasksProcess = document.getElementById('numTasksProcess');
+  const numTasksProcessVenci = document.getElementById('numTasksProcessVenci');
+  const numTasksJustFinish = document.getElementById('numTasksJustFinish');
+  const bodyTableTaskProcess = document.getElementById('bodyTableTaskProcess');
+  const bodyTableTaskProcessVenci = document.getElementById('bodyTableTaskProcessVenci');
   let projectsPorAsignar = [],
     projectsPorAsignarVeci = [];
     
@@ -44,6 +49,8 @@ $(document).ready(function () {
     url: "get_tickets_cpanel/",
     method: "GET",
     success: function (data) {
+      let projectsPorAsignar, projectsPorAsignarVeci, projectsProcess, projectsProcessVenci, projectsJustSuccess, projectsJustSuccessVenci, projectsSuccess, projectsSuccessVenci, tasksProcess, tasksProcessVenci;
+
       projectsPorAsignar = data.resultados_project_por_asignar;
       projectsPorAsignarVeci = data.projects_venci_no_asign;
       projectsProcess = data.resultados_project_process;
@@ -52,6 +59,9 @@ $(document).ready(function () {
       projectsJustSuccessVenci = data.projects_just_success_venci;
       projectsSuccess = data.resultados_project_success;
       projectsSuccessVenci = data.projects_success_venci;
+      tasksProcess = data.resultados_tasks_process;
+      tasksProcessVenci = data.tasks_process_venci;
+      console.log(data)
       
       if (projectsPorAsignar.length !== 0) {
         projectsPorAsignar.forEach(function (project) {
@@ -60,7 +70,8 @@ $(document).ready(function () {
             bodyTableProyectos,
             fullName,
             project.idEstado,
-            project
+            project,
+            1
           );
         });
       } else {
@@ -79,7 +90,8 @@ $(document).ready(function () {
             bodyTableProyectosVenci,
             fullName,
             project.idEstado,
-            project
+            project,
+            1
           );
         });
       } else {
@@ -97,7 +109,8 @@ $(document).ready(function () {
             bodyTableProyectosProgress,
             fullName,
             project.idEstado,
-            project
+            project,
+            1
           );
         });
       } else {
@@ -114,7 +127,8 @@ $(document).ready(function () {
             bodyTableProyectosProgressVenci,
             fullName,
             project.idEstado,
-            project
+            project,
+            1
           );
         });
       } else {
@@ -127,7 +141,7 @@ $(document).ready(function () {
       if(projectsJustSuccess.length != 0){
         projectsJustSuccess.forEach(function (project){
             const fullName = `${project.NombreAgente} ${project.ApellidoAgente}`
-            crearTablaRowFunction(bodyTableProyectosEsperandoFinalizacion ,fullName, project.idEstado, project)
+            crearTablaRowFunction(bodyTableProyectosEsperandoFinalizacion ,fullName, project.idEstado, project, 1)
         })
       }else{
         const row = bodyTableProyectosEsperandoFinalizacion.insertRow();
@@ -139,7 +153,7 @@ $(document).ready(function () {
       if(projectsJustSuccessVenci.length != 0){
         projectsJustSuccessVenci.forEach(function (project){
             const fullName = `${project.NombreAgente} ${project.ApellidoAgente}`
-            crearTablaRowFunction(bodyTableProyectosEsperandoFinalizacionAtrasado ,fullName, project.idEstado, project)
+            crearTablaRowFunction(bodyTableProyectosEsperandoFinalizacionAtrasado ,fullName, project.idEstado, project, 1)
         })
       }else{
         const row = bodyTableProyectosEsperandoFinalizacionAtrasado.insertRow();
@@ -151,7 +165,7 @@ $(document).ready(function () {
       if(projectsSuccess.length != 0){
         projectsSuccess.forEach(function (project){
             const fullName = `${project.NombreAgente} ${project.ApellidoAgente}`
-            crearTablaRowFunction(bodyTableProyectosFinalizados ,fullName, project.idEstado, project)
+            crearTablaRowFunction(bodyTableProyectosFinalizados ,fullName, project.idEstado, project, 1)
         })
       }else{
         const row = bodyTableProyectosFinalizados.insertRow();
@@ -163,12 +177,36 @@ $(document).ready(function () {
       if(projectsSuccessVenci.length != 0){
         projectsSuccessVenci.forEach(function (project){
             const fullName = `${project.NombreAgente} ${project.ApellidoAgente}`
-            crearTablaRowFunction(bodyTableProyectosFinalizadosAtrasados ,fullName, project.idEstado, project)
+            crearTablaRowFunction(bodyTableProyectosFinalizadosAtrasados ,fullName, project.idEstado, project, 1)
         })
       }else{
         const row = bodyTableProyectosFinalizadosAtrasados.insertRow();
         const cell = row.insertCell();
         cell.innerHTML = "No hay projectos que esten en Finalizados."
+        cell.style.textAlign = "center";
+      }
+
+      if(tasksProcess.length != 0){
+        tasksProcess.forEach(function (project){
+          const fullName = `${project.NombreAgenteTask} ${project.ApellidoAgenteTask}`
+          crearTablaRowFunction(bodyTableTaskProcess ,fullName, project.idEstado, project, 2)
+      })
+      }else{
+        const row = bodyTableTaskProcess.insertRow();
+        const cell = row.insertCell();
+        cell.innerHTML = "No hay tareas en proceso pendientes."
+        cell.style.textAlign = "center";
+      }
+
+      if(tasksProcessVenci.length != 0){
+        tasksProcessVenci.forEach(function (project){
+          const fullName = `${project.NombreAgenteTask} ${project.ApellidoAgenteTask}`
+          crearTablaRowFunction(bodyTableTaskProcessVenci ,fullName, project.idEstado, project, 2)
+      })
+      }else{
+        const row = bodyTableTaskProcessVenci.insertRow();
+        const cell = row.insertCell();
+        cell.innerHTML = "No hay tareas en proceso atrasadas."
         cell.style.textAlign = "center";
       }
 
@@ -181,6 +219,8 @@ $(document).ready(function () {
     numProjectJetFinishVenci.textContent = `(${projectsJustSuccessVenci.length})`
     numProjectFinish.textContent = `(${projectsSuccess.length})`
     numProjectFinishVenci.textContent = `(${projectsSuccessVenci.length})`
+    numTasksProcess.textContent = `(${tasksProcess.length})`
+    numTasksProcessVenci.textContent = `(${tasksProcessVenci.length})`
 
     },
     error: function (error) {
@@ -189,29 +229,27 @@ $(document).ready(function () {
   });
 
   //FUNCION PARA LA CREACION DE TABLAS
-  function crearTablaRowFunction(bodyTable, agent, idEstado ,project) {
+  function crearTablaRowFunction(bodyTable, agent, idEstado ,project, typeTable) {
     const row = bodyTable.insertRow();
+    const cellId = row.insertCell();
     const cell = row.insertCell();
+
     if (idEstado != 1) {
       const cellAgente = row.insertCell();
       cellAgente.innerHTML = agent == undefined ? "" : agent;
       cellAgente.textAlign = "center";
     }
 
-    cell.innerHTML = project.tituloProyecto;
-    cell.style.textAlign = "center";
-
-    // FUNCIONALIDAD DE LA FILA
-    row.addEventListener("click", function () {
-      console.log(project.idProyecto);
-    });
-
-    row.addEventListener("mouseover", function () {
-      row.style.cursor = "pointer";
-    });
-
-    row.addEventListener("mouseout", function () {
-      row.style.cursor = "default";
-    });
+    if(typeTable == 1){
+      cell.innerHTML = project.tituloProyecto;
+      cell.style.textAlign = "center";
+    }
+    if(typeTable == 2){
+      cell.innerHTML = project.actividadSecondary;
+      cell.style.textAlign = "center";
+    }
+    
+    cellId.innerHTML = `000-${project.idProyecto}`
   }
+
 });

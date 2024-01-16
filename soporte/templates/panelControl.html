@@ -3,238 +3,354 @@
 {% load static %}
 {% block content %}
 <section class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h2>Panel General</h2>
-          </div>
-        </div>
-      </div><!-- /.container-fluid -->
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h2>Panel General</h2>
+      </div>
+    </div>
+  </div><!-- /.container-fluid -->
 </section>
 <div class="content">
-    <div class="row">
-        <div class="col-md-12">
-            <h5 id="textBienvenida"></h5>
-        </div>
+  <div class="row">
+    <div class="col-md-12">
+      <h5 id="textBienvenida"></h5>
     </div>
-    <hr>
-    <div class="row g-1">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header text-white bg-secondary">PROYECTOS</div>
-                <div class="card-body">
-                    <div class="row g-1" >
-                        <div class="col-md-12">
-                            <div class="accordion" id="accordionProjecProcess">
-                                <div class="row g-1" id="rowInfoAdmin" style="display: none;">
-                                    <div class="col-md-6">
-                                        <div class="card card-secondary">
-                                            <div class="card-header" id="headingOne">
-                                              <h2 class="mb-0">
-                                                <button class="btn text-white btn-block text-center" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                                                  Proyectos por Asignar <b><span id="numProjectNoAsign"></span></b>
-                                                </button>
-                                              </h2>
-                                            </div>
-                                            <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionProjecProcess">
-                                              <div class="card-body">
-                                                <table class="table table-sm table-hover">
-                                                    <tbody id="bodyTableProyectos">
-                    
-                                                    </tbody>
-                                                </table>
-                                              </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card card-warning">
-                                            <div class="card-header" id="headingTwo">
-                                              <h2 class="mb-0">
-                                                <button class="btn btn-block text-center text-white collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                                  Proyectos por asignar (Atrasados) <b><span id="numProjectNoAsignVenci"></span></b>
-                                                </button>
-                                              </h2>
-                                            </div>
-                                            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionProjecProcess">
-                                              <div class="card-body">
-                                                <table class="table table-sm table-hover">
-                                                    <tbody id="bodyTableProyectosVenci">
-                    
-                                                    </tbody>
-                                                </table>
-                                              </div>
-                                            </div>
-                                          </div>
-                                    </div>
-                                </div>
-                                <div class="row g-1">
-                                    <div class="col-md-6">
-                                        <div class="card card-info">
-                                            <div class="card-header" id="headingThree">
-                                              <h2 class="mb-0">
-                                                <button class="btn btn-block text-center text-white" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree"> Proyectos en Progreso <b><span id="numProjectProcess"></span></b>
-                                                </button>
-                                              </h2>
-                                            </div>
-                                            <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionProjecProcess">
-                                              <div class="card-body">
-                                                <table class="table table-sm table-hover">
-                                                    <tbody id="bodyTableProyectosProgress">
-                        
-                                                    </tbody>
-                                                </table>
-                                              </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card card-danger">
-                                            <div class="card-header" id="headingFour">
-                                              <h2 class="mb-0">
-                                                <button class="btn btn-block text-center text-white" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour"> Proyectos en Progreso (Atrasados) <b><span id="numProjectProcessVenci"></span></b>
-                                                </button>
-                                              </h2>
-                                            </div>
-                                            <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionProjecProcess">
-                                              <div class="card-body">
-                                                <table class="table table-sm table-hover">
-                                                    <tbody id="bodyTableProyectosProgressVenci">
-                    
-                                                    </tbody>
-                                                </table>
-                                              </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row g-1">
-                                    <div class="col-md-6">
-                                        <div class="card card-light">
-                                            <div class="card-header" id="headingFive">
-                                              <h2 class="mb-0">
-                                                <button class="btn btn-block text-center text-black" type="button" data-toggle="collapse" data-target="#collapseFive" aria-expanded="true" aria-controls="collapseFive">
-                                                    Proyectos en espera de Finalización <b><span id="numProjectJetFinish"></span></b>
-                                                </button>
-                                              </h2>
-                                            </div>
-                                            <div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordionProjecProcess">
-                                              <div class="card-body">
-                                                <table class="table table-sm table-hover">
-                                                    <tbody id="bodyTableProyectosEsperandoFinalizacion">
-                    
-                                                    </tbody>
-                                                </table>
-                                              </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card card-danger">
-                                            <div class="card-header" id="headingSix">
-                                              <h2 class="mb-0">
-                                                <button class="btn btn-block text-center text-white" type="button" data-toggle="collapse" data-target="#collapseSix" aria-expanded="true" aria-controls="collapseSix"> Proyectos en espera de Finalización (Atrasados) <b><span id="numProjectJetFinishVenci"></span></b>
-                                                </button>
-                                              </h2>
-                                            </div>
-                                            <div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionProjecProcess">
-                                              <div class="card-body">
-                                                <table class="table table-sm table-hover">
-                                                    <tbody id="bodyTableProyectosEsperandoFinalizacionAtrasado">
-                                                        
-                                                    </tbody>
-                                                </table>
-                                              </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row g-1">
-                                    <div class="col-md-6">
-                                        <div class="card card-success">
-                                            <div class="card-header" id="headingSeve">
-                                              <h2 class="mb-0">
-                                                <button class="btn btn-block text-center text-white" type="button" data-toggle="collapse" data-target="#collapseSeven" aria-expanded="true" aria-controls="collapseSeven"> Proyectos Finalizados <b><span id="numProjectFinish"></span></b>
-                                                </button>
-                                              </h2>
-                                            </div>
-                                            <div id="collapseSeven" class="collapse" aria-labelledby="headingSeve" data-parent="#accordionProjecProcess">
-                                              <div class="card-body">
-                                                <table class="table table-sm table-hover">
-                                                    <tbody id="bodyTableProyectosFinalizados">
-                    
-                                                    </tbody>
-                                                </table>
-                                              </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="card card-danger">
-                                            <div class="card-header" id="headingEight">
-                                              <h2 class="mb-0">
-                                                <button class="btn btn-block text-center text-white" type="button" data-toggle="collapse" data-target="#collapseEight" aria-expanded="true" aria-controls="collapseEight">
-                                                    Proyectos Finalizados (Atrasados) <b><span id="numProjectFinishVenci"></span></b>
-                                                </button>
-                                              </h2>
-                                            </div>
-                                            <div id="collapseEight" class="collapse" aria-labelledby="headingEight" data-parent="#accordionProjecProcess">
-                                              <div class="card-body">
-                                                <table class="table table-sm table-hover">
-                                                    <tbody id="bodyTableProyectosFinalizadosAtrasados">
-                    
-                                                    </tbody>
-                                                </table>
-                                              </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+  </div>
+  <hr>
+  <div class="row g-1">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header text-white bg-secondary">PROYECTOS</div>
+        <div class="card-body">
+          <div class="row g-1">
+            <div class="col-md-12">
+              <div class="accordion" id="accordionProjecProcess">
+                <div class="row g-1" id="rowInfoAdmin" style="display: none;">
+                  <div class="col-md-6">
+                    <div class="card card-secondary">
+                      <div class="card-header" id="headingOne">
+                        <h2 class="mb-0">
+                          <button class="btn text-white btn-block text-left" type="button" data-toggle="collapse"
+                            data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            Proyectos por Asignar <b><span id="numProjectNoAsign"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseOne" class="collapse" aria-labelledby="headingOne"
+                        data-parent="#accordionProjecProcess">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableProyectos">
+
+                            </tbody>
+                          </table>
                         </div>
+                      </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <hr>
-    <div class="row g-1">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header text-white bg-info">TAREAS</div>
-                <div class="card-body">
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card card-warning">
+                      <div class="card-header" id="headingTwo">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-white collapsed" type="button"
+                            data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false"
+                            aria-controls="collapseTwo">
+                            Proyectos por asignar (Atrasados) <b><span id="numProjectNoAsignVenci"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo"
+                        data-parent="#accordionProjecProcess">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableProyectosVenci">
 
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-            </div>
-        </div>
-    </div>
-    <hr>
-    <div class="row g-1">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header text-white bg-success">AGENTES</div>
-                <div class="card-body">
+                <div class="row g-1">
+                  <div class="col-md-6">
+                    <div class="card card-info">
+                      <div class="card-header" id="headingThree">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-white" type="button" data-toggle="collapse"
+                            data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree"> Proyectos
+                            en Progreso <b><span id="numProjectProcess"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseThree" class="collapse" aria-labelledby="headingThree"
+                        data-parent="#accordionProjecProcess">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableProyectosProgress">
 
-                </div>
-            </div>
-        </div>
-    </div>
-    <hr>
-    <div class="row g-1">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header text-white bg-danger">TICKETS</div>
-                <div class="card-body">
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card card-danger">
+                      <div class="card-header" id="headingFour">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-white" type="button" data-toggle="collapse"
+                            data-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour"> Proyectos en
+                            Progreso (Atrasados) <b><span id="numProjectProcessVenci"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseFour" class="collapse" aria-labelledby="headingFour"
+                        data-parent="#accordionProjecProcess">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableProyectosProgressVenci">
 
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                <div class="row g-1">
+                  <div class="col-md-6">
+                    <div class="card card-light">
+                      <div class="card-header" id="headingFive">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-black" type="button" data-toggle="collapse"
+                            data-target="#collapseFive" aria-expanded="true" aria-controls="collapseFive">
+                            Proyectos en espera de Finalización <b><span id="numProjectJetFinish"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseFive" class="collapse" aria-labelledby="headingFive"
+                        data-parent="#accordionProjecProcess">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableProyectosEsperandoFinalizacion">
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card card-danger">
+                      <div class="card-header" id="headingSix">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-white" type="button" data-toggle="collapse"
+                            data-target="#collapseSix" aria-expanded="true" aria-controls="collapseSix"> Proyectos en
+                            espera de Finalización (Atrasados) <b><span id="numProjectJetFinishVenci"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseSix" class="collapse" aria-labelledby="headingSix"
+                        data-parent="#accordionProjecProcess">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableProyectosEsperandoFinalizacionAtrasado">
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row g-1">
+                  <div class="col-md-6">
+                    <div class="card card-success">
+                      <div class="card-header" id="headingSeve">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-white" type="button" data-toggle="collapse"
+                            data-target="#collapseSeven" aria-expanded="true" aria-controls="collapseSeven"> Proyectos
+                            Finalizados <b><span id="numProjectFinish"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseSeven" class="collapse" aria-labelledby="headingSeve"
+                        data-parent="#accordionProjecProcess">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableProyectosFinalizados">
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card card-danger">
+                      <div class="card-header" id="headingEight">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-white" type="button" data-toggle="collapse"
+                            data-target="#collapseEight" aria-expanded="true" aria-controls="collapseEight">
+                            Proyectos Finalizados (Atrasados) <b><span id="numProjectFinishVenci"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseEight" class="collapse" aria-labelledby="headingEight"
+                        data-parent="#accordionProjecProcess">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableProyectosFinalizadosAtrasados">
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
+  <hr>
+  <div class="row g-1">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header text-white bg-secondary">TAREAS DEL USUARIO</div>
+        <div class="card-body">
+          <div class="row g-1">
+            <div class="col-md-12">
+              <div class="accordion" id="accordionTasks">
+                <div class="row g-1">
+                  <div class="col-md-6">
+                    <div class="card card-info">
+                      <div class="card-header" id="headingOne">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-white" type="button" data-toggle="collapse"
+                            data-target="#collapseOneTasks" aria-expanded="true" aria-controls="collapseOneTasks">
+                            Tareas en proceso <b><span id="numTasksProcess"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseOneTasks" class="collapse" aria-labelledby="headingOne"
+                        data-parent="#accordionTasks">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableTaskProcess">
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card card-danger">
+                      <div class="card-header" id="headingTwo">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-white" type="button" data-toggle="collapse"
+                            data-target="#collapseTwoTasks" aria-expanded="false" aria-controls="collapseTwoTasks">
+                            Tareas en proceso (Atrasados) <b><span id="numTasksProcessVenci"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseTwoTasks" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionTasks">
+                        <div class="card-body">
+                          <div class="table-responsive" style="overflow-y: auto; max-height: 250px;">
+                            <table class="table table-sm table-hover">
+                              <tbody id="bodyTableTaskProcessVenci">
+  
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row g-1">
+                  <div class="col-md-6">
+                    <div class="card card-light">
+                      <div class="card-header" id="headingThree">
+                        <h2 class="mb-0">
+                          <button class="btn btn-block text-left text-black collapsed" type="button" data-toggle="collapse"
+                            data-target="#collapseThreeTasks" aria-expanded="false" aria-controls="collapseThreeTasks">
+                            Tareas esperando Finalización <b><span id="numTasksJustFinish"></span></b>
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseThreeTasks" class="collapse" aria-labelledby="headingThree"
+                        data-parent="#accordionTasks">
+                        <div class="card-body">
+                          <table class="table table-sm table-hover">
+                            <tbody id="bodyTableTaskSuccess">
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-header" id="headingFour">
+                        <h2 class="mb-0">
+                          <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse"
+                            data-target="#collapseFourTasks" aria-expanded="false" aria-controls="collapseFourTasks">
+                            Collapsible Group Item #4
+                          </button>
+                        </h2>
+                      </div>
+                      <div id="collapseFourTasks" class="collapse" aria-labelledby="headingFour"
+                        data-parent="#accordionTasks">
+                        <div class="card-body">
+                          And lastly, the placeholder content for the third and final accordion panel. This panel is hidden
+                          by default.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="row g-1">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header text-white bg-success">AGENTES</div>
+        <div class="card-body">
+
+        </div>
+      </div>
+    </div>
+  </div>
+  <hr>
+  <div class="row g-1">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header text-white bg-danger">TICKETS</div>
+        <div class="card-body">
+
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
 <script src="../static/dist/utils/controlPanel.js"></script>
 <script>
-    // Coloca la información del usuario en una variable global accesible para el JavaScript
-    var infoUsuario = {{ info_user|safe }};
+  // Coloca la información del usuario en una variable global accesible para el JavaScript
+  var infoUsuario = {{ info_user| safe }};
 </script>
 {% endblock %}
