@@ -76,7 +76,7 @@ urlpatterns = [
     path('crear_solicitante/', views.crear_solicitante, name='crear_solicitante'),
     path('tareas_desarrollo_success/', views.tareas_desarrollo_success, name='tareas_desarrollo_success'),
     path('solicitantescreados/', views.solicitantescreados, name='solicitantescreados'),
-
+    
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

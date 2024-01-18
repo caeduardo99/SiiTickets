@@ -75,6 +75,7 @@ $(document).ready(function () {
   const cardFormNewProjectDevelop = document.getElementById(
     "cardFormNewProjectDevelop"
   );
+  const btnCompletarTareasPrincipales = document.getElementById('btnCompletarTareasPrincipales');
 
   var resultadosAgentesData = window.resultados_agentes_data;
   var resultadosProyectos;
@@ -88,14 +89,17 @@ $(document).ready(function () {
     infoGeneralProject,
     sumaTotalHorasPrincipales,
     detalleTicket,
-    arrayIdMainTask = [],
-    arrayIdSecondsTask = [],
+    arrayIdsTasks = [],
     arrayHorasInputProject = [],
     infoProject = [],
     infoTareasAdicionales = [],
     infoTareasPrincipales = [],
     dataReport = [],
-    ticketId;
+    arrayTaskMains = [],
+    ticketId,
+    newEstateProject,
+    newHorasCompletas,
+    checkFinishTaskMainCreate = false;
 
   // FUNCIONAMIENTO DEL INPUT TITULO
   inputTitleProject.addEventListener("input", function () {
@@ -717,6 +721,8 @@ $(document).ready(function () {
                 `Agente Administrador del proyecto: ${nameAgente}`,
                 `Fecha de creación: ${fechaCreacion}`,
                 `Fecha estimada de culminación: ${fechaTicketEstimado.value}`,
+                `Estado del proyecto: ${newEstateProject}`,
+                `Horas completas del Proyecto: ${newHorasCompletas} horas`,
               ],
               margin: [0, 5, 0, 0], // Ajusta el margen superior según tus necesidades
             },
@@ -803,14 +809,23 @@ $(document).ready(function () {
   fetch("ticketDesarrolloCreados/")
     .then((response) => response.json())
     .then((data) => {
-      if (resultadosConsulta[0].group_id != 2) {
+      if (resultadosConsulta[0].group_id != 1) {
         cardAlertNoPermissions.style.display = "none";
         cardFormNewProjectDevelop.style.display = "";
       } else {
         cardAlertNoPermissions.style.display = "";
         cardFormNewProjectDevelop.style.display = "none";
       }
-      resultadosProyectos = data;
+      const mapaAgrupado = new Map();
+      data.forEach((proyecto) => {
+        const numTicket = proyecto.NumTicket;
+        if (!mapaAgrupado.has(numTicket)) {
+          mapaAgrupado.set(numTicket, proyecto);
+        }
+      })
+      const resultadosAgrupados = Array.from(mapaAgrupado.values());
+      resultadosProyectos = resultadosAgrupados;
+      console.log(resultadosProyectos)
     })
     .catch((error) => console.error("Error:", error));
 
@@ -833,19 +848,25 @@ $(document).ready(function () {
   // FUNCION PARA LA CARGA DE LA TABLA EN LA VISTA DE PROYECTO GENERAL
   function loadListProjects() {
     ticketsTableBody.innerHTML = "";
-    if (resultadosProyectos[0].tituloProyecto != null){
+    if (
+      resultadosProyectos.length != 0 &&
+      resultadosProyectos[0].tituloProyecto != undefined
+    ) {
       resultadosProyectos.forEach((proyecto) => {
         const row = ticketsTableBody.insertRow();
-        
+
         // Agregar celdas con los valores de cada propiedad
         row.insertCell().textContent = `000-${proyecto.NumTicket}`;
         row.insertCell().textContent = proyecto.Empresa;
         row.insertCell().textContent = proyecto.tituloProyecto;
         row.insertCell().textContent = formatFecha(proyecto.fechaCreacion);
-        row.insertCell().textContent = proyecto.fechaFinalizacionEstimada == null ? 'Sin asignar' : formatFecha(proyecto.fechaFinalizacionEstimada);
+        row.insertCell().textContent =
+          proyecto.fechaFinalizacionEstimada == null
+            ? "Sin asignar"
+            : formatFecha(proyecto.fechaFinalizacionEstimada);
         row.insertCell().textContent = proyecto.Cliente;
         row.insertCell().textContent = proyecto.Agente;
-  
+
         // Condición para verificar el EstadoProyecto y agregar el SVG
         if (proyecto.idEstado === 2) {
           const svg = createSVG(
@@ -862,11 +883,13 @@ $(document).ready(function () {
             "M192 0c-41.8 0-77.4 26.7-90.5 64H64C28.7 64 0 92.7 0 128V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64H282.5C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM305 273L177 401c-9.4 9.4-24.6 9.4-33.9 0L79 337c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L271 239c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"
           );
           row.insertCell().appendChild(svg);
-        } else if (proyecto.idEstado === 5){
-          const svg = createSVG("M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z")
+        } else if (proyecto.idEstado === 5) {
+          const svg = createSVG(
+            "M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
+          );
           row.insertCell().appendChild(svg);
         }
-  
+
         // Agregar la nueva celda con un botón
         const buttonCell = row.insertCell();
         const button = document.createElement("button");
@@ -874,7 +897,7 @@ $(document).ready(function () {
         button.textContent = "Ver";
         button.dataset.toggle = "modal";
         button.dataset.target = "#modalInfoProyect";
-  
+
         // FUNCIONALIDAD DEL BOTON PARA OTRO MODAL
         button.addEventListener("click", function () {
           ticketId = proyecto.NumTicket;
@@ -882,8 +905,9 @@ $(document).ready(function () {
           btnChangeState.style.display = "none";
           btnAsignarProyecto.style.display = "none";
           btnFinishProject.style.display = "none";
-          
-          if (proyecto.idEstado == 4 && nombreUsuario == 'mafer') {
+          btnCompletarTareasPrincipales.style.display = "none"
+
+          if (proyecto.idEstado == 4 && nombreUsuario == "mafer") {
             btnFinishProject.style.display = "";
           } else {
             btnFinishProject.style.display = "none";
@@ -903,7 +927,7 @@ $(document).ready(function () {
                 detalleTicket.forEach((tarea) => {
                   tableTasksEdit.style.display = "";
                   const row = tableBodyTasksEdit.insertRow();
-                  
+
                   row.insertCell().textContent = tarea.TareaPrincipal || "";
                   row.insertCell().textContent =
                     tarea.estadoActividadPrincipal || "";
@@ -916,143 +940,116 @@ $(document).ready(function () {
                     tarea.horasSecundarias || "Sin datos";
                   row.insertCell().textContent =
                     tarea.estadoActividadSecundaria || "Sin datos";
-  
-                  // Agregar una nueva celda con un checkbox
-                  if (
-                    tarea.idEstadoActividadSecundaria !== 5 &&
-                    resultadosConsulta[0].group_id !== 2 && tarea.idEstadoProyecto !== 1
-                  ) {
-                    const checkboxCell = row.insertCell();
-                    const checkbox = document.createElement("input");
-                    checkbox.type = "checkbox";
-                    checkboxCell.appendChild(checkbox);
-  
-                    checkbox.addEventListener("change", function () {
-                      if (this.checked) {
-                        if (tarea.idTareaSecundaria !== null) {
-                          arrayIdSecondsTask.push(tarea.idTareaSecundaria);
-                          const allSecundariasPresentes =
-                            tarea.idTareaPrincipal &&
-                            detalleTicket
-                              .filter(
-                                (item) =>
-                                  item.idTareaPrincipal === tarea.idTareaPrincipal
-                              )
-                              .every((item) =>
-                                arrayIdSecondsTask.includes(
-                                  item.idTareaSecundaria
-                                )
-                              );
-                          if (allSecundariasPresentes) {
-                            arrayIdMainTask.push(tarea.idTareaPrincipal);
-                          }
-                        } else {
-                          arrayIdMainTask.push(tarea.idTareaPrincipal);
-                        }
-                      } else {
-                        if (tarea.idTareaSecundaria !== null) {
-                          const indexSeconds = arrayIdSecondsTask.indexOf(
-                            tarea.idTareaSecundaria
-                          );
-                          if (indexSeconds !== -1) {
-                            arrayIdSecondsTask.splice(indexSeconds, 1);
-                          }
-                          const allSecundariasPresentes =
-                            tarea.idTareaPrincipal &&
-                            detalleTicket
-                              .filter(
-                                (item) =>
-                                  item.idTareaPrincipal === tarea.idTareaPrincipal
-                              )
-                              .every((item) =>
-                                arrayIdSecondsTask.includes(
-                                  item.idTareaSecundaria
-                                )
-                              );
-                          if (!allSecundariasPresentes) {
-                            const indexMain = arrayIdMainTask.indexOf(
-                              tarea.idTareaPrincipal
-                            );
-                            if (indexMain !== -1) {
-                              arrayIdMainTask.splice(indexMain, 1);
-                            }
-                          }
-                        } else {
-                          const indexMain = arrayIdMainTask.indexOf(
-                            tarea.idTareaPrincipal
-                          );
-                          if (indexMain !== -1) {
-                            arrayIdMainTask.splice(indexMain, 1);
+
+                  // Agregar una nueva celda con un checkbox, revisa que en primer lugar el estado de la tarea debe ser diferente de 5 por el tema de que debe estar en proceso,tambien debe ser del grupo de agentes y debe el estadod el proyecto ser diferente a 1 que POR ASIGNAR
+                  if( tarea.idEstadoActividadPrincipal != 5 && resultadosConsulta[0].group_id !== 1 && tarea.idEstadoProyecto !== 1) {
+                    if(tarea.idEstadoActividadSecundaria == 2){
+                      const checkboxCell = row.insertCell();
+                      const checkbox = document.createElement("input");
+                      checkbox.type = "checkbox";
+                      checkboxCell.appendChild(checkbox);
+                      checkbox.addEventListener("change", function () {
+                        if (checkbox.checked) {
+                          arrayIdsTasks.push({ idPrincipalTask: tarea.idTareaPrincipal, idSecondaryTask: tarea.idTareaSecundaria });
+                        }else{
+                          const index = arrayIdsTasks.findIndex(item => item.idPrincipalTask === tarea.idTareaPrincipal && item.idSecondaryTask === tarea.idTareaSecundaria);
+                          if (index !== -1) {
+                              arrayIdsTasks.splice(index, 1);
                           }
                         }
-                      }
-  
-                      if (
-                        arrayIdMainTask.length > 0 ||
-                        arrayIdSecondsTask.length > 0
-                      ) {
-                        btnChangeState.style.display = "";
-                      } else {
-                        btnChangeState.style.display = "none";
-                      }
-                    });
+                        // Verificacion de que si el arreglo esta con items me permita ver el botón
+                        if (arrayIdsTasks.length != 0){
+                          btnChangeState.style.display = '';
+                        }else{
+                          btnChangeState.style.display = 'none';
+                        }
+                      })
+                    }else if (tarea.idEstadoActividadPrincipal == 4 && !checkFinishTaskMainCreate) {
+                      const checkFinishTaskMainCell = row.insertCell();
+                      const checkFinishTaskMain = document.createElement("input");
+                      checkFinishTaskMain.type = 'checkbox'
+                      checkFinishTaskMain.textContent = "Terminar tarea";
+                      checkFinishTaskMainCell.appendChild(checkFinishTaskMain);
+                      checkFinishTaskMain.addEventListener("change", function () {
+                        if (checkFinishTaskMain.checked) {
+                          arrayTaskMains.push(tarea.idTareaPrincipal);
+                        } else {
+                          const index = arrayTaskMains.indexOf(tarea.idTareaPrincipal);
+                          if (index !== -1) {
+                            arrayTaskMains.splice(index, 1);
+                          }
+                        }
+                        // Verificacion de que si el arreglo esta con items me permita ver el botón
+                        if (arrayTaskMains.length != 0){
+                          btnChangeState.style.display = '';
+                        }else{
+                          btnChangeState.style.display = 'none';
+                        }
+                      });
+                      checkFinishTaskMainCreate = true;
+                    }
                   }
+
                   if (resultadosConsulta[0].group_id === 2) {
                     inputEditTitleProject.disabled = true;
                     inputEditNumHoras.disabled = true;
                     editSolicitante.disabled = true;
-                    editAgenteSolicitado.disabled = true;
                     editFechaEstimada.disabled = true;
                     editDescripcionGeneral.disabled = true;
                   }
-  
-                  if (tarea.idAgenteAdmin != 2) {
+                  // CONDICION EN CASO DE QUE LOS ADMINS NECESITEN CAMBIAR DE AGENTE ASIGNADO
+                  if (
+                    nombreUsuario != "mafer" &&
+                    nombreUsuario != "superadmin"
+                  ) {
                     editAgenteSolicitado.disabled = true;
                   } else {
                     editAgenteSolicitado.disabled = false;
                   }
                 });
               }
-  
+
               // SEGUNDA CONSULTA
               const response = await fetch(`getInfoReport/${ticketId}/`);
               const data_1 = await response.json();
               dataReport = data_1;
             })
             .catch((error) => console.error("Error:", error));
-  
+
           modalInfoProyectLabel.innerHTML = "";
           modalInfoProyectLabel.innerHTML = proyecto.tituloProyecto;
-  
+
           inputEditTitleProject.value = "";
           inputEditTitleProject.value = proyecto.tituloProyecto;
-  
+
           inputEditNumHoras.value = "";
           inputEditNumHoras.value = proyecto.HorasTotales;
-  
+
           editSolicitante.value = "";
           editSolicitante.value = proyecto.idCliente;
           const changeEvent = new Event("change");
           editSolicitante.dispatchEvent(changeEvent);
-  
+
           editAgenteSolicitado.value = "";
           editAgenteSolicitado.value = proyecto.idAgente;
           const changeEventAgente = new Event("change");
           editAgenteSolicitado.dispatchEvent(changeEventAgente);
-  
+
           editFechaEstimada.value = "";
           editFechaEstimada.value = proyecto.fechaFinalizacionEstimada;
-  
+
           editDescripcionGeneral.value = "";
           editDescripcionGeneral.value = proyecto.descripcionActividadGeneral;
         });
-  
+
         buttonCell.appendChild(button);
       });
-    }else{
+    } else {
+      console.log("No hay proyectos");
       var row = ticketsTableBody.insertRow();
       var cell = row.insertCell();
-      cell.innerHTML = "No hay proyectos a cargo o solicitados por el usuario actual.";
+      cell.innerHTML =
+        "No hay proyectos a cargo o solicitados por el usuario actual.";
       cell.style.textAlign = "center";
       cell.colSpan = 9;
     }
@@ -1093,6 +1090,9 @@ $(document).ready(function () {
     var fechaEstimadaFormateada = formatFecha(
       proyectoinfo.fechaFinalizacionEstimada
     );
+
+    newEstateProject = proyectoinfo.EstadoProyecto;
+    newHorasCompletas = proyectoinfo.horasCompletasProyecto;
 
     makePdf(
       proyectoinfo.tituloProyecto,
@@ -1364,15 +1364,12 @@ $(document).ready(function () {
 
     pdfMake.createPdf(objGeneratePdf).open();
   }
-
+  // CAMBIAR ESTADO DE LAS TAREAS
   btnChangeState.addEventListener("click", function () {
     $.ajax({
       type: "POST",
       url: "/tareas_desarrollo_success/",
-      data: {
-        "arrayIdMainTask[]": arrayIdMainTask,
-        "arrayIdSecondsTask[]": arrayIdSecondsTask,
-      },
+      data: { "arrayIdsTasks": JSON.stringify(arrayIdsTasks), "arrayTaskMains" : JSON.stringify(arrayTaskMains)},
       dataType: "json",
       success: function (response) {
         if (response.status == "success") {
@@ -1462,5 +1459,4 @@ $(document).ready(function () {
   });
 
   // FUNCIONALIDAD DEL BOTON PARA CAMBIO DE AGENTE ADMINISTRADOR
-
 });

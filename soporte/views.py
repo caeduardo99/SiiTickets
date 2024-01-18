@@ -22,6 +22,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.mail import EmailMessage
 from collections import defaultdict
 from django.utils import timezone
+import ast
 
 def login_user(request):
     # Verificar si el usuario ya está autenticado
@@ -320,6 +321,20 @@ def get_tickets_cpanel(request):
 	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
 	WHERE se.id = 2
     """
+    consulta_tasks_just_success = """
+    SELECT st.id as idProyecto, st.tituloProyecto,
+	sa2.id as idActividadSecondary, sa2.descripcion as actividadSecondary, sa2.fechaDesarrollo, 
+	se.id as idEstado, se.descripcion as Estado,
+	au.id as idAgenteTask, au.first_name as NombreAgenteTask, au.last_name as ApellidoAgenteTask,
+	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante
+	FROM soporte_ticketdesarrollo st 
+	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id 
+	INNER JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id  = sa.id 
+	INNER JOIN soporte_estadosticket se ON se.id = sa2.idestado_id
+	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+	WHERE se.id = 4
+    """
     connection = connections['default']
 
     if nombre_usuario != 'mafer' and nombre_usuario != 'superadmin':
@@ -583,7 +598,7 @@ def agentesjson(request):
     SELECT au.id, au.first_name || ' ' || au.last_name AS full_name, aug.group_id 
     FROM auth_user au 
     INNER JOIN auth_user_groups aug ON aug.user_id = au.id
-    WHERE aug.group_id <> 2
+    WHERE aug.group_id <> 1
     """
     connection = connections["default"]
 
@@ -1003,24 +1018,39 @@ LEFT JOIN
 
 def ticketDesarrolloCreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    id_usuario = request.user.id if request.user.is_authenticated else None
     email_usuario = request.user.email if request.user.is_authenticated else None
     
-    consulta_sql = """
-    SELECT st.id as NumTicket, ss.id as idCliente, ss.nombreApellido as Cliente, au.id as idAgente, au.first_name as Agente,
-	se.nombreEmpresa as Empresa , st.tituloProyecto,st.idestado_id as idEstado, ses.descripcion as EstadoProyecto, 
-	st.descripcionActividadGeneral, st.horasCompletasProyecto as HorasTotales,
-	st.fechaCreacion, st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion 
-    FROM soporte_ticketdesarrollo st 
-    LEFT JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-    LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
-    LEFT JOIN soporte_estadosticket ses on ses.id = st.idestado_id
-    LEFT JOIN auth_user au on au.id = st.idAgente_id
-    WHERE au.username = %s
-    """
-    if nombre_usuario == 'mafer':
-        consulta_sql += " OR ses.id = 4 OR ses.id = 5"
+    consulta_sql = """"""
+    if id_usuario == 2 or id_usuario == 1:
+        consulta_sql +="""
+        SELECT st.id as NumTicket, ss.id as idCliente, ss.nombreApellido as Cliente, au.id as idAgente, au.first_name as Agente,
+        se.nombreEmpresa as Empresa , st.tituloProyecto,st.idestado_id as idEstado, ses.descripcion as EstadoProyecto, 
+        st.descripcionActividadGeneral, st.horasCompletasProyecto as HorasTotales,
+        st.fechaCreacion, st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion 
+        FROM soporte_ticketdesarrollo st 
+        INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+        INNER JOIN soporte_empresa se on se.id = ss.idEmpresa_id
+        INNER JOIN soporte_estadosticket ses on ses.id = st.idestado_id
+        INNER JOIN auth_user au on au.id = st.idAgente_id
+        WHERE au.username = %s OR ses.id = 4 OR ses.id = 5 OR ses.id = 2
+        """
+        print(consulta_sql)
     else:
-        consulta_sql += " AND ses.id = 2"
+        consulta_sql += """
+        SELECT st.id as NumTicket, ss.id as idCliente, ss.nombreApellido as Cliente, au.id as idAgente, au.first_name as Agente,
+        se.nombreEmpresa as Empresa , st.tituloProyecto,st.idestado_id as idEstado, ses.descripcion as EstadoProyecto, 
+        st.descripcionActividadGeneral, st.horasCompletasProyecto as HorasTotales,
+        st.fechaCreacion, st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion ,
+        sa.idAgente_id as idAgenteAtreaPrincipal
+        FROM soporte_ticketdesarrollo st 
+        INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+        INNER JOIN soporte_empresa se on se.id = ss.idEmpresa_id
+        INNER JOIN soporte_estadosticket ses on ses.id = st.idestado_id
+        INNER JOIN auth_user au on au.id = st.idAgente_id
+        INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id
+        WHERE (sa.idAgente_id = %s OR au.username = %s) AND ses.id = 2
+        """
         
     consulta_info_solicitantes = """
     SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
@@ -1042,7 +1072,11 @@ def ticketDesarrolloCreados(request):
 
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        cursor.execute(consulta_sql, [nombre_usuario])
+        if id_usuario == 2 or id_usuario == 1:
+            cursor.execute(consulta_sql, [nombre_usuario])
+        else:
+            cursor.execute(consulta_sql, [id_usuario, nombre_usuario])
+
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
         
@@ -1050,7 +1084,6 @@ def ticketDesarrolloCreados(request):
     if len(resultados) != 0:
         return JsonResponse(resultados, safe=False)
     else:
-        print(email_usuario)
         with connection.cursor() as cursor:
             cursor.execute(consulta_info_solicitantes, [email_usuario])
             columns = [col[0] for col in cursor.description]
@@ -1289,7 +1322,7 @@ def crear_usuario_empresa(request):
                                 correo=email,
                             )
 
-                    grupo = Group.objects.get(id=2)
+                    grupo = Group.objects.get(id=1)
                     nuevo_usuario.groups.add(grupo)
                     nuevo_solicitante.save()
                     # CREACION Y ENVIO DEL CORREO ELECTRONICO
@@ -1963,54 +1996,37 @@ def finalizar_proyecto(request, id_ticket):
 @csrf_exempt
 def tareas_desarrollo_success(request):
     if request.method == 'POST':
-        array_id_main_task = request.POST.getlist('arrayIdMainTask[]')
-        array_id_seconds_task = request.POST.getlist('arrayIdSecondsTask[]')
+        array_ids_tasks = request.POST.getlist('arrayIdsTasks')
+        array_ids_mains = request.POST.getlist('arrayTaskMains')
 
-        if len(array_id_main_task) > 0:
-            for id_principal in array_id_main_task:
-                try:
-                    actividad_principal = ActividadPrincipal.objects.get(id=id_principal)
-                    actividad_principal.idestado_id = 5
+        array_ids_tasks = json.loads(array_ids_tasks[0])
+        array_ids_mains = json.loads(array_ids_mains[0])
+        # Iteracion del arreglo para editar los registros
+        if len(array_ids_tasks) > 0:
+            for tarea in array_ids_tasks:
+                id_tarea_principal = tarea['idPrincipalTask']
+                id_tarea_secundaria = tarea['idSecondaryTask']
+                
+                # Para la actividad principal en caso de que todas las secundarias esten hechas en estado 5
+                actividad_secundaria = ActividadSecundaria.objects.get(id=id_tarea_secundaria)
+                actividad_secundaria.idestado_id = 5
+                actividad_secundaria.save()
+                # Aquí se compara si es que todas las actividades se encuentran estado 5 para poder cambiar el estado de la actividad principal a 4 (esperando finalización)
+                tareas_completas = ActividadSecundaria.objects.filter(idActividadPrincipal_id=id_tarea_principal, idestado_id=5).count() == ActividadSecundaria.objects.filter(idActividadPrincipal_id=id_tarea_principal).count()
+                # Se cambia el estado de la tarea principal en caso de que exista la condicion de arriba.
+                if tareas_completas:
+                    actividad_principal = ActividadPrincipal.objects.get(id=id_tarea_principal)
+                    actividad_principal.idestado_id = 4
                     actividad_principal.save()
 
-                except ActividadSecundaria.DoesNotExist:
-                    return JsonResponse({'error': 'No se han encontrado los IDs'}, status=405)
-        
-        if len(array_id_seconds_task) > 0:
-            for id_secundaria in array_id_seconds_task:
-                try:
-                    actividad_secundaria = ActividadSecundaria.objects.get(id=id_secundaria)
-                    actividad_secundaria.idestado_id = 5
-                    actividad_secundaria.save()
+        if len(array_ids_mains) > 0:
+            print(array_ids_mains)
+            for task in array_ids_mains:
+                actividad_principal = ActividadPrincipal.objects.get(id=task)
+                actividad_principal.idestado_id = 5
+                actividad_principal.save()
 
-                    actividades_secundarias_filtradas = ActividadSecundaria.objects.filter(idActividadPrincipal_id=actividad_secundaria.idActividadPrincipal_id)
-                    
-                    if all(actividad.idestado_id == 5 for actividad in actividades_secundarias_filtradas):
-                        try:
-                            actividad_principal = ActividadPrincipal.objects.get(id=actividad_secundaria.idActividadPrincipal_id)
-                            actividad_principal.idestado_id = 5
-                            actividad_principal.save()
-
-                            actividades_principales_filtradas = ActividadPrincipal.objects.filter(idTicketDesarrollo_id=actividad_principal.idTicketDesarrollo_id)
-
-                            if all(actividadMain.idestado_id == 5 for actividadMain in actividades_principales_filtradas):
-                                try:
-                                    ticket = TicketDesarrollo.objects.get(id=actividad_principal.idTicketDesarrollo_id)
-                                    ticket.idestado_id = 4
-                                    ticket.save()
-
-                                except ActividadPrincipal.DoesNotExist:
-                                    return JsonResponse({'error': 'Revisar la funcion de creado total del ticket'}, status=405)
-
-                        except ActividadPrincipal.DoesNotExist:
-                            return JsonResponse({'error': 'Revisar la funcion de creado total de la Actividad Principal'}, status=405)
-
-
-                except ActividadSecundaria.DoesNotExist:
-                    return JsonResponse({'error': 'No se han encontrado los IDs'}, status=405)
-
-
-        # Devuelve una respuesta JSON opcional
         return JsonResponse({'status': 'success','message': 'Datos recibidos correctamente'})
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)
+    
