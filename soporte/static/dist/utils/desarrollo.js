@@ -72,10 +72,13 @@ $(document).ready(function () {
   const cardAlertNoPermissions = document.getElementById(
     "cardAlertNoPermissions"
   );
+  const idUsuario = document.getElementById("idUsuario").value;
   const cardFormNewProjectDevelop = document.getElementById(
     "cardFormNewProjectDevelop"
   );
-  const btnCompletarTareasPrincipales = document.getElementById('btnCompletarTareasPrincipales');
+  const btnCompletarTareasPrincipales = document.getElementById(
+    "btnCompletarTareasPrincipales"
+  );
 
   var resultadosAgentesData = window.resultados_agentes_data;
   var resultadosProyectos;
@@ -99,7 +102,8 @@ $(document).ready(function () {
     ticketId,
     newEstateProject,
     newHorasCompletas,
-    checkFinishTaskMainCreate = false;
+    checkFinishTaskMainCreate = false,
+    idAgenteSelect;
 
   // FUNCIONAMIENTO DEL INPUT TITULO
   inputTitleProject.addEventListener("input", function () {
@@ -221,7 +225,11 @@ $(document).ready(function () {
     if (agentesolicitado.value != "") {
       rowFechaInformacionFinalizacionEstimada.style.display = "";
       rowFechaInformacionFinalizacion.style.display = "";
-      estadoTicket = 2;
+      if(agentesolicitado.value != 2){
+        estadoTicket = 2;
+      }else{
+        estadoTicket = 1;
+      }
 
       const today = new Date();
       const formattedDateTime = today.toISOString();
@@ -245,6 +253,15 @@ $(document).ready(function () {
     rowButtonCreateTicket.style.display = "";
 
     nameSolicitante = solicitante.options[solicitante.selectedIndex].text;
+  });
+
+  // Metodo de control para el select
+  $("#editAgenteSolicitado").on("change", function () {
+    if (idAgenteSelect != editAgenteSolicitado.value) {
+      btnAsignarProyecto.style.display = "";
+    } else {
+      btnAsignarProyecto.style.display = "none";
+    }
   });
 
   // FUNCION DE PARA CREAR UNA NUEVA FILA SIN EL BTON
@@ -822,10 +839,9 @@ $(document).ready(function () {
         if (!mapaAgrupado.has(numTicket)) {
           mapaAgrupado.set(numTicket, proyecto);
         }
-      })
+      });
       const resultadosAgrupados = Array.from(mapaAgrupado.values());
       resultadosProyectos = resultadosAgrupados;
-      console.log(resultadosProyectos)
     })
     .catch((error) => console.error("Error:", error));
 
@@ -898,15 +914,15 @@ $(document).ready(function () {
         button.dataset.toggle = "modal";
         button.dataset.target = "#modalInfoProyect";
 
-        // FUNCIONALIDAD DEL BOTON PARA OTRO MODAL
+        // FUNCIONALIDAD DEL BOTON Ver para poder abrir un modal donde deje ver las actividades y el detalle del desarrollo a detalle
         button.addEventListener("click", function () {
           ticketId = proyecto.NumTicket;
           infoGeneralProject = proyecto;
           btnChangeState.style.display = "none";
           btnAsignarProyecto.style.display = "none";
           btnFinishProject.style.display = "none";
-          btnCompletarTareasPrincipales.style.display = "none"
-
+          btnCompletarTareasPrincipales.style.display = "none";
+          // Confirmacion para ver si el proyecto se encuentra en un estado de "Esperando finalización"
           if (proyecto.idEstado == 4 && nombreUsuario == "mafer") {
             btnFinishProject.style.display = "";
           } else {
@@ -919,7 +935,7 @@ $(document).ready(function () {
               // TABLA PARA LA EDICION DE ACTIVIDADES PRINCIPALES Y SECUNDARIAS
               tableBodyTasksEdit.innerHTML = "";
               detalleTicket = data;
-              
+
               if (detalleTicket.length == 0) {
                 tableTasksEdit.style.display = "none";
               } else {
@@ -942,51 +958,111 @@ $(document).ready(function () {
                     tarea.estadoActividadSecundaria || "Sin datos";
 
                   // Agregar una nueva celda con un checkbox, revisa que en primer lugar el estado de la tarea debe ser diferente de 5 por el tema de que debe estar en proceso,tambien debe ser del grupo de agentes y debe el estadod el proyecto ser diferente a 1 que POR ASIGNAR
-                  if( tarea.idEstadoActividadPrincipal != 5 && resultadosConsulta[0].group_id !== 1 && tarea.idEstadoProyecto !== 1) {
-                    if(tarea.idEstadoActividadSecundaria == 2){
-                      const checkboxCell = row.insertCell();
-                      const checkbox = document.createElement("input");
-                      checkbox.type = "checkbox";
-                      checkboxCell.appendChild(checkbox);
-                      checkbox.addEventListener("change", function () {
-                        if (checkbox.checked) {
-                          arrayIdsTasks.push({ idPrincipalTask: tarea.idTareaPrincipal, idSecondaryTask: tarea.idTareaSecundaria });
-                        }else{
-                          const index = arrayIdsTasks.findIndex(item => item.idPrincipalTask === tarea.idTareaPrincipal && item.idSecondaryTask === tarea.idTareaSecundaria);
-                          if (index !== -1) {
+                  if (
+                    tarea.idEstadoActividadPrincipal != 5 &&
+                    resultadosConsulta[0].group_id !== 1 &&
+                    tarea.idEstadoProyecto !== 1
+                  ) {
+                    // Condicion en caso de que las actividades esten en proceso
+                    if (tarea.idEstadoActividadSecundaria == 2) {
+                      // Verificacion en caso de que el usuario logeado sea igual al administrador del proyecto
+                      if (nombreUsuario == tarea.username) {
+                        const checkboxCell = row.insertCell();
+                        const checkbox = document.createElement("input");
+                        checkbox.type = "checkbox";
+                        checkboxCell.appendChild(checkbox);
+                        checkbox.addEventListener("change", function () {
+                          if (checkbox.checked) {
+                            arrayIdsTasks.push({
+                              idPrincipalTask: tarea.idTareaPrincipal,
+                              idSecondaryTask: tarea.idTareaSecundaria,
+                            });
+                          } else {
+                            const index = arrayIdsTasks.findIndex(
+                              (item) =>
+                                item.idPrincipalTask ===
+                                  tarea.idTareaPrincipal &&
+                                item.idSecondaryTask === tarea.idTareaSecundaria
+                            );
+                            if (index !== -1) {
                               arrayIdsTasks.splice(index, 1);
+                            }
                           }
-                        }
-                        // Verificacion de que si el arreglo esta con items me permita ver el botón
-                        if (arrayIdsTasks.length != 0){
-                          btnChangeState.style.display = '';
-                        }else{
-                          btnChangeState.style.display = 'none';
-                        }
-                      })
-                    }else if (tarea.idEstadoActividadPrincipal == 4 && !checkFinishTaskMainCreate) {
-                      const checkFinishTaskMainCell = row.insertCell();
-                      const checkFinishTaskMain = document.createElement("input");
-                      checkFinishTaskMain.type = 'checkbox'
-                      checkFinishTaskMain.textContent = "Terminar tarea";
-                      checkFinishTaskMainCell.appendChild(checkFinishTaskMain);
-                      checkFinishTaskMain.addEventListener("change", function () {
-                        if (checkFinishTaskMain.checked) {
-                          arrayTaskMains.push(tarea.idTareaPrincipal);
-                        } else {
-                          const index = arrayTaskMains.indexOf(tarea.idTareaPrincipal);
-                          if (index !== -1) {
-                            arrayTaskMains.splice(index, 1);
+                          // Verificacion de que si el arreglo esta con items me permita ver el botón
+                          if (arrayIdsTasks.length != 0) {
+                            btnChangeState.style.display = "";
+                          } else {
+                            btnChangeState.style.display = "none";
                           }
-                        }
-                        // Verificacion de que si el arreglo esta con items me permita ver el botón
-                        if (arrayTaskMains.length != 0){
-                          btnChangeState.style.display = '';
-                        }else{
-                          btnChangeState.style.display = 'none';
-                        }
-                      });
-                      checkFinishTaskMainCreate = true;
+                        });
+                      } else if (idUsuario == tarea.idAgenteTarPrincipal) {
+                        //Condicion en caso de algun id del agente de alguna tarea sea igual al id del usuario logeado
+                        const checkboxCell = row.insertCell();
+                        const checkbox = document.createElement("input");
+                        checkbox.type = "checkbox";
+                        checkboxCell.appendChild(checkbox);
+                        checkbox.addEventListener("change", function () {
+                          if (checkbox.checked) {
+                            arrayIdsTasks.push({
+                              idPrincipalTask: tarea.idTareaPrincipal,
+                              idSecondaryTask: tarea.idTareaSecundaria,
+                            });
+                          } else {
+                            const index = arrayIdsTasks.findIndex(
+                              (item) =>
+                                item.idPrincipalTask ===
+                                  tarea.idTareaPrincipal &&
+                                item.idSecondaryTask === tarea.idTareaSecundaria
+                            );
+                            if (index !== -1) {
+                              arrayIdsTasks.splice(index, 1);
+                            }
+                          }
+                          // Verificacion de que si el arreglo esta con items me permita ver el botón
+                          if (arrayIdsTasks.length != 0) {
+                            btnChangeState.style.display = "";
+                          } else {
+                            btnChangeState.style.display = "none";
+                          }
+                        });
+                      }
+                    } else if (
+                      tarea.idEstadoActividadPrincipal == 4 &&
+                      !checkFinishTaskMainCreate
+                    ) {
+                      //condición para crear las actividades que esten esperando finalizacion y solo sea una vez pero solo para el administrador
+                      if (tarea.username == nombreUsuario) {
+                        const checkFinishTaskMainCell = row.insertCell();
+                        const checkFinishTaskMain =
+                          document.createElement("input");
+                        checkFinishTaskMain.type = "checkbox";
+                        checkFinishTaskMain.textContent = "Terminar tarea";
+                        checkFinishTaskMainCell.appendChild(
+                          checkFinishTaskMain
+                        );
+                        checkFinishTaskMain.addEventListener(
+                          "change",
+                          function () {
+                            if (checkFinishTaskMain.checked) {
+                              arrayTaskMains.push(tarea.idTareaPrincipal);
+                            } else {
+                              const index = arrayTaskMains.indexOf(
+                                tarea.idTareaPrincipal
+                              );
+                              if (index !== -1) {
+                                arrayTaskMains.splice(index, 1);
+                              }
+                            }
+                            // Verificacion de que si el arreglo esta con items me permita ver el botón
+                            if (arrayTaskMains.length != 0) {
+                              btnChangeState.style.display = "";
+                            } else {
+                              btnChangeState.style.display = "none";
+                            }
+                          }
+                        );
+                        checkFinishTaskMainCreate = true;
+                      }
                     }
                   }
 
@@ -1032,6 +1108,7 @@ $(document).ready(function () {
 
           editAgenteSolicitado.value = "";
           editAgenteSolicitado.value = proyecto.idAgente;
+          idAgenteSelect = proyecto.idAgente;
           const changeEventAgente = new Event("change");
           editAgenteSolicitado.dispatchEvent(changeEventAgente);
 
@@ -1369,7 +1446,10 @@ $(document).ready(function () {
     $.ajax({
       type: "POST",
       url: "/tareas_desarrollo_success/",
-      data: { "arrayIdsTasks": JSON.stringify(arrayIdsTasks), "arrayTaskMains" : JSON.stringify(arrayTaskMains)},
+      data: {
+        arrayIdsTasks: JSON.stringify(arrayIdsTasks),
+        arrayTaskMains: JSON.stringify(arrayTaskMains),
+      },
       dataType: "json",
       success: function (response) {
         if (response.status == "success") {
@@ -1447,7 +1527,7 @@ $(document).ready(function () {
           }, 1000);
         } else {
           toastr.error(
-            "Error al crear el ticket: " + response.message,
+            "Error al finalizar el proyecto: " + response.message,
             "Error"
           );
         }
@@ -1458,5 +1538,31 @@ $(document).ready(function () {
     });
   });
 
-  // FUNCIONALIDAD DEL BOTON PARA CAMBIO DE AGENTE ADMINISTRADOR
+  // FUNCIONALIDAD DEL BOTON PARA CAMBIO DE AGENTE ADMINISTRADOR DEL PROYECTO
+  btnAsignarProyecto.addEventListener("click", function () {
+    let valor_agente_select = editAgenteSolicitado.value;
+    
+    $.ajax({
+      url: `/asgin_admin_project/${valor_agente_select}/${ticketId}/`,
+      type: "GET", // Puedes ajustar esto según tu lógica
+      dataType: "json",
+      success: function (data) {
+        if (data.status == "success") {
+          toastr.success(data.status, "Se cambio el agente a cargo de este proyecto!");
+          // Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
+          setTimeout(function () {
+            window.location.reload();
+          }, 1000);
+        }else{
+          toastr.error(
+            "Error al cambiar el Agente administrador: " + response.message,
+            "Error"
+          );
+        }
+      },
+      error: function (error) {
+        console.error(error);
+      },
+    });
+  });
 });

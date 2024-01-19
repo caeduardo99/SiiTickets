@@ -61,7 +61,6 @@ def signout(request):
 @login_required
 def contact(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
-    print("nombre_usuario", nombre_usuario)
 
     context = {"nombre_usuario": nombre_usuario}
     return render(request, "contact.html", context)
@@ -167,7 +166,6 @@ def desarrolloact(request):
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def empresas(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
-    # print('nombre_usuario', nombre_usuario)
 
     resultados_empresas = empresasjson(request)
 
@@ -577,9 +575,6 @@ def solicitantesjson(request):
             columns = [col[0] for col in cursor.description]
             resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-        # Imprimir los resultados y nombre de usuario (para depuración)
-        print("Nombre de usuario:", nombre_usuario)
-
     # Si la primera consulta devuelve un conjunto vacío, ejecutar la segunda consulta sin la condición WHERE
     if not resultados:
         connection = connections["default"]
@@ -728,7 +723,6 @@ def ticketsoportescreados(request):
         consulta_sql_copia += " WHERE au.username = %s "
     consulta_sql_copia += " ORDER BY st.id DESC "
 
-    print('consulta_sql_copia', consulta_sql_copia)
     connection = connections["default"]
 
     # Ejecutar la consulta SQL y obtener los resultados
@@ -738,29 +732,22 @@ def ticketsoportescreados(request):
 
     # Si la consulta devuelve un conjunto vacío y había un nombre de usuario, ejecutar la segunda consulta sin la condición WHERE original
     if not resultados and nombre_usuario:
-        print("La consulta devolvió un conjunto vacío. Ejecutando la segunda consulta.")
         # Imprimir la consulta_sql_sin_filtro con el valor de nombre_usuario
 
         consulta_sql_sin_filtro = consulta_sql.replace("WHERE au.username = %s", "")
         consulta_sql_sin_filtro += " WHERE se.nombreEmpresa = %s"  # Nueva condición WHERE
         consulta_sql_sin_filtro += " ORDER BY st.id DESC "  # Cláusula ORDER BY agregada
-        print("Consulta SQL sin filtro:", consulta_sql_sin_filtro % nombre_usuario)
         with connection.cursor() as cursor:
             cursor.execute(consulta_sql_sin_filtro, [nombre_usuario])
             resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
 
     # Si la segunda consulta también devuelve un conjunto vacío y el nombre de usuario es "mafer", ejecutar una tercera consulta sin la condición WHERE original
     if not resultados and nombre_usuario == "mafer":
-        print("La segunda consulta también devolvió un conjunto vacío y el nombre de usuario es 'mafer'. Ejecutando la tercera consulta.")
         consulta_sql_tercera = consulta_sql.replace("WHERE au.username = %s", "")
         consulta_sql_tercera += " ORDER BY st.id DESC "  # Cláusula ORDER BY agregada
-        print("Consulta SQL tercera sin filtro")
         with connection.cursor() as cursor:
             cursor.execute(consulta_sql_tercera)
             resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
-
-            # Imprimir los resultados de la tercera consulta (para depuración)
-            print("Resultados de la tercera consulta JSON:", resultados)
 
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
@@ -776,12 +763,10 @@ def generateReport(request):
     fechaFin = request.GET.get('fechaFin')
     
     if tipo_ticket == '1':
-        print('Consulta para tickets de soporte')
         consulta = """
         select * from soporte_ticketsoporte st
         """
     elif tipo_ticket == '2':
-        print('Consulta para tickets de actualizacion')
         consulta = """
         select * from soporte_ticketactualizacion st
         """
@@ -966,7 +951,6 @@ LEFT JOIN auth_user au ON au.id = st.idAgente_id
 def ticketsoportescreadosid(request):
     # Obtener el valor del parámetro "id" de la solicitud
     ticket_id = request.GET.get('id', None)
-    print(ticket_id)
 
     # Construir la consulta SQL
     consulta_sql = """
@@ -1020,7 +1004,7 @@ def ticketDesarrolloCreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
     id_usuario = request.user.id if request.user.is_authenticated else None
     email_usuario = request.user.email if request.user.is_authenticated else None
-    
+
     consulta_sql = """"""
     if id_usuario == 2 or id_usuario == 1:
         consulta_sql +="""
@@ -1035,7 +1019,6 @@ def ticketDesarrolloCreados(request):
         INNER JOIN auth_user au on au.id = st.idAgente_id
         WHERE au.username = %s OR ses.id = 4 OR ses.id = 5 OR ses.id = 2
         """
-        print(consulta_sql)
     else:
         consulta_sql += """
         SELECT st.id as NumTicket, ss.id as idCliente, ss.nombreApellido as Cliente, au.id as idAgente, au.first_name as Agente,
@@ -1113,8 +1096,9 @@ def ticketDesarrolloCreados(request):
         
 
 def detalleTicketDesarrollo(request, ticket_id):
+    id_usuario = request.user.id if request.user.is_authenticated else None
     consulta_sql = """
-    SELECT st.id as NumTicket, st.tituloProyecto , st.idAgente_id as idAgenteAdmin, au.first_name as nomAgenteAdmin,st.idestado_id as idEstadoProyecto,
+    SELECT st.id as NumTicket, st.tituloProyecto , st.idAgente_id as idAgenteAdmin, au.first_name as nomAgenteAdmin,st.idestado_id as idEstadoProyecto, au.username,
 	sa.id as idTareaPrincipal, sa.descripcion as TareaPrincipal, sa.idAgente_id as idAgenteTarPrincipal, 
 	sa.horasDiariasAsignadas as horasPrincipales, se.id as idEstadoActividadPrincipal ,se.descripcion as estadoActividadPrincipal,
 	au2.first_name as nomAgentTareaPrincipal,
@@ -1204,15 +1188,12 @@ def crear_ticket_soporte(request):
     id_solicitante = request.POST.get('solicitante', '')
     fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
     fecha_inicio = request.POST.get('fecha_asignacion', '')
-    print('fecha_inicio', fecha_inicio)
     fecha_finalizacion = request.POST.get('fecha_estimado', '')
     fecha_finalizacion_real = request.POST.get('fecha_finalizacion', '')
     comentario = request.POST.get('motivo', '')
     prioridad = request.POST.get('prioridad', '')
-    print('prioridad', prioridad)
     observacion = request.POST.get('observaciones', '')
     id_estado = request.POST.get('estado', '')
-    print('id_estado', id_estado)
     facturar = request.POST.get('factura', '')
     imagenes = request.FILES.get('imagenes')
     imagensoporte = request.FILES.get('imagensoporte')
@@ -1359,7 +1340,6 @@ def crear_solicitante(request):
     telefono = request.POST.get('telefonoUsuario', '')
     correo = request.POST.get('correoUsuario', '')
     idempresa = request.POST.get('empresaSolicitante', '')
-    print('empresa', idempresa)
 
     try:
         # Obtener la instancia del solicitante
@@ -1387,7 +1367,6 @@ def crear_solicitante(request):
 def editar_ticket_soporte(request):
     if request.method in ('PUT', 'POST'):
         ticket_id = request.POST.get('numeroticketedit')
-        print('editar', ticket_id)
 
         # Obtener los datos del formulario
         id_agente = request.POST.get('agentesolicitadoedit', '')
@@ -1401,7 +1380,6 @@ def editar_ticket_soporte(request):
         id_estado = request.POST.get('estadoeditar', '')
         facturar = request.POST.get('facturaedit', '')
         contenido_chat = request.POST.get('chat', '')
-        print('chat', contenido_chat)
         trabajo_realizado = request.POST.get('trabajo_realizado', '')
         imagensoporte_actual = request.POST.get('imagensoporte_actual')
         imagensoporte = imagensoporte_actual if imagensoporte_actual else request.FILES.get('imagensoporte')
@@ -1485,12 +1463,15 @@ def crear_ticket_desarrollo(request):
         )  # Usar User en lugar de Solicitante
         solicitante_modelo = Solicitante.objects.get(id=id_solicitante)
         fechaCreacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
-        fechaEstimada = request.POST.get("fecha_estimado")
+        fechaEstimada = request.POST.get("fecha_estimado", None)
         fechaFinalizacion = request.POST.get("fecha_finalizacion")
         textDescripcionRequerimiento = request.POST.get("textDescripcionRequerimiento", "")
         numHorasCompletas = request.POST.get("inputNumHorasCompletas", "")
         estado = EstadosTicket.objects.get(id=id_estado)
         facturar = True
+
+        if fechaEstimada is None:
+            fechaEstimada = fechaCreacion
 
         # Crear una instancia de TicketDesarrollo con los datos del formulario
         nuevo_ticket_desarrollo = TicketDesarrollo(
@@ -1610,7 +1591,6 @@ def crear_ticket_desarrollo(request):
 def ticketactualizacioncreadosid(request):
     # Obtener el valor del parámetro "id" de la solicitud
     ticket_id = request.GET.get('id', None)
-    print(ticket_id)
 
     # Construir la consulta SQL
     consulta_sql = """
@@ -1684,7 +1664,6 @@ def crear_ticket_actualizacion(request):
     fecha_finalizacion_real = request.POST.get('fecha_finalizacion', '')
     horasDiariasAsignadas = request.POST.get('horasDiariasAsignadas', '')
     idmoduloActualizar = request.POST.get('modulo', '')
-    print('idmoduloActualizar', idmoduloActualizar)
     descripcionGeneral = request.POST.get('descripcionGeneral')
     observaciones = request.POST.get('observaciones', '')
     prioridad = request.POST.get('prioridad', '')
@@ -1719,7 +1698,6 @@ def crear_ticket_actualizacion(request):
             facturar=facturar
         )
 
-        print(nuevo_ticket)
         nuevo_ticket.save()
 
         return JsonResponse({'status': 'success', 'message': 'Ticket creado con éxito'})
@@ -1749,7 +1727,6 @@ def crear_empresa(request):
         email=email,
     )
 
-    print(nueva_empresa)
     nueva_empresa.save()
 
     return JsonResponse({'status': 'success', 'message': 'Empresa creada con éxito'})
@@ -1767,7 +1744,6 @@ def crear_modulo(request):
         descripcionModulo=descripcionModulo,
     )
 
-    print(nuevo_modulo)
     nuevo_modulo.save()
 
     return JsonResponse({'status': 'success', 'message': 'Modulo creado con éxito'})
@@ -1820,7 +1796,6 @@ from soporte_modulosii4 sm
 
 
 def actualizar_empresa(request):
-    print('Ingresó a la vista actualizar_empresa')  # Agregado para verificar si se llega a la función
     if request.method == 'POST':
         try:
             # Obtén los datos del formulario
@@ -1843,19 +1818,15 @@ def actualizar_empresa(request):
             with connection.cursor() as cursor:
                 cursor.execute(consulta_sql, [nombre_empresa, direccion, telefono, email, num_empresa])
 
-            print(f'Empresa actualizada con éxito - NumEmpresa: {num_empresa}')
 
             return JsonResponse({'success': True})
         except Exception as e:
-            print(f'Error al actualizar la empresa - NumEmpresa: {num_empresa}, Error: {e}')
             return JsonResponse({'error': 'Error al actualizar la empresa'})
     else:
-        print('Error: Método no permitido')
         return JsonResponse({'error': 'Método no permitido'})
 
 
 def actualizar_modulo(request):
-    print('Ingresó a la vista actualizar_modulo')  # Agregado para verificar si se llega a la función
     if request.method == 'POST':
         try:
             # Obtén los datos del formulario
@@ -1876,14 +1847,11 @@ def actualizar_modulo(request):
             with connection.cursor() as cursor:
                 cursor.execute(consulta_sql, [modulo, descripcionModulo, num_modulo])
 
-            print(f'Modulo actualizado con éxito - NumModulo: {num_modulo}')
 
             return JsonResponse({'success': True})
         except Exception as e:
-            print(f'Error al actualizar el modulo - NumModulo: {num_modulo}, Error: {e}')
             return JsonResponse({'error': 'Error al actualizar el Modulo'})
     else:
-        print('Error: Método no permitido')
         return JsonResponse({'error': 'Método no permitido'})
 
 
@@ -2020,13 +1988,41 @@ def tareas_desarrollo_success(request):
                     actividad_principal.save()
 
         if len(array_ids_mains) > 0:
-            print(array_ids_mains)
             for task in array_ids_mains:
                 actividad_principal = ActividadPrincipal.objects.get(id=task)
                 actividad_principal.idestado_id = 5
                 actividad_principal.save()
+                
+                # Comprobacion en caso de que todas las actividades esten realizadas para darle el cambio al proyecto en general
+                # Traer el id de del desarrollo principal
+                ticket_desarrollo = actividad_principal.idTicketDesarrollo
+                id_ticket_desarrollo = ticket_desarrollo.id
+                
+                tareas_completas_principales = ActividadPrincipal.objects.filter(idTicketDesarrollo_id=id_ticket_desarrollo, idestado_id=5).count() == ActividadPrincipal.objects.filter(idTicketDesarrollo_id=id_ticket_desarrollo).count()
+                
+                if tareas_completas_principales:
+                    proyecto_main = TicketDesarrollo.objects.get(id=id_ticket_desarrollo)
+                    proyecto_main.idestado_id = 4
+                    proyecto_main.save()
+
 
         return JsonResponse({'status': 'success','message': 'Datos recibidos correctamente'})
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)
     
+@csrf_exempt  
+def asgin_admin_project(request, id_agente, id_ticket):
+    try:
+        fecha_actual = datetime.now()
+        fechaAsignacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
+        proyecto = TicketDesarrollo.objects.get(id=id_ticket)
+        # Cambio de agente administrador
+        proyecto.idAgente_id = id_agente
+        # Cambio de estado a en proceso
+        proyecto.idestado_id = 2
+        proyecto.fechaAsignacion = fechaAsignacion
+        proyecto.save()
+        # Devolver la respuesta JSON
+        return JsonResponse({'status': 'success','message': 'Datos recibidos correctamente'})
+    except:
+        return JsonResponse({'error': 'No se pudo realizar el cambio de Agente administrador del proyecto'}, status=405)
