@@ -106,7 +106,7 @@
                             <label>Fecha Estimada Fin:</label>
                             <div class="input-group">
                                 <input type="text" id="fecha_ticket_estimado" name="fecha_estimado" class="form-control"
-                                    placeholder="Seleccione una Fecha de culminacion estimada" />
+                                    placeholder="Seleccione una Fecha de culminacion estimada" required />
                                 <div class="input-group-append">
                                     <span class="input-group-text"><i class="fa fa-calendar"></i></span>
                                 </div>
@@ -134,7 +134,7 @@
                                 tarea principal</button>
                         </div>
                         <div class="form-group col-md-6" id="rowButtonCreateTicket" style="display: none;">
-                            <button type="submit" id="btnCreateTicket" class="btn btn-success btn-block">Crear ticket de
+                            <button type="submit" id="btnCreateTicket" class="btn btn-success btn-block" disabled>Crear ticket de
                                 Desarrollo</button>
                         </div>
 
@@ -323,7 +323,6 @@
                                 <thead>
                                     <tr>
                                         <th scope="col">Proyecto</th>
-                                        <th scope="col">Fecha y hora de creación</th>
                                         <th scope="col">Actividades</th>
                                         <th scope="col">Horas por día</th>
                                         <th scope="col">Fecha de desarrollo</th>

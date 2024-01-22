@@ -333,6 +333,20 @@ def get_tickets_cpanel(request):
 	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
 	WHERE se.id = 4
     """
+    consulta_tasks_succes = """
+    SELECT st.id as idProyecto, st.tituloProyecto,
+	sa2.id as idActividadSecondary, sa2.descripcion as actividadSecondary, sa2.fechaDesarrollo, 
+	se.id as idEstado, se.descripcion as Estado,
+	au.id as idAgenteTask, au.first_name as NombreAgenteTask, au.last_name as ApellidoAgenteTask,
+	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante
+	FROM soporte_ticketdesarrollo st 
+	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id 
+	INNER JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id  = sa.id 
+	INNER JOIN soporte_estadosticket se ON se.id = sa2.idestado_id
+	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+	WHERE se.id = 5
+    """
     connection = connections['default']
 
     if nombre_usuario != 'mafer' and nombre_usuario != 'superadmin':
@@ -360,8 +374,20 @@ def get_tickets_cpanel(request):
             columns = [col[0] for col in cursor.description]
             resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+        consulta_tasks_just_success += " AND au.username = %s"
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_tasks_just_success, [nombre_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_tasks_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        consulta_tasks_succes += " AND au.username = %s"
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_tasks_succes, [nombre_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_tasks_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
         # CONSULTA PARA VER LOS SOLICITANTES EN CASO DE QUE SEA NECESARIO
-        if len(resultados_project_process) == 0 and len(resultados_project_just_success) == 0 and len(resultados_project_success) == 0 and len(resultados_tasks_process) == 0:
+        if len(resultados_project_process) == 0 and len(resultados_project_just_success) == 0 and len(resultados_project_success) == 0 and len(resultados_tasks_process) == 0 and len(resultados_tasks_just_success) == 0 and len(resultados_tasks_success) == 0:
             consulta_projects_solicitante_process = """
             SELECT * FROM auth_user au WHERE username = %s
             """
@@ -385,6 +411,8 @@ def get_tickets_cpanel(request):
                 consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_tasks_just_success = consulta_tasks_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_tasks_succes = consulta_tasks_succes.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
 
                 with connection.cursor() as cursor:
                     cursor.execute(consulta_proyectos_process, [id_solicitante])
@@ -405,6 +433,16 @@ def get_tickets_cpanel(request):
                     cursor.execute(consulta_tasks_process, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
                     resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_tasks_just_success, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_tasks_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_tasks_succes, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_tasks_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
                 
             else:
                 id_solicitante = resultados_id_solicitante[0]['id']
@@ -412,6 +450,7 @@ def get_tickets_cpanel(request):
                 consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_tasks_just_success = consulta_tasks_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
                 
                 with connection.cursor() as cursor:
                     cursor.execute(consulta_proyectos_process, [id_solicitante])
@@ -432,6 +471,11 @@ def get_tickets_cpanel(request):
                     cursor.execute(consulta_tasks_process, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
                     resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                
+                with connection.cursor() as cursor:
+                    cursor.execute(consulta_tasks_just_success, [id_solicitante])
+                    columns = [col[0] for col in cursor.description]
+                    resultados_tasks_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     else:
         with connection.cursor() as cursor:
@@ -454,6 +498,16 @@ def get_tickets_cpanel(request):
             columns = [col[0] for col in cursor.description]
             resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_tasks_just_success)
+            columns = [col[0] for col in cursor.description]
+            resultados_tasks_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_tasks_succes)
+            columns = [col[0] for col in cursor.description]
+            resultados_tasks_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
     with connection.cursor() as cursor:
         cursor.execute(consulta_proyectos_por_asignar)
         columns = [col[0] for col in cursor.description]
@@ -466,6 +520,8 @@ def get_tickets_cpanel(request):
     projects_just_success_venci = []
     projects_success_venci = []
     tasks_process_venci = []
+    taks_just_success_venci = []
+    tasks_success_venci = []
 
     if len(resultados_project_por_asignar) != 0:
         for project in resultados_project_por_asignar.copy():
@@ -508,6 +564,23 @@ def get_tickets_cpanel(request):
                 tasks_process_venci.append(project)
                 resultados_tasks_process.remove(project)
 
+    if len(resultados_tasks_just_success) != 0:
+        for project in resultados_tasks_just_success.copy():
+            fecha_finalizacion = project['fechaDesarrollo']
+            diff_days_process = (current_date - fecha_finalizacion).days
+            if diff_days_process >= 1:
+                taks_just_success_venci.append(project)
+                resultados_tasks_just_success.remove(project)
+
+    if len(resultados_tasks_success) != 0:
+        for project in resultados_tasks_success.copy():
+            fecha_finalizacion = project['fechaDesarrollo']
+            diff_days_process = (current_date - fecha_finalizacion).days
+            if diff_days_process >= 1:
+                tasks_success_venci.append(project)
+                resultados_tasks_success.remove(project)
+
+
     context = {
         'resultados_project_por_asignar': resultados_project_por_asignar,
         'projects_venci_no_asign': projects_venci_no_asign,
@@ -519,6 +592,10 @@ def get_tickets_cpanel(request):
         'projects_success_venci': projects_success_venci,
         'resultados_tasks_process': resultados_tasks_process,
         'tasks_process_venci': tasks_process_venci,
+        'resultados_tasks_just_success': resultados_tasks_just_success,
+        'taks_just_success_venci': taks_just_success_venci,
+        'resultados_tasks_success': resultados_tasks_success,
+        'tasks_success_venci': tasks_success_venci,
     }
 
     return JsonResponse(context, safe=False)

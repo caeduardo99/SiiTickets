@@ -27,10 +27,15 @@ $(document).ready(function () {
   const numTasksProcess = document.getElementById('numTasksProcess');
   const numTasksProcessVenci = document.getElementById('numTasksProcessVenci');
   const numTasksJustFinish = document.getElementById('numTasksJustFinish');
+  const numTasksJustFinishVenci = document.getElementById('numTasksJustFinishVenci');
   const bodyTableTaskProcess = document.getElementById('bodyTableTaskProcess');
   const bodyTableTaskProcessVenci = document.getElementById('bodyTableTaskProcessVenci');
-  let projectsPorAsignar = [],
-    projectsPorAsignarVeci = [];
+  const bodyTableTaskJustSuccess = document.getElementById('bodyTableTaskJustSuccess');
+  const bodyTableTaskJustSuccessVenci = document.getElementById('bodyTableTaskJustSuccessVenci');
+  const bodyTableTaskSuccess = document.getElementById('bodyTableTaskSuccess');
+  const numTasksSuccess = document.getElementById('numTasksSuccess');
+  const bodyTableTaskSuccessVenci = document.getElementById('bodyTableTaskSuccessVenci');
+  const numTasksSuccessVenci = document.getElementById('numTasksSuccessVenci');
     
   let fullName = `${infoUsuario.Nombre} ${infoUsuario.Apellido}`;
   textBienvenida.innerHTML = `Bienvenid@ ${
@@ -49,7 +54,7 @@ $(document).ready(function () {
     url: "get_tickets_cpanel/",
     method: "GET",
     success: function (data) {
-      let projectsPorAsignar, projectsPorAsignarVeci, projectsProcess, projectsProcessVenci, projectsJustSuccess, projectsJustSuccessVenci, projectsSuccess, projectsSuccessVenci, tasksProcess, tasksProcessVenci;
+      let projectsPorAsignar, projectsPorAsignarVeci, projectsProcess, projectsProcessVenci, projectsJustSuccess, projectsJustSuccessVenci, projectsSuccess, projectsSuccessVenci, tasksProcess, tasksProcessVenci, tasksJustSuccess, tasksJustSuccessVenci, tasksSuccess, tasksSuccessVenci;
 
       projectsPorAsignar = data.resultados_project_por_asignar;
       projectsPorAsignarVeci = data.projects_venci_no_asign;
@@ -61,6 +66,10 @@ $(document).ready(function () {
       projectsSuccessVenci = data.projects_success_venci;
       tasksProcess = data.resultados_tasks_process;
       tasksProcessVenci = data.tasks_process_venci;
+      tasksJustSuccess = data.resultados_tasks_just_success;
+      tasksJustSuccessVenci = data.taks_just_success_venci;
+      tasksSuccess = data.resultados_tasks_success
+      tasksSuccessVenci = data.tasks_success_venci;
       console.log(data)
       
       if (projectsPorAsignar.length !== 0) {
@@ -210,7 +219,55 @@ $(document).ready(function () {
         cell.style.textAlign = "center";
       }
 
-    //   NUMERO DE PROYECTOS
+      if(tasksJustSuccess.length != 0){
+        tasksJustSuccess.forEach(function (project){
+          const fullName = `${project.NombreAgenteTask} ${project.ApellidoAgenteTask}`
+          crearTablaRowFunction(bodyTableTaskJustSuccess ,fullName, project.idEstado, project, 2)
+      })
+      }else{
+        const row = bodyTableTaskJustSuccess.insertRow();
+        const cell = row.insertCell();
+        cell.innerHTML = "No hay tareas esperando finalización."
+        cell.style.textAlign = "center";
+      }
+
+      if(tasksJustSuccessVenci.length != 0){
+        tasksJustSuccessVenci.forEach(function (project){
+          const fullName = `${project.NombreAgenteTask} ${project.ApellidoAgenteTask}`
+          crearTablaRowFunction(bodyTableTaskJustSuccessVenci ,fullName, project.idEstado, project, 2)
+      })
+      }else{
+        const row = bodyTableTaskJustSuccessVenci.insertRow();
+        const cell = row.insertCell();
+        cell.innerHTML = "No hay tareas esperando finalización Vencidas."
+        cell.style.textAlign = "center";
+      }
+
+      if(tasksSuccess.length != 0){
+        tasksSuccess.forEach(function (project){
+          const fullName = `${project.NombreAgenteTask} ${project.ApellidoAgenteTask}`
+          crearTablaRowFunction(bodyTableTaskSuccess ,fullName, project.idEstado, project, 2)
+      })
+      }else{
+        const row = bodyTableTaskSuccess.insertRow();
+        const cell = row.insertCell();
+        cell.innerHTML = "No hay tareas finalizadas."
+        cell.style.textAlign = "center";
+      }
+
+      if(tasksSuccessVenci.length != 0){
+        tasksSuccessVenci.forEach(function (project){
+          const fullName = `${project.NombreAgenteTask} ${project.ApellidoAgenteTask}`
+          crearTablaRowFunction(bodyTableTaskSuccessVenci ,fullName, project.idEstado, project, 2)
+      })
+      }else{
+        const row = bodyTableTaskSuccessVenci.insertRow();
+        const cell = row.insertCell();
+        cell.innerHTML = "No hay tareas finalizadas sin entregar a tiempo."
+        cell.style.textAlign = "center";
+      }
+
+    //Numerador para proyectos y tareas
     numProjectNoAsign.textContent = `(${projectsPorAsignar.length})`
     numProjectNoAsignVenci.textContent = `(${projectsPorAsignarVeci.length})`
     numProjectProcess.textContent = `(${projectsProcess.length})`
@@ -221,7 +278,10 @@ $(document).ready(function () {
     numProjectFinishVenci.textContent = `(${projectsSuccessVenci.length})`
     numTasksProcess.textContent = `(${tasksProcess.length})`
     numTasksProcessVenci.textContent = `(${tasksProcessVenci.length})`
-
+    numTasksJustFinish.textContent = `(${tasksJustSuccess.length})`
+    numTasksJustFinishVenci.textContent = `(${tasksJustSuccessVenci.length})`
+    numTasksSuccess.textContent = `(${tasksSuccess.length})`
+    numTasksSuccessVenci.textContent = `(${tasksSuccessVenci.length})`
     },
     error: function (error) {
       console.error("Error al obtener los datos:", error);

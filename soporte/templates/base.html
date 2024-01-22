@@ -108,8 +108,6 @@
                 <nav class="mt-2">
                     <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu"
                         data-accordion="false">
-                        <!-- Add icons to the links using the .nav-icon class
-                         with font-awesome or any other icon font library -->
 
                         {% if user.is_authenticated %}
                         {% for group in request.user.groups.all %}
@@ -200,7 +198,7 @@
                                 <li class="nav-item">
                                     <a href="{% url 'usuariosEmpresas' %}" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
-                                        <p>Usuarios Empresas</p>
+                                        <p>Usuarios Franquiciados</p>
                                     </a>
                                 </li>
                             </ul>
@@ -377,7 +375,7 @@
 
             numberAlertTotalVenci.textContent = notificacionesTotales;
             notificacionesTotalesDiv.textContent = `${notificacionesTotales} Notificaciones`;
-            noficicacionDesarrollo.textContent = `${totalNotificationDesarrollo} Desarrollo`
+            noficicacionDesarrollo.textContent = `${totalNotificationDesarrollo} Desarrollo - Vencidos`
         },
         error: function (error) {
             console.error("Error al obtener los datos:", error);
