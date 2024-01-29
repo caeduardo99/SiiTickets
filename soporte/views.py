@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as logout_django
 from django.shortcuts import render
 from django.db import connections
+from django.shortcuts import get_object_or_404
 import json
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
@@ -12,6 +13,7 @@ from .models import (
     TicketDesarrollo,
     ActividadPrincipal,
     ActividadSecundaria,
+    ActividadPrincipalSoporte
 )
 from django.contrib.auth.models import User, Group
 from .models import Solicitante, EstadosTicket
@@ -22,7 +24,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.mail import EmailMessage
 from collections import defaultdict
 from django.utils import timezone
-import ast
+
+
 
 def login_user(request):
     # Verificar si el usuario ya está autenticado
@@ -70,6 +73,17 @@ def contact(request):
 def soporte(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
 
+    usuarios_grupo_1 = User.objects.filter(groups__id=1).values_list('username', flat=True)
+
+    if nombre_usuario in usuarios_grupo_1:
+        # No mostrar el campo en este caso
+        mostrar_campo = False
+    else:
+        # Mostrar el campo
+        mostrar_campo = True
+
+    print('mostrar_campo', mostrar_campo)
+
     # Llamar a la función solicitantes para obtener los resultados
     resultados_solicitantes = solicitantesjson(request)
 
@@ -86,6 +100,7 @@ def soporte(request):
 
     context = {
         'nombre_usuario': nombre_usuario,
+        'mostrar_campo': mostrar_campo,
         'resultados_solicitantes_data': resultados_solicitantes_data,
         'resultados_agentes_data': resultados_agentes_data,
         'resultados_estados_data': resultados_estados_data
@@ -96,7 +111,7 @@ def soporte(request):
 @login_required
 def desarrollo(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
-    
+
     consultGroupUser = """
     SELECT au.id AS idUser, au.first_name, aug.group_id 
  	FROM auth_user au
@@ -117,7 +132,7 @@ def desarrollo(request):
         cursor.execute(consultGroupUser, [nombre_usuario])
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        
+
     context = {
         "nombre_usuario": nombre_usuario,
         "resultados_solicitantes_data": resultados_solicitantes_data,
@@ -193,6 +208,7 @@ def modulos(request):
     }
     return render(request, 'modulos.html', context)
 
+
 @login_required
 def usuariosSolicitantes(request):
     resultados_empresas = empresasjson(request)
@@ -205,20 +221,22 @@ def usuariosSolicitantes(request):
     }
     return render(request, 'usuarios.html', context)
 
+
 @login_required
 def usuariosEmpresas(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
     users = User.objects.all()
     resultados_empresas = empresasjson(request)
     resultados_empresas_data = json.loads(resultados_empresas.content)
-    
+
     context = {
         'users': users,
         'nombre_usuario': nombre_usuario,
         'resultados_empresas_data': resultados_empresas_data,
     }
-    
+
     return render(request, 'usuariosEmpresa.html', context)
+
 
 @login_required
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
@@ -248,15 +266,15 @@ def views_reports(request):
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-
     context = {
         'nombre_usuario': nombre_usuario,
         'resultados_solicitantes_data': resultados_solicitantes_data,
         'resultados_agentes_data': resultados_agentes_data,
         'resultados_estados_data': resultados_estados_data,
-        'estados_tickets' : resultados
+        'estados_tickets': resultados
     }
     return render(request, 'reportes.html', context)
+
 
 @login_required
 def get_tickets_cpanel(request):
@@ -387,7 +405,9 @@ def get_tickets_cpanel(request):
             resultados_tasks_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
         # CONSULTA PARA VER LOS SOLICITANTES EN CASO DE QUE SEA NECESARIO
-        if len(resultados_project_process) == 0 and len(resultados_project_just_success) == 0 and len(resultados_project_success) == 0 and len(resultados_tasks_process) == 0 and len(resultados_tasks_just_success) == 0 and len(resultados_tasks_success) == 0:
+        if len(resultados_project_process) == 0 and len(resultados_project_just_success) == 0 and len(
+                resultados_project_success) == 0 and len(resultados_tasks_process) == 0 and len(
+            resultados_tasks_just_success) == 0 and len(resultados_tasks_success) == 0:
             consulta_projects_solicitante_process = """
             SELECT * FROM auth_user au WHERE username = %s
             """
@@ -396,7 +416,7 @@ def get_tickets_cpanel(request):
                 columns = [col[0] for col in cursor.description]
                 resultados_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-            emialSolicitante =resultados_solicitante[0]['email']
+            emialSolicitante = resultados_solicitante[0]['email']
             consulta_id_solicitante = """
             SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
             """
@@ -404,15 +424,21 @@ def get_tickets_cpanel(request):
                 cursor.execute(consulta_id_solicitante, [emialSolicitante])
                 columns = [col[0] for col in cursor.description]
                 resultados_id_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            
+
             if len(resultados_id_solicitante) == 0:
                 id_solicitante = 1
-                consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                consulta_tasks_just_success = consulta_tasks_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                consulta_tasks_succes = consulta_tasks_succes.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
+                consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s",
+                                                                                " AND st.idSolicitante_id = %s")
+                consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s",
+                                                                                          " AND st.idSolicitante_id = %s")
+                consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s",
+                                                                                " AND st.idSolicitante_id = %s")
+                consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s",
+                                                                        " AND st.idSolicitante_id = %s")
+                consulta_tasks_just_success = consulta_tasks_just_success.replace(" AND au.username = %s",
+                                                                                  " AND st.idSolicitante_id = %s")
+                consulta_tasks_succes = consulta_tasks_succes.replace(" AND au.username = %s",
+                                                                      " AND st.idSolicitante_id = %s")
 
                 with connection.cursor() as cursor:
                     cursor.execute(consulta_proyectos_process, [id_solicitante])
@@ -428,7 +454,7 @@ def get_tickets_cpanel(request):
                     cursor.execute(consulta_proyectos_success, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
                     resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-                
+
                 with connection.cursor() as cursor:
                     cursor.execute(consulta_tasks_process, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
@@ -443,15 +469,20 @@ def get_tickets_cpanel(request):
                     cursor.execute(consulta_tasks_succes, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
                     resultados_tasks_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-                
+
             else:
                 id_solicitante = resultados_id_solicitante[0]['id']
-                consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                consulta_tasks_just_success = consulta_tasks_just_success.replace(" AND au.username = %s", " AND st.idSolicitante_id = %s")
-                
+                consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s",
+                                                                                " AND st.idSolicitante_id = %s")
+                consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s",
+                                                                                          " AND st.idSolicitante_id = %s")
+                consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s",
+                                                                                " AND st.idSolicitante_id = %s")
+                consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s",
+                                                                        " AND st.idSolicitante_id = %s")
+                consulta_tasks_just_success = consulta_tasks_just_success.replace(" AND au.username = %s",
+                                                                                  " AND st.idSolicitante_id = %s")
+
                 with connection.cursor() as cursor:
                     cursor.execute(consulta_proyectos_process, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
@@ -471,7 +502,7 @@ def get_tickets_cpanel(request):
                     cursor.execute(consulta_tasks_process, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
                     resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
-                
+
                 with connection.cursor() as cursor:
                     cursor.execute(consulta_tasks_just_success, [id_solicitante])
                     columns = [col[0] for col in cursor.description]
@@ -530,7 +561,7 @@ def get_tickets_cpanel(request):
             if diff_days >= 1:
                 projects_venci_no_asign.append(project)
                 resultados_project_por_asignar.remove(project)
-    
+
     if len(resultados_project_process) != 0:
         for project in resultados_project_process.copy():
             fecha_finalizacion = project['fechaFinalizacionEstimada']
@@ -580,7 +611,6 @@ def get_tickets_cpanel(request):
                 tasks_success_venci.append(project)
                 resultados_tasks_success.remove(project)
 
-
     context = {
         'resultados_project_por_asignar': resultados_project_por_asignar,
         'projects_venci_no_asign': projects_venci_no_asign,
@@ -588,7 +618,7 @@ def get_tickets_cpanel(request):
         'projects_process_venci': projects_process_venci,
         'resultados_project_just_success': resultados_project_just_success,
         'projects_just_success_venci': projects_just_success_venci,
-        'resultados_project_success' : resultados_project_success,
+        'resultados_project_success': resultados_project_success,
         'projects_success_venci': projects_success_venci,
         'resultados_tasks_process': resultados_tasks_process,
         'tasks_process_venci': tasks_process_venci,
@@ -599,7 +629,8 @@ def get_tickets_cpanel(request):
     }
 
     return JsonResponse(context, safe=False)
-    
+
+
 @login_required
 def view_control_panel(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
@@ -784,7 +815,8 @@ def ticketsoportescreados(request):
     # Construir la consulta SQL original
     consulta_sql = """
         SELECT st.id as NumTicket, st.comentario as Motivo, ss.nombreapellido as Solicitante,
-        st.prioridad as Prioridad, ses.descripcion as Estado, se.nombreEmpresa as NombreEmpresa
+        st.prioridad as Prioridad, ses.descripcion as Estado, se.nombreEmpresa as NombreEmpresa,
+        (au.first_name || ' ' || au.last_name) AS full_name
         FROM soporte_ticketsoporte st
         LEFT JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
         LEFT JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
@@ -800,6 +832,7 @@ def ticketsoportescreados(request):
         consulta_sql_copia += " WHERE au.username = %s "
     consulta_sql_copia += " ORDER BY st.id DESC "
 
+    print('consulta_sql_copia', consulta_sql_copia)
     connection = connections["default"]
 
     # Ejecutar la consulta SQL y obtener los resultados
@@ -807,27 +840,40 @@ def ticketsoportescreados(request):
         cursor.execute(consulta_sql_copia, [nombre_usuario])
         resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
 
+        # Imprimir los resultados y nombre de usuario (para depuración)
+        print("Nombre de usuario:", nombre_usuario)
+        print("Resultados de la consulta JSON:", resultados)
+
     # Si la consulta devuelve un conjunto vacío y había un nombre de usuario, ejecutar la segunda consulta sin la condición WHERE original
     if not resultados and nombre_usuario:
+        print("La consulta devolvió un conjunto vacío. Ejecutando la segunda consulta.")
         # Imprimir la consulta_sql_sin_filtro con el valor de nombre_usuario
 
         consulta_sql_sin_filtro = consulta_sql.replace("WHERE au.username = %s", "")
         consulta_sql_sin_filtro += " WHERE se.nombreEmpresa = %s"  # Nueva condición WHERE
         consulta_sql_sin_filtro += " ORDER BY st.id DESC "  # Cláusula ORDER BY agregada
+        print("Consulta SQL sin filtro:", consulta_sql_sin_filtro % nombre_usuario)
         with connection.cursor() as cursor:
             cursor.execute(consulta_sql_sin_filtro, [nombre_usuario])
             resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
 
     # Si la segunda consulta también devuelve un conjunto vacío y el nombre de usuario es "mafer", ejecutar una tercera consulta sin la condición WHERE original
     if not resultados and nombre_usuario == "mafer":
+        print(
+            "La segunda consulta también devolvió un conjunto vacío y el nombre de usuario es 'mafer'. Ejecutando la tercera consulta.")
         consulta_sql_tercera = consulta_sql.replace("WHERE au.username = %s", "")
         consulta_sql_tercera += " ORDER BY st.id DESC "  # Cláusula ORDER BY agregada
+        print("Consulta SQL tercera sin filtro")
         with connection.cursor() as cursor:
             cursor.execute(consulta_sql_tercera)
             resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
 
+            # Imprimir los resultados de la tercera consulta (para depuración)
+            print("Resultados de la tercera consulta JSON:", resultados)
+
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
+
 
 def generateReport(request):
     consulta = ""
@@ -838,7 +884,7 @@ def generateReport(request):
     idAgente = request.GET.get('agente')
     fechaInicio = request.GET.get('fechaInicio')
     fechaFin = request.GET.get('fechaFin')
-    
+
     if tipo_ticket == '1':
         consulta = """
         select * from soporte_ticketsoporte st
@@ -853,10 +899,10 @@ def generateReport(request):
         INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
         INNER JOIN auth_user au ON au.id = st.idAgente_id
         """
-    
+
     if estado_ticket is not None and estado_ticket != "":
         consulta += f" WHERE st.idestado_id = {estado_ticket}"
-        
+
     if idAgente != "":
         consulta += f" AND st.idAgente_id = {idAgente}"
 
@@ -875,16 +921,16 @@ def generateReport(request):
     if masAntiguos == "true":
         consulta += f" ORDER BY st.fechaCreacion"
 
-
     connection = connections['default']
-    
+
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
         cursor.execute(consulta)
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        
+
     return JsonResponse(resultados, safe=False)
+
 
 def getInfoReport(request, id_ticket):
     consulta_general = """
@@ -947,8 +993,10 @@ def getInfoReport(request, id_ticket):
         resultados_actividad_secundaria = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     # Extraer las propiedades del objeto y adjuntar las horas para determinar el trabajo realizado por AGENTE
-    agrupado_por_agente = defaultdict(lambda: {"idAgente": None, "idEstadoActividad": None, "horasPrincipales": 0, "NombreAgente": None, "EstadoActividad": None})
-    
+    agrupado_por_agente = defaultdict(
+        lambda: {"idAgente": None, "idEstadoActividad": None, "horasPrincipales": 0, "NombreAgente": None,
+                 "EstadoActividad": None})
+
     for obj in resultados_actividad_secundaria:
         if obj["idEstadoActividad"] == 5:
             id_agente = obj["idAgente"]
@@ -962,7 +1010,9 @@ def getInfoReport(request, id_ticket):
     horas_agente = list(agrupado_por_agente.values())
 
     # Extraer las propiedades del objeto y adjuntar las horas para determinar el trabajo realizado por EMPRESA
-    agrupado_por_empresa = defaultdict(lambda: {"idEmpresa": None, "idEstadoActividad": None, "horasPrincipales": 0, "nombreEmpresa": None, "ApellidoAgente": None, "EstadoActividad": None})
+    agrupado_por_empresa = defaultdict(
+        lambda: {"idEmpresa": None, "idEstadoActividad": None, "horasPrincipales": 0, "nombreEmpresa": None,
+                 "ApellidoAgente": None, "EstadoActividad": None})
     for obj in resultados_actividad_secundaria:
         if obj["idEstadoActividad"] == 5:
             id_empresa = obj["idEmpresa"]
@@ -975,7 +1025,9 @@ def getInfoReport(request, id_ticket):
     horas_empresa = list(agrupado_por_empresa.values())
 
     # Extraer las propiedades del objeto y adjuntar las horas para determinar el trabajo realizado por PROYECTO
-    agrupado_por_proyecto = defaultdict(lambda: {"idProyecto": None, "idEstadoActividad": None, "horasPrincipales": 0, "tituloProyecto": None, "EstadoActividad": None})
+    agrupado_por_proyecto = defaultdict(
+        lambda: {"idProyecto": None, "idEstadoActividad": None, "horasPrincipales": 0, "tituloProyecto": None,
+                 "EstadoActividad": None})
 
     for obj in resultados_actividad_secundaria:
         if obj["idEstadoActividad"] == 5:
@@ -998,6 +1050,7 @@ def getInfoReport(request, id_ticket):
     }
 
     return JsonResponse(context, safe=False)
+
 
 def ticketactualizacioncreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
@@ -1028,53 +1081,81 @@ LEFT JOIN auth_user au ON au.id = st.idAgente_id
 def ticketsoportescreadosid(request):
     # Obtener el valor del parámetro "id" de la solicitud
     ticket_id = request.GET.get('id', None)
+    print(ticket_id)
 
-    # Construir la consulta SQL
-    consulta_sql = """
+    # Construir la consulta SQL para obtener la información del ticket principal
+    consulta_sql_ticket = """
     SELECT 
-  st.id,
-  st.fechaCreacion,
-  st.fechaInicio,
-  st.fechaFinalizacion,
-  st.fechaFinalizacionReal,
-  st.comentario,
-  st.causaerror ,
-  st.facturar,
-  st.idAgente_id,
-  au.first_name || ' ' || au.last_name AS agente_nombre,
-  st.idSolicitante_id,
-  st.idestado_id,
-  st.chat,
-  st.prioridad,
-  ss.nombreApellido,
-  st.imagenes,
-  st.imagensoporte,
-  st.trabajoRealizado,
-  se.nombreEmpresa
-FROM 
-  soporte_ticketsoporte st
-LEFT JOIN 
-  auth_user au ON au.id = st.idAgente_id
-LEFT JOIN
-  soporte_solicitante ss ON ss.id = st.idSolicitante_id
-LEFT JOIN 
-  soporte_empresa se on se.id = ss.idEmpresa_id 
+        st.id,
+        st.fechaCreacion,
+        st.fechaInicio,
+        st.fechaFinalizacion,
+        st.fechaFinalizacionReal,
+        st.comentario,
+        st.causaerror,
+        st.facturar,
+        st.idAgente_id,
+        au.first_name || ' ' || au.last_name AS agente_nombre,
+        st.idSolicitante_id,
+        st.idestado_id,
+        st.chat,
+        st.prioridad,
+        ss.nombreApellido,
+        st.imagenes,
+        st.trabajoRealizado,
+        se.nombreEmpresa
+    FROM 
+        soporte_ticketsoporte st
+    LEFT JOIN 
+        auth_user au ON au.id = st.idAgente_id
+    LEFT JOIN
+        soporte_solicitante ss ON ss.id = st.idSolicitante_id
+    LEFT JOIN 
+        soporte_empresa se ON se.id = ss.idEmpresa_id 
     """
 
     # Agregar un filtro por ID si se proporciona el parámetro "id"
     if ticket_id is not None:
-        consulta_sql += f" WHERE st.id = {ticket_id}"
+        consulta_sql_ticket += f" WHERE st.id = {ticket_id}"
+
+    # Construir la consulta SQL para obtener las actividades principales del ticket
+    consulta_sql_actividades = f"""
+    SELECT
+        aps.id,
+        aps.descripcion,
+        aps.idAgente_id,
+        au_aps.first_name || ' ' || au_aps.last_name AS agente_actividad_nombre,
+        aps.idestado_id,
+        est.descripcion AS estado_actividad,
+        aps.imagen_actividades,
+        aps.fechainicio,
+        aps.fechafinal
+    FROM
+        soporte_actividadprincipalsoporte aps
+    LEFT JOIN
+        auth_user au_aps ON au_aps.id = aps.idAgente_id
+    LEFT JOIN
+        soporte_estadosticket est ON est.id = aps.idestado_id
+    WHERE
+        aps.idTicketSoporte_id = {ticket_id}
+    """
 
     connection = connections['default']
 
-    # Ejecutar la consulta SQL y obtener los resultados
+    # Ejecutar la consulta SQL para obtener la información del ticket principal
     with connection.cursor() as cursor:
-        cursor.execute(consulta_sql)
-        columns = [col[0] for col in cursor.description]
-        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        cursor.execute(consulta_sql_ticket)
+        columns_ticket = [col[0] for col in cursor.description]
+        resultados_ticket = [dict(zip(columns_ticket, row)) for row in cursor.fetchall()]
 
-    # Devolver la respuesta JSON
-    return JsonResponse(resultados, safe=False)
+    # Ejecutar la consulta SQL para obtener las actividades principales del ticket
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql_actividades)
+        columns_actividades = [col[0] for col in cursor.description]
+        resultados_actividades = [dict(zip(columns_actividades, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON con ambos conjuntos de resultados
+    return JsonResponse({'ticket': resultados_ticket, 'actividades': resultados_actividades}, safe=False)
 
 
 def ticketDesarrolloCreados(request):
@@ -1084,7 +1165,7 @@ def ticketDesarrolloCreados(request):
 
     consulta_sql = """"""
     if id_usuario == 2 or id_usuario == 1:
-        consulta_sql +="""
+        consulta_sql += """
         SELECT st.id as NumTicket, ss.id as idCliente, ss.nombreApellido as Cliente, au.id as idAgente, au.first_name as Agente,
         se.nombreEmpresa as Empresa , st.tituloProyecto,st.idestado_id as idEstado, ses.descripcion as EstadoProyecto, 
         st.descripcionActividadGeneral, st.horasCompletasProyecto as HorasTotales,
@@ -1111,7 +1192,7 @@ def ticketDesarrolloCreados(request):
         INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id
         WHERE (sa.idAgente_id = %s OR au.username = %s) AND ses.id = 2
         """
-        
+
     consulta_info_solicitantes = """
     SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
     """
@@ -1127,7 +1208,7 @@ def ticketDesarrolloCreados(request):
     LEFT JOIN auth_user au on au.id = st.idAgente_id
     WHERE ss.id = %s
     """
-    
+
     connection = connections["default"]
 
     # Ejecutar la consulta SQL y obtener los resultados
@@ -1139,7 +1220,7 @@ def ticketDesarrolloCreados(request):
 
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        
+
     # COMPROBAR SI ESTA VACIO O NO
     if len(resultados) != 0:
         return JsonResponse(resultados, safe=False)
@@ -1155,7 +1236,7 @@ def ticketDesarrolloCreados(request):
                 cursor.execute(consulta_get_projects, [idSolicitante])
                 columns = [col[0] for col in cursor.description]
                 resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            
+
             return JsonResponse(resultados, safe=False)
         else:
             consulta_info_agente = """
@@ -1170,7 +1251,7 @@ def ticketDesarrolloCreados(request):
                 resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
             return JsonResponse(resultados, safe=False)
-        
+
 
 def detalleTicketDesarrollo(request, ticket_id):
     id_usuario = request.user.id if request.user.is_authenticated else None
@@ -1274,7 +1355,6 @@ def crear_ticket_soporte(request):
     facturar = request.POST.get('factura', '')
     imagenes = request.FILES.get('imagenes')
     imagensoporte = request.FILES.get('imagensoporte')
-
     try:
         # Obtener la instancia del solicitante
         solicitante = Solicitante.objects.get(id=id_solicitante)
@@ -1289,7 +1369,6 @@ def crear_ticket_soporte(request):
             estado = EstadosTicket.objects.get(id=1)
 
         # Verificar y asignar fechas
-
         fecha_inicio = fecha_inicio if fecha_inicio else None
         fecha_finalizacion = fecha_finalizacion if fecha_finalizacion else None
         fecha_finalizacion_real = fecha_finalizacion_real if fecha_finalizacion_real else None
@@ -1311,7 +1390,6 @@ def crear_ticket_soporte(request):
             idestado=estado,
             facturar=facturar,
             imagenes=imagenes,
-            imagensoporte=imagensoporte
         )
 
         # Guardar el nuevo ticket en la base de datos
@@ -1325,6 +1403,7 @@ def crear_ticket_soporte(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
 
+
 @require_POST
 def crear_usuario_empresa(request):
     try:
@@ -1332,7 +1411,7 @@ def crear_usuario_empresa(request):
         fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
         nickName = request.POST.get('inputNickname', '')
         password = request.POST.get('inputPassword', '')
-        nombres = request.POST.get('inputNombres','')
+        nombres = request.POST.get('inputNombres', '')
         apellidos = request.POST.get('inputApellidos', '')
         email = request.POST.get('inputEmail', '')
         fullName = nombres + ' ' + apellidos
@@ -1354,31 +1433,34 @@ def crear_usuario_empresa(request):
                 cursor.execute(consulta_comprobacion_username, [nickName])
                 columns = [col[0] for col in cursor.description]
                 resultados_comprobados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-            
+
             if len(resultados_comprobados) == 0:
                 # CONSULTA DE COMPROBACION EN CASO DE QUE EXISTA EL SUAURIO EN LA TABLA SOLICITANTE
                 consulta_comprobacion_solcitante = """
                 SELECT * FROM soporte_solicitante ss WHERE ss.nombreApellido = %s
                 """
-                
+
                 with connection.cursor() as cursor:
                     cursor.execute(consulta_comprobacion_solcitante, [fullName])
                     columns = [col[0] for col in cursor.description]
                     resultados_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
-                
+
                 if len(resultados_solicitante) == 0:
                     # CREACION DEL USUARIO EN LA TABLA AU
-                    nuevo_usuario = User.objects.create_user(password=password, last_login=None, username=nickName, last_name=apellidos, email=email, is_staff=False, is_active=True, date_joined=fecha_creacion, first_name=nombres)
-                    
+                    nuevo_usuario = User.objects.create_user(password=password, last_login=None, username=nickName,
+                                                             last_name=apellidos, email=email, is_staff=False,
+                                                             is_active=True, date_joined=fecha_creacion,
+                                                             first_name=nombres)
+
                     # CREACION DEL SOLICITANTE
                     nuevo_solicitante = nuevo_solicitante = Solicitante(
-                                nombreApellido=fullName,
-                                telefonoSolicitante=telefono,
-                                idEmpresa_id=idempresa,
-                                ruc=ruc,
-                                direccion=direccion,
-                                correo=email,
-                            )
+                        nombreApellido=fullName,
+                        telefonoSolicitante=telefono,
+                        idEmpresa_id=idempresa,
+                        ruc=ruc,
+                        direccion=direccion,
+                        correo=email,
+                    )
 
                     grupo = Group.objects.get(id=1)
                     nuevo_usuario.groups.add(grupo)
@@ -1393,19 +1475,21 @@ def crear_usuario_empresa(request):
                     )
                     complet_email.send()
 
-                    if(nickName != '' and password != ''):
+                    if (nickName != '' and password != ''):
                         return JsonResponse({'status': 'success', 'message': 'Usuario creado con éxito'})
                     else:
-                        return JsonResponse({'status': 'error', 'message': 'No se pudo enviar el correo por falta de información'})
+                        return JsonResponse(
+                            {'status': 'error', 'message': 'No se pudo enviar el correo por falta de información'})
                 else:
                     return JsonResponse({'status': 'error', 'message': 'Ya existe un solicitante con ese nombre'})
             else:
-                return JsonResponse({'status': 'error', 'message': 'El usuario ya existe'} )
+                return JsonResponse({'status': 'error', 'message': 'El usuario ya existe'})
         else:
             return JsonResponse({'status': 'error', 'message': 'No se pudo enviar el correo por falta de información'})
-        
+
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
+
 
 @require_POST
 def crear_solicitante(request):
@@ -1445,6 +1529,9 @@ def editar_ticket_soporte(request):
     if request.method in ('PUT', 'POST'):
         ticket_id = request.POST.get('numeroticketedit')
 
+        # Obtener el ID de la actividad
+        id_actividad = request.POST.get('actividad_id', '')
+
         # Obtener los datos del formulario
         id_agente = request.POST.get('agentesolicitadoedit', '')
         id_solicitante = request.POST.get('solicitanteeditar', '')
@@ -1458,8 +1545,6 @@ def editar_ticket_soporte(request):
         facturar = request.POST.get('facturaedit', '')
         contenido_chat = request.POST.get('chat', '')
         trabajo_realizado = request.POST.get('trabajo_realizado', '')
-        imagensoporte_actual = request.POST.get('imagensoporte_actual')
-        imagensoporte = imagensoporte_actual if imagensoporte_actual else request.FILES.get('imagensoporte')
 
         try:
             # Obtener la instancia del solicitante
@@ -1471,7 +1556,7 @@ def editar_ticket_soporte(request):
             estado = EstadosTicket.objects.get(id=id_estado)
 
             # Obtener el ticket existente para editar
-            ticket = TicketSoporte.objects.get(id=ticket_id)
+            ticket = get_object_or_404(TicketSoporte, id=ticket_id)
 
             # Verificar y asignar fechas
             fecha_inicio = fecha_inicio if fecha_inicio else None
@@ -1491,10 +1576,68 @@ def editar_ticket_soporte(request):
             ticket.facturar = facturar
             ticket.trabajoRealizado = trabajo_realizado
             ticket.chat = contenido_chat
-            ticket.imagensoporte = imagensoporte
 
             # Guardar los cambios en el ticket
             ticket.save()
+
+            # Obtener la instancia de la actividad usando el ID
+            actividades_existentes = ActividadPrincipalSoporte.objects.filter(idTicketSoporte=ticket)
+
+            # Iterar sobre datos de actividades enviados desde el cliente
+            for i in range(len(request.POST.getlist('descripciontabla'))):
+                descripcion = request.POST.getlist('descripciontabla')[i]
+                id_agente_actividad = request.POST.getlist('agentesolicitadotabla')[i]
+                id_estado_actividad = request.POST.getlist('estadotabla')[i]
+                fechainicioactividad = request.POST.getlist('fechaIniciotabla')[i]
+                fechafinalactividad = request.POST.getlist('fechaFintabla')[i]
+                print('fechainicioactividad', fechainicioactividad)
+                print('fechafinalactividad', fechafinalactividad)
+                # Resto de los campos de la actividad...
+
+                fechainicioactividad = fechainicioactividad if fechainicioactividad else None
+                fechafinalactividad = fechafinalactividad if fechafinalactividad else None
+
+                # Verificar si hay una actividad existente para actualizar
+                if i < len(actividades_existentes):
+                    actividad_existente = actividades_existentes[i]
+                    actividad_existente.descripcion = descripcion
+                    actividad_existente.idAgente = User.objects.get(id=id_agente_actividad)
+                    actividad_existente.idestado = EstadosTicket.objects.get(id=id_estado_actividad)
+                    actividad_existente.fechainicio = fechainicioactividad
+                    actividad_existente.fechafinal = fechafinalactividad
+
+                    # Manejo de la imagen
+                    imagen_data = request.FILES.getlist(f'imagensoporte_{actividad_existente.id}')
+                    print(imagen_data)
+                    if imagen_data:
+                        # Obtener datos de la imagen y guardarla
+                        imagen_data = imagen_data[0]
+                        actividad_existente.imagen_actividades.save(imagen_data.name, imagen_data, save=True)
+
+                    # Resto de los campos de la actividad...
+                    actividad_existente.save()
+                else:
+                    # Si no hay una actividad existente, crear una nueva instancia
+                    actividad_nueva = ActividadPrincipalSoporte(
+                        idTicketSoporte=ticket,
+                        descripcion=descripcion,
+                        idAgente=User.objects.get(id=id_agente_actividad),
+                        idestado=EstadosTicket.objects.get(id=id_estado_actividad),
+                        # Resto de los campos de la actividad...
+                    )
+                    actividad_nueva.save()
+
+                    # Manejo de la imagen
+                    imagen_data = request.FILES.getlist(f'imagensoporte_{actividad_nueva.id}')
+                    if imagen_data:
+                        # Obtener datos de la imagen y guardarla
+                        imagen_data = imagen_data[0]
+                        actividad_nueva.imagen_actividades.save(imagen_data.name, imagen_data, save=True)
+
+                # Eliminar actividades restantes si hay más actividades existentes
+            for actividad_existente in actividades_existentes[len(request.POST.getlist('descripciontabla')):]:
+                actividad_existente.imagen_actividades.delete()  # Eliminar la imagen asociada
+                actividad_existente.delete()
 
             return JsonResponse({'status': 'success', 'message': 'Ticket editado con éxito'})
         except Solicitante.DoesNotExist:
@@ -1505,6 +1648,8 @@ def editar_ticket_soporte(request):
             return JsonResponse({'status': 'error', 'message': 'Estado de ticket no encontrado'}, status=400)
         except TicketSoporte.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Ticket no encontrado'}, status=400)
+        except ActividadPrincipalSoporte.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Actividad no encontrada'}, status=400)
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': f'Error al editar el ticket: {str(e)}'}, status=400)
     else:
@@ -1895,7 +2040,6 @@ def actualizar_empresa(request):
             with connection.cursor() as cursor:
                 cursor.execute(consulta_sql, [nombre_empresa, direccion, telefono, email, num_empresa])
 
-
             return JsonResponse({'success': True})
         except Exception as e:
             return JsonResponse({'error': 'Error al actualizar la empresa'})
@@ -1923,7 +2067,6 @@ def actualizar_modulo(request):
             # Ejecutar la consulta SQL de actualización
             with connection.cursor() as cursor:
                 cursor.execute(consulta_sql, [modulo, descripcionModulo, num_modulo])
-
 
             return JsonResponse({'success': True})
         except Exception as e:
@@ -2019,6 +2162,7 @@ def editar_ticket_actualizar(request):
 def editar_desarrollo(request):
     pass
 
+
 @csrf_exempt
 def finalizar_proyecto(request, id_ticket):
     try:
@@ -2033,10 +2177,11 @@ def finalizar_proyecto(request, id_ticket):
             ticket.fechaFinalizacion = fecha_actual
             ticket.save()
             return JsonResponse({'status': 'success', 'message': 'Registro actualizado correctamente'})
-        
+
 
     except TicketDesarrollo.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'El ticket no existe'}, status=404)
+
 
 @csrf_exempt
 def tareas_desarrollo_success(request):
@@ -2051,13 +2196,15 @@ def tareas_desarrollo_success(request):
             for tarea in array_ids_tasks:
                 id_tarea_principal = tarea['idPrincipalTask']
                 id_tarea_secundaria = tarea['idSecondaryTask']
-                
+
                 # Para la actividad principal en caso de que todas las secundarias esten hechas en estado 5
                 actividad_secundaria = ActividadSecundaria.objects.get(id=id_tarea_secundaria)
                 actividad_secundaria.idestado_id = 5
                 actividad_secundaria.save()
                 # Aquí se compara si es que todas las actividades se encuentran estado 5 para poder cambiar el estado de la actividad principal a 4 (esperando finalización)
-                tareas_completas = ActividadSecundaria.objects.filter(idActividadPrincipal_id=id_tarea_principal, idestado_id=5).count() == ActividadSecundaria.objects.filter(idActividadPrincipal_id=id_tarea_principal).count()
+                tareas_completas = ActividadSecundaria.objects.filter(idActividadPrincipal_id=id_tarea_principal,
+                                                                      idestado_id=5).count() == ActividadSecundaria.objects.filter(
+                    idActividadPrincipal_id=id_tarea_principal).count()
                 # Se cambia el estado de la tarea principal en caso de que exista la condicion de arriba.
                 if tareas_completas:
                     actividad_principal = ActividadPrincipal.objects.get(id=id_tarea_principal)
@@ -2069,25 +2216,28 @@ def tareas_desarrollo_success(request):
                 actividad_principal = ActividadPrincipal.objects.get(id=task)
                 actividad_principal.idestado_id = 5
                 actividad_principal.save()
-                
+
                 # Comprobacion en caso de que todas las actividades esten realizadas para darle el cambio al proyecto en general
                 # Traer el id de del desarrollo principal
                 ticket_desarrollo = actividad_principal.idTicketDesarrollo
                 id_ticket_desarrollo = ticket_desarrollo.id
-                
-                tareas_completas_principales = ActividadPrincipal.objects.filter(idTicketDesarrollo_id=id_ticket_desarrollo, idestado_id=5).count() == ActividadPrincipal.objects.filter(idTicketDesarrollo_id=id_ticket_desarrollo).count()
-                
+
+                tareas_completas_principales = ActividadPrincipal.objects.filter(
+                    idTicketDesarrollo_id=id_ticket_desarrollo,
+                    idestado_id=5).count() == ActividadPrincipal.objects.filter(
+                    idTicketDesarrollo_id=id_ticket_desarrollo).count()
+
                 if tareas_completas_principales:
                     proyecto_main = TicketDesarrollo.objects.get(id=id_ticket_desarrollo)
                     proyecto_main.idestado_id = 4
                     proyecto_main.save()
 
-
-        return JsonResponse({'status': 'success','message': 'Datos recibidos correctamente'})
+        return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'})
     else:
         return JsonResponse({'error': 'Método no permitido'}, status=405)
-    
-@csrf_exempt  
+
+
+@csrf_exempt
 def asgin_admin_project(request, id_agente, id_ticket):
     try:
         fecha_actual = datetime.now()
@@ -2100,6 +2250,6 @@ def asgin_admin_project(request, id_agente, id_ticket):
         proyecto.fechaAsignacion = fechaAsignacion
         proyecto.save()
         # Devolver la respuesta JSON
-        return JsonResponse({'status': 'success','message': 'Datos recibidos correctamente'})
+        return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'})
     except:
         return JsonResponse({'error': 'No se pudo realizar el cambio de Agente administrador del proyecto'}, status=405)

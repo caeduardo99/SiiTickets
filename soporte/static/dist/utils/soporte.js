@@ -1,10 +1,44 @@
-$(document).ready(function () {
-    $('#myTabs a').on('click', function (e) {
-        e.preventDefault();
-        $(this).tab('show');
+$('#myTabs a').on('click', function (e) {
+    e.preventDefault();
+    $(this).tab('show');
+    console.log('Se hizo clic en la pestaña');
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    var inputTitleProject = document.getElementById("inputTitleProject");
+    var spanTitleProject = document.getElementById("spanTitleProject");
+    var rowSolicitante = document.getElementById("rowSolicitante");
+    var rowAgente = document.getElementById("rowAgente");
+    var rowButtonTask = document.getElementById("rowButtonTask");
+    var rowButtonCreateTicket = document.getElementById("rowButtonCreateTicket");
+    var rowTableTask = document.getElementById("rowTableTask");
+    var form = document.querySelector('form');
+
+    // Ocultar la fila Solicitante inicialmente
+    rowSolicitante.style.display = "none";
+
+    inputTitleProject.addEventListener("input", function () {
+        var inputValue = inputTitleProject.value.trim();
+
+        // Muestra u oculta los elementos según el contenido del textarea
+        if (inputValue !== "") {
+            rowSolicitante.style.display = "block";
+            rowAgente.style.display = "block";
+            rowButtonTask.style.display = "none";
+            rowButtonCreateTicket.style.display = "block";
+            rowTableTask.style.display = "none";
+            spanTitleProject.style.display = "none";
+        } else {
+            rowSolicitante.style.display = "none";
+            rowAgente.style.display = "none";
+            rowButtonTask.style.display = "block";
+            rowButtonCreateTicket.style.display = "block";
+            rowTableTask.style.display = "none";
+            spanTitleProject.style.display = "block";
+        }
     });
 
-    // Manejar la respuesta del servidor después de enviar el formulario
     $('form').submit(function (event) {
         event.preventDefault();  // Evitar que el formulario se envíe normalmente
 
@@ -39,3 +73,4 @@ $(document).ready(function () {
         });
     });
 });
+
