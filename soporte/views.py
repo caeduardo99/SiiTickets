@@ -26,7 +26,6 @@ from collections import defaultdict
 from django.utils import timezone
 
 
-
 def login_user(request):
     # Verificar si el usuario ya está autenticado
     if request.user.is_authenticated:
@@ -629,6 +628,43 @@ def get_tickets_cpanel(request):
     }
 
     return JsonResponse(context, safe=False)
+
+
+@login_required
+def consultatareas_view(request):
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
+    connection = connections['default']
+    with connection.cursor() as cursor:
+        if nombre_usuario and nombre_usuario == 'mafer':
+            # Consulta para el usuario 'mafer'
+            cursor.execute("""
+                SELECT DISTINCT st.id, aps.descripcion as descripciontareas,
+                (au.first_name || ' ' || au.last_name) AS agentetareas,
+                aps.idestado_id as estado,
+                aps.fechainicio, aps.fechafinal
+                FROM soporte_ticketsoporte st
+                LEFT JOIN soporte_actividadprincipalsoporte aps ON st.id = aps.idTicketSoporte_id
+                LEFT JOIN auth_user au ON aps.idAgente_id = au.id
+            """)
+        else:
+            # Consulta para otros usuarios
+            cursor.execute("""
+                SELECT DISTINCT st.id, aps.descripcion as descripciontareas,
+                (au.first_name || ' ' || au.last_name) AS agentetareas,
+                aps.idestado_id as estado,
+                aps.fechainicio, aps.fechafinal
+                FROM soporte_ticketsoporte st
+                LEFT JOIN soporte_actividadprincipalsoporte aps ON st.id = aps.idTicketSoporte_id
+                LEFT JOIN auth_user au ON aps.idAgente_id = au.id
+                WHERE au.username = %s
+            """, [nombre_usuario])
+
+        # Obtener los resultados de la consulta
+        columns = [col[0] for col in cursor.description]
+        result = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta como JSON
+    return JsonResponse(result, safe=False)
 
 
 @login_required
