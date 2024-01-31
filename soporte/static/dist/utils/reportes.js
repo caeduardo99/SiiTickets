@@ -14,6 +14,7 @@ $(document).ready(function () {
   const btnGenerateReport = document.getElementById("btnGenerateReport");
   const optionsAgentPeriodo = document.getElementById("optionsAgentPeriodo");
   const rowTableTickets = document.getElementById("rowTableTickets");
+  const rowTableTicketsSoporte = document.getElementById('rowTableTicketsSoporte');
   const radiosTicketsTime1 = document.getElementById("radiosTicketsTime1");
   const agentesolicitado = document.getElementById("agentesolicitado");
   const inputDateEnd = document.getElementById("inputDateEnd");
@@ -23,6 +24,7 @@ $(document).ready(function () {
   const tableBodyFilterProjects = document.getElementById(
     "tableBodyFilterProjects"
   );
+  const tableBodyFilterSoportes = document.getElementById('tableBodyFilterSoportes');
   var nombreUsuario = document.getElementById("nombreUsuario").value;
   var masNuevos = true;
   var masAntiguos = false;
@@ -101,108 +103,125 @@ $(document).ready(function () {
     }
   }
 
+  function generateTablaReport(arrayDb, table){
+    table.innerHTML = '';
+    arrayDb.forEach(function (item) {
+      var row = table.insertRow();
+      var cellId = row.insertCell(0);
+      cellId.innerHTML = `000-0${item.id}`;
+
+      var cellNombreProyecto = row.insertCell(1);
+      cellNombreProyecto.innerHTML = item.tituloProyecto;
+
+      var fechaCreacion = item.fechaCreacion;
+      var fechaEstimada = item.fechaFinalizacionEstimada;
+      var fechaCreacionFormateada = formatFecha(fechaCreacion);
+      var fechaFinalFormateada = formatFecha(fechaEstimada);
+      var cellFechaCreacion = row.insertCell(2);
+      cellFechaCreacion.innerHTML = fechaCreacionFormateada;
+
+      var cellFechaFinalizacion = row.insertCell(3);
+      cellFechaFinalizacion.innerHTML =
+        item.fechaFinalizacionEstimada == null
+          ? "Sin asignar"
+          : fechaFinalFormateada;
+
+      var cellEstado = row.insertCell(4);
+      cellEstado.innerHTML = item.Estado;
+
+      var cellAgenteAdministrador = row.insertCell(5);
+      cellAgenteAdministrador.innerHTML = `${item.Nombre} ${item.Apellido}`;
+
+      // STYLO DE LA FILA Y FUNCIONAMIENTO DEL CLICK
+      row.style.cursor = "pointer";
+      row.addEventListener("click", function () {
+        const ticketId = item.id;
+        // AJAX PARA HACER UNA CONSULTA... se usa el ID para poder consultar la información
+        fetch(`getInfoReport/${ticketId}/`)
+          .then((response) => response.json())
+          .then((data) => {
+            let proyectoinfo,
+              infoTaskMain,
+              infoTaskSecond,
+              infoAgentWork,
+              infoEnterpiseWork;
+            proyectoinfo = data.infoGeneralProject;
+            infoTaskMain = data.tasksMain;
+            infoTaskSecond = data.tasksSecundary;
+            infoAgentWork = data.hourWorkAgent;
+            infoEnterpiseWork = data.hourWorkEnterprise;
+            hoursSuccess =
+              data.hourWorlProject.length == 0
+                ? null
+                : data.hourWorlProject[0].horasPrincipales;
+
+            var fechaCreacionFormateada = formatFecha(
+              proyectoinfo.fechaCreacion
+            );
+            var fechaEstimadaFormateada = formatFecha(
+              proyectoinfo.fechaFinalizacionEstimada
+            );
+
+            makePdf(
+              proyectoinfo.tituloProyecto,
+              proyectoinfo.descripcionActividadGeneral,
+              `${proyectoinfo.NombreAgenteAdministrador} ${proyectoinfo.ApellidoAgenteAdministrador}`,
+              fechaCreacionFormateada,
+              fechaEstimadaFormateada,
+              proyectoinfo.NombreCompletoSolicitante,
+              proyectoinfo.nombreEmpresa,
+              infoTaskMain,
+              proyectoinfo.EstadoProyecto,
+              proyectoinfo.horasCompletasProyecto,
+              infoTaskSecond,
+              infoAgentWork,
+              infoEnterpiseWork,
+              hoursSuccess
+            );
+          });
+      });
+
+      row.addEventListener("mouseenter", function () {
+        var tooltip = new bootstrap.Tooltip(row, {
+          title: "Click para generar Reporte de este ticket",
+        });
+      });
+      // Al salir de la fila
+      row.addEventListener("mouseleave", function () {
+        // Destruye el tooltip al salir del área de la fila
+        row.removeAttribute("data-bs-toggle");
+        row.removeAttribute("data-bs-placement");
+        row.removeAttribute("title");
+      });
+    });
+  }
+
   btnGenerateReport.addEventListener("click", function () {
-    tableBodyFilterProjects.innerHTML = "";
+    rowTableTickets.style.display = "none";
+    rowTableTicketsSoporte.style.display = "none";
     // FUNCIONAMIENTO DE LA CONSULTA DE LOS RESPORTES
     $.ajax({
       type: "GET",
       url: `generateReport/?tipo_ticket=${selectTypeTicket.value}&estado_ticket=${selectStateTicket.value}&recientes=${masNuevos}&antiguos=${masAntiguos}&agente=${agentesolicitado.value}&fechaInicio=${inputDateStar.value}&fechaFin=${inputDateEnd.value}`,
       dataType: "json",
       success: function (data) {
-        if (data.length != 0) {
-          rowTableTickets.style.display = "";
-          data.forEach(function (item) {
-            var row = tableBodyFilterProjects.insertRow();
-            var cellId = row.insertCell(0);
-            cellId.innerHTML = `000-0${item.id}`;
-
-            var cellNombreProyecto = row.insertCell(1);
-            cellNombreProyecto.innerHTML = item.tituloProyecto;
-
-            var fechaCreacion = item.fechaCreacion;
-            var fechaEstimada = item.fechaFinalizacionEstimada;
-            var fechaCreacionFormateada = formatFecha(fechaCreacion);
-            var fechaFinalFormateada = formatFecha(fechaEstimada);
-            var cellFechaCreacion = row.insertCell(2);
-            cellFechaCreacion.innerHTML = fechaCreacionFormateada;
-
-            var cellFechaFinalizacion = row.insertCell(3);
-            cellFechaFinalizacion.innerHTML =
-              item.fechaFinalizacionEstimada == null
-                ? "Sin asignar"
-                : fechaFinalFormateada;
-
-            var cellEstado = row.insertCell(4);
-            cellEstado.innerHTML = item.Estado;
-
-            var cellAgenteAdministrador = row.insertCell(5);
-            cellAgenteAdministrador.innerHTML = `${item.Nombre} ${item.Apellido}`;
-
-            // STYLO DE LA FILA Y FUNCIONAMIENTO DEL CLICK
-            row.style.cursor = "pointer";
-            row.addEventListener("click", function () {
-              const ticketId = item.id;
-              // AJAX PARA HACER UNA CONSULTA... se usa el ID para poder consultar la información
-              fetch(`getInfoReport/${ticketId}/`)
-                .then((response) => response.json())
-                .then((data) => {
-                  console.log(data);
-                  let proyectoinfo,
-                    infoTaskMain,
-                    infoTaskSecond,
-                    infoAgentWork,
-                    infoEnterpiseWork;
-                  proyectoinfo = data.infoGeneralProject;
-                  infoTaskMain = data.tasksMain;
-                  infoTaskSecond = data.tasksSecundary;
-                  infoAgentWork = data.hourWorkAgent;
-                  infoEnterpiseWork = data.hourWorkEnterprise;
-                  hoursSuccess =
-                    data.hourWorlProject.length == 0
-                      ? null
-                      : data.hourWorlProject[0].horasPrincipales;
-
-                  var fechaCreacionFormateada = formatFecha(
-                    proyectoinfo.fechaCreacion
-                  );
-                  var fechaEstimadaFormateada = formatFecha(
-                    proyectoinfo.fechaFinalizacionEstimada
-                  );
-
-                  makePdf(
-                    proyectoinfo.tituloProyecto,
-                    proyectoinfo.descripcionActividadGeneral,
-                    `${proyectoinfo.NombreAgenteAdministrador} ${proyectoinfo.ApellidoAgenteAdministrador}`,
-                    fechaCreacionFormateada,
-                    fechaEstimadaFormateada,
-                    proyectoinfo.NombreCompletoSolicitante,
-                    proyectoinfo.nombreEmpresa,
-                    infoTaskMain,
-                    proyectoinfo.EstadoProyecto,
-                    proyectoinfo.horasCompletasProyecto,
-                    infoTaskSecond,
-                    infoAgentWork,
-                    infoEnterpiseWork,
-                    hoursSuccess
-                  );
-                });
-            });
-
-            row.addEventListener("mouseenter", function () {
-              var tooltip = new bootstrap.Tooltip(row, {
-                title: "Click para generar Reporte de este ticket",
-              });
-            });
-            // Al salir de la fila
-            row.addEventListener("mouseleave", function () {
-              // Destruye el tooltip al salir del área de la fila
-              row.removeAttribute("data-bs-toggle");
-              row.removeAttribute("data-bs-placement");
-              row.removeAttribute("title");
-            });
-          });
-        } else {
-          toastr.error("No se han encontrado datos del reporte seleccionado.");
+        // Consulta de Desarrollo
+        if(selectTypeTicket.value == 3){
+          if (data.length != 0) {
+            rowTableTickets.style.display = "";
+            generateTablaReport(data, tableBodyFilterProjects)
+          } else {
+            toastr.error("No se han encontrado datos del reporte seleccionado.");
+          }
+        }
+        // Consulta de soporte
+        if(selectTypeTicket.value == 1){
+          if (data.length != 0) {
+            rowTableTicketsSoporte.style.display = "";
+            generateTablaReport(data, tableBodyFilterSoportes)
+          } else {
+            toastr.error("No se han encontrado datos del reporte seleccionado.");
+          }
         }
       },
     });
