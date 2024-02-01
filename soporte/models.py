@@ -45,9 +45,8 @@ class TicketActualizacion(models.Model):
                                       related_name='ticket_actualizacion_solicitante')
     fechaCreacion = models.DateTimeField()
     fechaInicio = models.DateTimeField()
+    fechaFinalizacionEstimada = models.DateTimeField()
     fechaFinalizacion = models.DateTimeField()
-    fechaFinalizacionReal = models.DateTimeField()
-    horasDiariasAsignadas = models.DecimalField(max_digits=5, decimal_places=2)
     moduloActualizar = models.ForeignKey(ModuloSii4, on_delete=models.CASCADE,
                                          related_name='ticket_actualizacion_modulo')
     descripcionGeneral = models.CharField(max_length=255)
@@ -95,7 +94,13 @@ class TicketSoporte(models.Model):
     trabajoRealizado = models.TextField(null=True, blank=True)  # Campo para describir el trabajo realizado
     imagenes = models.ImageField(upload_to='ticket_images/', null=True, blank=True)
 
-
+class ActividadPrincipalActualizacion(models.Model):
+    id = models.AutoField(primary_key=True)
+    descripcion = models.CharField(max_length=255)
+    idTicketDesarrollo = models.ForeignKey(TicketActualizacion, on_delete=models.CASCADE)
+    horasDiariasAsignadas = models.IntegerField()
+    idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_actividad_actualizacion_estado')
+    idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ticket_actualizacion_agente')
 
 class ActividadPrincipal(models.Model):
     id = models.AutoField(primary_key=True)

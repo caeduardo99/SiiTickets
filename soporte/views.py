@@ -1090,7 +1090,7 @@ def getInfoReport(request, id_ticket):
     return JsonResponse(context, safe=False)
 
 
-def ticketactualizacioncreados(request):
+def ticketsActualizacionCreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
     # Construir la consulta SQL
     consulta_sql = """
@@ -1914,59 +1914,41 @@ from soporte_modulosii4 sm
 
 @require_POST
 def crear_ticket_actualizacion(request):
-    fecha_actual = datetime.now()
-    # Obtener los datos del formulario
-    id_agente = request.POST.get('agentesolicitado', '')
-    id_solicitante = request.POST.get('solicitante', '')
-    fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
-    fecha_inicio = request.POST.get('fecha_asignacion', '')
-    fecha_finalizacion = request.POST.get('fecha_estimado', '')
-    fecha_finalizacion_real = request.POST.get('fecha_finalizacion', '')
-    horasDiariasAsignadas = request.POST.get('horasDiariasAsignadas', '')
-    idmoduloActualizar = request.POST.get('modulo', '')
-    descripcionGeneral = request.POST.get('descripcionGeneral')
-    observaciones = request.POST.get('observaciones', '')
-    prioridad = request.POST.get('prioridad', '')
-    id_estado = request.POST.get('estado', '')
-    facturar = request.POST.get('factura', '')
-
     try:
-        # Obtener la instancia del solicitante
-        solicitante = Solicitante.objects.get(id=id_solicitante)
+        id_solicitante = request.POST.get('selectSolicitante')
+        id_agente = request.POST.get('agentesolicitado', None)
+        id_modulo = request.POST.get('selectModulo')
+        horas_totales = request.POST.get('horasDiariasAsignadas')
+        observaciones = request.POST.get('observaciones', '')
+        descripcion = request.POST.get('descripcionGeneral')
+        prioridad = request.POST.get('selectPrioridad')
+        id_estado = 1
+        fecha_asignacion = None
+        fecha_inicio = None
+        fecha_creacion = None
+        fecha_finalizacion_estimada = request.POST.get('fecha_estimado')
+        array_tasks_main_json = request.POST.get('arrayTasksMain')
 
-        # Obtener la instancia del usuario (agente)
-        agente = User.objects.get(id=id_agente)
+        # Cambio de estado dependiendo de la seleccion del agente
+        if id_agente == '2' or id_agente == '':
+            print(id_agente)
+            id_estado = 1
+            fecha_asignacion = None
+            fecha_inicio = None
+            fecha_creacion = None
+        else:
+            id_estado = 2
+            fecha_asignacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            fecha_inicio = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            fecha_creacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-        estado = EstadosTicket.objects.get(id=id_estado)
 
-        modulo = ModuloSii4.objects.get(id=idmoduloActualizar)
 
-        # Crear una instancia de TicketSoporte con los datos del formulario
-        nuevo_ticket = TicketActualizacion(
-            idAgente=agente,
-            idSolicitante=solicitante,
-            fechaCreacion=fecha_creacion,
-            fechaInicio=fecha_inicio,
-            fechaFinalizacion=fecha_finalizacion,
-            fechaFinalizacionReal=fecha_finalizacion_real,
-            horasDiariasAsignadas=horasDiariasAsignadas,
-            moduloActualizar=modulo,
-            descripcionGeneral=descripcionGeneral,
-            observaciones=observaciones,
-            prioridad=prioridad,
-            idestado=estado,
-            facturar=facturar
-        )
-
-        nuevo_ticket.save()
-
-        return JsonResponse({'status': 'success', 'message': 'Ticket creado con éxito'})
-    except Solicitante.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Solicitante no encontrado'}, status=400)
-    except User.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Usuario (agente) no encontrado'}, status=400)
+        print('idSolicitante', id_solicitante, 'idAgente', id_agente, 'horas', horas_totales, 'idmodulo', id_modulo, 'observaciones', observaciones, 'descripcion', descripcion, 'prioridad', prioridad, 'idEstado', id_estado, 'FechaAsignacion', fecha_asignacion, 'fechaInicio', fecha_inicio, 'fechaCreacion', fecha_creacion, 'FechaFinalizacionEstimada', fecha_finalizacion_estimada)
+        print('Arreglo de las tareas', array_tasks_main_json)
+        return JsonResponse({'status': 'success', 'message': 'Ticket de actualizacion creado con exito'})
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
+            return JsonResponse({'error': 'Error al actualizar la empresa'})
 
 
 @require_POST

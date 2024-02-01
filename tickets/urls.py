@@ -48,7 +48,7 @@ urlpatterns = [
     path('get_tickets_cpanel/', views.get_tickets_cpanel, name='get_tickets_cpanel'),
     path('editar_ticket_soporte/', views.editar_ticket_soporte, name='editar_ticket_soporte'),
 
-    path('ticketactualizacioncreados/', views.ticketactualizacioncreados, name='ticketactualizacioncreados'),
+    path('ticketsActualizacionCreados/', views.ticketsActualizacionCreados, name='ticketsActualizacionCreados'),
     path('crear_ticket_actualizacion/', views.crear_ticket_actualizacion, name='crear_ticket_actualizacion'),
     path('detalles_actualizacion/', views.detalles_actualizacion, name='detalles_actualizacion'),
     path('editar_ticket_actualizar/', views.editar_ticket_actualizar, name='editar_ticket_actualizar'),

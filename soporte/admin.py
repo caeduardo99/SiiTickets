@@ -17,6 +17,7 @@ admin.site.register(ActividadPrincipal)
 admin.site.register(ActividadSecundaria)
 admin.site.register(Solicitante)
 admin.site.register(EstadosTicket)
+admin.site.register(ModuloSii4)
 
 # Personalizar la visualización de User en el admin si es necesario
 admin.site.unregister(User)  # Desregistrar la UserAdmin predeterminada para evitar conflictos
