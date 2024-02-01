@@ -536,7 +536,7 @@
 
         function llenarModal(detalleTicket) {
             var imagenModal = $('#imagenModal');
-            var rutaImagen = 'http://192.168.1.125:93/media/' + detalleTicket.ticket[0].imagenes;
+            var rutaImagen = 'http://192.168.1.121:8000/media/' + detalleTicket.ticket[0].imagenes;
 
             var imagenInput = $('#imagenInput');
             var valorImagen = detalleTicket.ticket[0].imagenes;
@@ -844,7 +844,7 @@
             return Promise.all(actividades.map(actividad => {
                 return new Promise((resolve, reject) => {
                     if (actividad.imagen_actividades) {
-                        var rutaImagen = 'http://192.168.1.125:93/media/' + actividad.imagen_actividades;
+                        var rutaImagen = 'http://192.168.1.121:8000/media/' + actividad.imagen_actividades;
 
                         convertirImagenABase64(rutaImagen, function (imagenBase64) {
                             resolve(imagenBase64);
@@ -1246,7 +1246,7 @@
                 var imageName = imagenInput.value;
 
                 // Construye la URL completa de la imagen
-                var imageUrl = "http://192.168.1.125:93/media/" + imageName;
+                var imageUrl = "http://192.168.1.121:8000/media/" + imageName;
 
                 // Abre la imagen en una nueva ventana
                 window.open(imageUrl, "_blank");

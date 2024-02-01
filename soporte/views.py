@@ -923,7 +923,9 @@ def generateReport(request):
 
     if tipo_ticket == '1':
         consulta = """
-        select * from soporte_ticketsoporte st
+        select st.id,st.comentario,se.descripcion as Estado, st.fechafinalizacion as fechaFinalizacionEstimada , st.fechacreacion as fechaCreacion ,au.first_name as Nombre, au.last_name as Apellido  from soporte_ticketsoporte st
+        INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
+        INNER JOIN auth_user au ON au.id = st.idAgente_id
         """
     elif tipo_ticket == '2':
         consulta = """
