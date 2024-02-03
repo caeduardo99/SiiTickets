@@ -133,6 +133,8 @@ $(document).ready(function () {
 
     // Funcionamiento del boton para agregar una nueva tarea principal
     btnNewTask.addEventListener('click', function(){
+        btnCreateTicket.disabled = true;
+        btnNewTask.disabled = true;
         rowTableTasks.style.display = '';
         var row = document.createElement('tr');
         var cellInputTarea = document.createElement('td');
@@ -174,6 +176,18 @@ $(document).ready(function () {
             option.textContent = agente.full_name;
             selectElement.appendChild(option);
         }
+        // Funcionamiento del select
+        selectElement.addEventListener('change', function(){
+            if(inputTarea.value != '' && inputNumHoras.value != 0 && inputDate.value != '' && selectElement.value != ''){
+                toastr.success('Puede agregar una nueva tarea o terminar el ticket')
+                btnCreateTicket.disabled = false;
+                btnNewTask.disabled = false;
+            }else{
+                toastr.error('Por favor agrege un valor y vuelva hacer la seleccion del agente.', 'Uno de los campos se encuentra sin datos.')
+                btnCreateTicket.disabled = true;
+                btnNewTask.disabled = true;
+            }
+        })
         
 
         cellInputTarea.appendChild(inputTarea)

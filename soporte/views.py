@@ -13,7 +13,8 @@ from .models import (
     TicketDesarrollo,
     ActividadPrincipal,
     ActividadSecundaria,
-    ActividadPrincipalSoporte
+    ActividadPrincipalSoporte,
+    ActividadPrincipalActualizacion
 )
 from django.contrib.auth.models import User, Group
 from .models import Solicitante, EstadosTicket
@@ -1925,30 +1926,76 @@ def crear_ticket_actualizacion(request):
         id_estado = 1
         fecha_asignacion = None
         fecha_inicio = None
-        fecha_creacion = None
         fecha_finalizacion_estimada = request.POST.get('fecha_estimado')
         array_tasks_main_json = request.POST.get('arrayTasksMain')
+        array_tasks_main = json.loads(array_tasks_main_json)
+        fecha_actual = datetime.now()
+        fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
 
         # Cambio de estado dependiendo de la seleccion del agente
         if id_agente == '2' or id_agente == '':
-            print(id_agente)
             id_estado = 1
+            id_agente = 2
             fecha_asignacion = None
             fecha_inicio = None
-            fecha_creacion = None
         else:
             id_estado = 2
-            fecha_asignacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            fecha_inicio = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            fecha_creacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-
+            fecha_asignacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
+            fecha_inicio = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
+            
 
         print('idSolicitante', id_solicitante, 'idAgente', id_agente, 'horas', horas_totales, 'idmodulo', id_modulo, 'observaciones', observaciones, 'descripcion', descripcion, 'prioridad', prioridad, 'idEstado', id_estado, 'FechaAsignacion', fecha_asignacion, 'fechaInicio', fecha_inicio, 'fechaCreacion', fecha_creacion, 'FechaFinalizacionEstimada', fecha_finalizacion_estimada)
-        print('Arreglo de las tareas', array_tasks_main_json)
-        return JsonResponse({'status': 'success', 'message': 'Ticket de actualizacion creado con exito'})
+        # Creacion del registro de ticket principal
+        newTicketActualizacion = TicketActualizacion(
+            idAgente=User.objects.get(id=id_agente),
+            idSolicitante=Solicitante.objects.get(id=id_solicitante),
+            fechaCreacion=fecha_creacion,
+            fechaInicio=fecha_inicio,
+            fechaFinalizacionEstimada=fecha_finalizacion_estimada,
+            fechaFinalizacion=None,
+            moduloActualizar=ModuloSii4.objects.get(id=id_modulo),
+            descripcionGeneral=descripcion,
+            observaciones=observaciones,
+            prioridad=prioridad,
+            idestado=EstadosTicket.objects.get(id=id_estado),
+            facturar=True
+        )
+
+        newTicketActualizacion.save()
+            
+        # Creacion de la consulta para ver el nombre del soporte
+        # Consulta para el ID de las personas
+        consulta_sql = """
+        SELECT * FROM soporte_ticketactualizacion
+        """
+        if descripcion is not None:
+            consulta_sql += f" WHERE descripcionGeneral = %s AND observaciones = %s AND idAgente_id = %s"
+
+        connection = connections["default"]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_sql, [descripcion, observaciones, id_agente])
+            columns = [col[0] for col in cursor.description]
+            resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        id_ticket_actual = resultados[0]["id"]
+
+        if len(array_tasks_main) != 0:
+            for task in array_tasks_main:
+                newTaskMain = ActividadPrincipalActualizacion(
+                    descripcion=task['descripcion'],
+                    idTicketDesarrollo=TicketActualizacion.objects.get(idTicketDesarrollo=id_ticket_actual),
+                    horasDiariasAsignadas=task['numeroHoras'],
+                    idestado=EstadosTicket.objects.get(id=2),
+                    idAgente=User.objects.get(id=task['responsableTarea'])
+                )
+                newTaskMain.save()
+
+        
+        print('Arreglo de las tareas', type(array_tasks_main))
+        return JsonResponse({'status': 'success', 'message': 'Ticket de actualización creado con exito'})
     except Exception as e:
-            return JsonResponse({'error': 'Error al actualizar la empresa'})
+            return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
 
 
 @require_POST

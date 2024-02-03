@@ -44,9 +44,9 @@ class TicketActualizacion(models.Model):
     idSolicitante = models.ForeignKey(Solicitante, on_delete=models.CASCADE,
                                       related_name='ticket_actualizacion_solicitante')
     fechaCreacion = models.DateTimeField()
-    fechaInicio = models.DateTimeField()
+    fechaInicio = models.DateTimeField(null=True, blank=True)
     fechaFinalizacionEstimada = models.DateTimeField()
-    fechaFinalizacion = models.DateTimeField()
+    fechaFinalizacion = models.DateTimeField(null=True, blank=True)
     moduloActualizar = models.ForeignKey(ModuloSii4, on_delete=models.CASCADE,
                                          related_name='ticket_actualizacion_modulo')
     descripcionGeneral = models.CharField(max_length=255)

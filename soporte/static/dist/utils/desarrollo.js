@@ -365,6 +365,7 @@ $(document).ready(function () {
   // METODO PARA MANEJAR EL EVENTO CLICK DEL BOTON DE LA NUEVA TAREA PRINCIPAL
   btnNewTask.addEventListener("click", function () {
     rowTableTask.style.display = "";
+    btnNewTask.disabled = true;
     btnCreateTicket.disabled = true;
 
     var nuevaFila = document.createElement("tr");
@@ -475,9 +476,11 @@ $(document).ready(function () {
       var selectedId = this.value;
       let horasSecundariasArray = [];
       
-      if(selectedId != 0){
+      if(selectedId != 0 && inputText.value != '' && inputHoras.value != 0){
+        toastr.success('Agrege la información detallada de la actividad', 'Los campos estan completo')
         btnAddSecond.disabled = false
       }else{
+        toastr.success('Verifique que los campso de descripcion y horas esten completos', 'Información incompleta!')
         btnAddSecond.disabled = true
       }
 
@@ -571,10 +574,12 @@ $(document).ready(function () {
         },
       });
     });
+    
     // Lógica para eliminar la fila
     btnEliminar.onclick = function () {
       nuevaFila.remove();
     };
+    
     // Logica para agregar tarea secundaria
     btnAddSecond.onclick = function () {
       var descripcion = inputText.value;
