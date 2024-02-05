@@ -889,8 +889,7 @@ $(document).ready(function () {
   function loadListProjects() {
     ticketsTableBody.innerHTML = "";
     if (
-      resultadosProyectos.length != 0 &&
-      resultadosProyectos[0].tituloProyecto != undefined
+      resultadosProyectos.length != 0
     ) {
       resultadosProyectos.forEach((proyecto) => {
         const row = ticketsTableBody.insertRow();
@@ -1146,7 +1145,6 @@ $(document).ready(function () {
         buttonCell.appendChild(button);
       });
     } else {
-      console.log("No hay proyectos");
       var row = ticketsTableBody.insertRow();
       var cell = row.insertCell();
       cell.innerHTML =

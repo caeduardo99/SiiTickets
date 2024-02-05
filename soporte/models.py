@@ -99,6 +99,7 @@ class ActividadPrincipalActualizacion(models.Model):
     descripcion = models.CharField(max_length=255)
     idTicketDesarrollo = models.ForeignKey(TicketActualizacion, on_delete=models.CASCADE)
     horasDiariasAsignadas = models.IntegerField()
+    fechaDesarrollo = models.DateTimeField()
     idestado = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_actividad_actualizacion_estado')
     idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ticket_actualizacion_agente')
 
