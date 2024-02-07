@@ -112,6 +112,9 @@ def soporte(request):
 def desarrollo(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
 
+    usuarios_grupo_1 = User.objects.filter(groups__id=1).values_list('username', flat=True)
+
+
     consultGroupUser = """
     SELECT au.id AS idUser, au.first_name, aug.group_id 
  	FROM auth_user au
@@ -146,6 +149,15 @@ def desarrollo(request):
 def desarrolloact(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
 
+
+    consultGroupUser = """
+        SELECT au.id AS idUser, au.first_name, aug.group_id 
+     	FROM auth_user au
+     	INNER JOIN auth_user_groups aug ON aug.user_id = au.id
+     	WHERE au.username = %s
+        """
+    connection = connections['default']
+
     # Llamar a la función solicitantes para obtener los resultados
     resultados_solicitantes = solicitantesjson(request)
 
@@ -166,12 +178,19 @@ def desarrolloact(request):
 
     resultados_modulos_data = json.loads(resultados_modulo.content)
 
+    # CONSULTA
+    with connection.cursor() as cursor:
+        cursor.execute(consultGroupUser, [nombre_usuario])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
     context = {
         'nombre_usuario': nombre_usuario,
         'resultados_solicitantes_data': resultados_solicitantes_data,
         'resultados_agentes_data': resultados_agentes_data,
         'resultados_estados_data': resultados_estados_data,
         'resultados_modulos_data': resultados_modulos_data,
+        'resultados': resultados
     }
     return render(request, 'desarrollo_actualizacion.html', context)
 
@@ -2054,7 +2073,10 @@ def crear_ticket_actualizacion(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
 
+
 from django.db import transaction
+
+
 def crear_empresa(request):
     fecha_actual = datetime.now()
     # Obtener los datos del formulario
@@ -2090,7 +2112,6 @@ def crear_empresa(request):
         user.groups.add(group)
 
     return JsonResponse({'status': 'success', 'message': 'Empresa creada con éxito'})
-
 
 
 @require_POST

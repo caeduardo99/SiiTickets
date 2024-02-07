@@ -1,157 +1,166 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-<section class="content-header">
-    <div class="container-fluid">
-        <div class="row mb-2">
-            <div class="col-sm-6">
-                <h3>Actualización</h3>
-            </div>
-        </div>
-    </div><!-- /.container-fluid -->
-</section>
-<div class="content">
-    <ul class="nav nav-tabs" id="myTabs">
-        <li class="nav-item">
-            <a class="nav-link active" id="nuevoticket-tab" data-toggle="tab" href="#nuevoticket">Nuevo Ticket</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Tickets</a>
-        </li>
-    </ul>
-
-    <div class="tab-content mt-2">
-        <!-- Contenido de la pestaña Nuevo Ticket -->
-        <div class="tab-pane fade show active" id="nuevoticket">
-            <div class="card mb-3" id="cardAlertNoPermissions">
-                <div class="card-header bg-warning text-white">Alerta!</div>
-                <div class="card-body">
-                    <h4>El usuario no tiene los permisos para crear un proyecto.</h4>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">Verificar que el grupo de usuario logeado sea <b><i>empresas_soporte</i></b>.</li>
-                    </ul>
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h3>Actualización</h3>
                 </div>
             </div>
+        </div><!-- /.container-fluid -->
+    </section>
+    <div class="content">
+        <ul class="nav nav-tabs" id="myTabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="nuevoticket-tab" data-toggle="tab" href="#nuevoticket">Nuevo Ticket</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Tickets</a>
+            </li>
+        </ul>
 
-            <div class="card mb-3" id="newTicketActualizacion">
-                <div class="card-header bg-warning text-white">Detalles del Ticket de Actualización</div>
-                <div class="card-body">
-                    <form class="form" method="post" action="{% url 'crear_ticket_actualizacion' %}">
-                        {% csrf_token %}
-                        <!-- Funcionalidad del agente asignado y el Solicitante -->
-                        <div class="row g-1">
-                            <div class="form-group col-md-6">
-                                <label for="solicitante">Solicitante:</label>
-                                <select class="select2" id="selectSolicitante" style="width: 100%;" name="selectSolicitante">
-                                    <option value="">Seleccione Solicitante</option>
-                                    {% for solicitante in resultados_solicitantes_data %}
-                                    <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
-                                        {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
+        <div class="tab-content mt-2">
+            <!-- Contenido de la pestaña Nuevo Ticket -->
+            <div class="tab-pane fade show active" id="nuevoticket">
+                <div class="card mb-3" id="cardAlertNoPermissions">
+                    <div class="card-header bg-warning text-white">Alerta!</div>
+                    <div class="card-body">
+                        <h4>El usuario no tiene los permisos para crear un proyecto.</h4>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Verificar que el grupo de usuario logeado sea <b><i>empresas_soporte</i></b>.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card mb-3" id="newTicketActualizacion">
+                    <div class="card-header bg-warning text-white">Detalles del Ticket de Actualización</div>
+                    <div class="card-body">
+                        <form class="form" method="post" action="{% url 'crear_ticket_actualizacion' %}">
+                            {% csrf_token %}
+                            <!-- Funcionalidad del agente asignado y el Solicitante -->
+                            <div class="row g-1">
+                                <div class="form-group col-md-6">
+                                    <label for="solicitante">Solicitante:</label>
+                                    <select class="select2" id="selectSolicitante" style="width: 100%;"
+                                            name="selectSolicitante">
+                                        <option value="">Seleccione Solicitante</option>
+                                        {% for solicitante in resultados_solicitantes_data %}
+                                            <option value="{{ solicitante.id }}"
+                                                    data-empresa="{{ solicitante.nombreEmpresa }}">
+                                                {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="agentesolicitado">Agente Asignado</label>
+                                    <select class="select2" id="agentesolicitado" style="width: 100%;"
+                                            name="agentesolicitado">
+                                        <option value="">Seleccione Agente</option>
+                                        {% for agente in resultados_agentes_data %}
+                                            <option value="{{ agente.id }}">
+                                                {{ agente.full_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="agentesolicitado">Agente Asignado</label>
-                                <select class="select2" id="agentesolicitado" style="width: 100%;" name="agentesolicitado">
-                                    <option value="">Seleccione Agente</option>
-                                    {% for agente in resultados_agentes_data %}
-                                    <option value="{{ agente.id }}">
-                                        {{ agente.full_name }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
+                            <div class="row g-1">
+                                <div class="form-group col-md-6" id="rowModulo" style="display: none;">
+                                    <label for="modulo">Modulo Actualizar</label>
+                                    <select class="select2" id="selectModulo" style="width: 100%;" name="selectModulo">
+                                        <option value="">Seleccione Modulo</option>
+                                        {% for modulo in resultados_modulos_data %}
+                                            <option value="{{ modulo.id }}">
+                                                {{ modulo.modulo }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6" id="rowHorasAsignadas" style="display: none;">
+                                    <label for="horasDiariasAsignadas">Horas Asignadas:</label>
+                                    <input class="form-control" id="horasDiariasAsignadas" name="horasDiariasAsignadas"
+                                           placeholder="Ingrese las Horas" type="number"></input>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row g-1">
-                            <div class="form-group col-md-6" id="rowModulo" style="display: none;">
-                                <label for="modulo">Modulo Actualizar</label>
-                                <select class="select2" id="selectModulo" style="width: 100%;" name="selectModulo">
-                                    <option value="">Seleccione Modulo</option>
-                                    {% for modulo in resultados_modulos_data %}
-                                    <option value="{{ modulo.id }}">
-                                        {{ modulo.modulo }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
+                            <div class="row g-1">
+                                <div class="form-group col-md-6" id="rowObservaciones" style="display: none;">
+                                    <label for="observaciones">Observaciones</label>
+                                    <textarea class="form-control" id="observaciones" name="observaciones"
+                                              placeholder="Ingrese Oberservaciones"></textarea>
+                                </div>
+                                <div class="form-group col-md-6" id="rowDescripcionGeneral" style="display: none;">
+                                    <label for="descripcionGeneral">Descripción General</label>
+                                    <textarea class="form-control" id="descripcionGeneral" name="descripcionGeneral"
+                                              placeholder="Ingrese Descripción"></textarea>
+                                </div>
                             </div>
-                            <div class="form-group col-md-6" id="rowHorasAsignadas" style="display: none;">
-                                <label for="horasDiariasAsignadas">Horas Asignadas:</label>
-                                <input class="form-control" id="horasDiariasAsignadas" name="horasDiariasAsignadas"
-                                    placeholder="Ingrese las Horas" type="number"></input>
-                            </div>
-                        </div>
-                        <div class="row g-1">
-                            <div class="form-group col-md-6" id="rowObservaciones" style="display: none;">
-                                <label for="observaciones">Observaciones</label>
-                                <textarea class="form-control" id="observaciones" name="observaciones"
-                                    placeholder="Ingrese Oberservaciones"></textarea>
-                            </div>
-                            <div class="form-group col-md-6" id="rowDescripcionGeneral" style="display: none;">
-                                <label for="descripcionGeneral">Descripción General</label>
-                                <textarea class="form-control" id="descripcionGeneral" name="descripcionGeneral"
-                                    placeholder="Ingrese Descripción"></textarea>
-                            </div>
-                        </div>
-                        <div class="row g-1">
-                            <div class="form-group col-md-6" id="rowPrioridad" style="display: none;">
-                                <label for="prioridad">Prioridad:</label>
-                                <select class="select2" id="selectPrioridad" style="width: 100%;" name="selectPrioridad">
-                                    <option selected>Dificultad del trabajo</option>
-                                    <option value="Alta">Alta</option>
-                                    <option value="Media">Media</option>
-                                    <option value="Baja">Baja</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6" id="rowFechaEstimada" style="display: none;">
-                                <label>Fecha Estimada Fin:</label>
-                                <div class="input-group">
-                                    <input type="text" id="fecha_ticket_estimado" name="fecha_estimado"
-                                                   class="form-control"/>
-                                                   <div class="input-group-append">
-                                                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            <div class="row g-1">
+                                <div class="form-group col-md-6" id="rowPrioridad" style="display: none;">
+                                    <label for="prioridad">Prioridad:</label>
+                                    <select class="select2" id="selectPrioridad" style="width: 100%;"
+                                            name="selectPrioridad">
+                                        <option selected>Dificultad del trabajo</option>
+                                        <option value="Alta">Alta</option>
+                                        <option value="Media">Media</option>
+                                        <option value="Baja">Baja</option>
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-6" id="rowFechaEstimada" style="display: none;">
+                                    <label>Fecha Estimada Fin:</label>
+                                    <div class="input-group">
+                                        <input type="text" id="fecha_ticket_estimado" name="fecha_estimado"
+                                               class="form-control"/>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="row g-1">
-                            <div class="form-group col-6">
-                                <button class="btn btn-block btn-outline-dark" id="btnNewTask" type="button" disabled>Agregar tarea principal</button>
-                            </div>
-                            <div class="form-group col-6">
-                                <button type="submit" id="btnCreateTicket" class="btn btn-success btn-block" disabled>Crear Ticket de Soporte</button>
-                            </div>    
-                        </div>
-                        <div class="row g-1" id="rowTableTasks" style="display: none;">
-                            <div class="col-md-12">
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-sm table-striped">
-                                        <thead>
-                                          <tr>
-                                            <th scope="col">Tarea</th>
-                                            <th scope="col"># Horas Diarias</th>
-                                            <th scope="col">Fecha</th>
-                                            <th scope="col">Agente</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody id="tbodyTasksMain">
-                                          
-                                        </tbody>
-                                      </table>
+                            <div class="row g-1">
+                                <div class="form-group col-6">
+                                    <button class="btn btn-block btn-outline-dark" id="btnNewTask" type="button"
+                                            disabled>Agregar tarea principal
+                                    </button>
+                                </div>
+                                <div class="form-group col-6">
+                                    <button type="submit" id="btnCreateTicket" class="btn btn-success btn-block"
+                                            disabled>Crear Ticket de Soporte
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    </form>
+                            <div class="row g-1" id="rowTableTasks" style="display: none;">
+                                <div class="col-md-12">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-sm table-striped">
+                                            <thead>
+                                            <tr>
+                                                <th scope="col">Tarea</th>
+                                                <th scope="col"># Horas Diarias</th>
+                                                <th scope="col">Fecha</th>
+                                                <th scope="col">Agente</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody id="tbodyTasksMain">
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="tab-pane fade" id="vertickets">
-            <div class="card mb-3">
-                <div class="card-header bg-warning text-white">Detalles del Ticket</div>
-                <div class="card-body">
-                    <table class="table table-sm table-striped table-hover">
-                        <thead>
+            <div class="tab-pane fade" id="vertickets">
+                <div class="card mb-3">
+                    <div class="card-header bg-warning text-white">Detalles del Ticket</div>
+                    <div class="card-body">
+                        <table class="table table-sm table-striped table-hover">
+                            <thead>
                             <tr>
                                 <th>Ticket</th>
                                 <th>Empresa</th>
@@ -161,154 +170,157 @@
                                 <th>Estado</th>
                                 <th>Acción</th>
                             </tr>
-                        </thead>
-                        <tbody id="tbodyTicketsActualizacionCreados">
+                            </thead>
+                            <tbody id="tbodyTicketsActualizacionCreados">
 
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Modal para Detalles de la actualización -->
-<div class="modal fade" id="detalleTicketModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Detalles del Ticket de Actualización</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="editarTicketForm" method="post" action="{% url 'editar_ticket_actualizar' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="_method" value="PUT">
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="modalNumTicket">Número de Ticket:</label>
-                            <input type="number" class="form-control" id="modalNumTicket" name="numeroticketedit"
-                                readonly>
+    <!-- Modal para Detalles de la actualización -->
+    <div class="modal fade" id="detalleTicketModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Detalles del Ticket de Actualización</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editarTicketForm" method="post" action="{% url 'editar_ticket_actualizar' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="_method" value="PUT">
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="modalNumTicket">Número de Ticket:</label>
+                                <input type="number" class="form-control" id="modalNumTicket" name="numeroticketedit"
+                                       readonly>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="fecha_ticket_asignacionedit">Fecha asignación:</label>
+                                <input type="text" class="form-control" id="fecha_ticket_asignacionedit"
+                                       name="fecha_ticket_asignacionedit">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="fecha_estimadoedit">Fecha Estimada Fin:</label>
+                                <input type="text" class="form-control" id="fecha_estimadoedit"
+                                       name="fecha_estimadoedit">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="fecha_finalizacionedit">Fecha Finalización:</label>
+                                <input type="text" class="form-control" id="fecha_finalizacionedit"
+                                       name="fecha_finalizacionedit">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="solicitanteEdit">Solicitante:</label>
+                                <select class="select2" id="solicitanteEdit" style="width: 100%;"
+                                        name="solicitanteEdit">
+                                    <option value="">Seleccione Solicitante</option>
+                                    {% for solicitanteedit in resultados_solicitantes_data %}
+                                        <option value="{{ solicitanteedit.id }}"
+                                                data-empresa="{{ solicitanteedit.nombreEmpresa }}">
+                                            {{ solicitanteedit.nombreApellido }} - {{ solicitanteedit.nombreEmpresa }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="agentesolicitadoedit">Agente Asignado</label>
+                                <select class="select2" id="agentesolicitadoedit" style="width: 100%;"
+                                        name="agentesolicitadoedit">
+                                    <option value="">Seleccione Agente</option>
+                                    <!-- Opciones para el select de agente solicitado -->
+                                    {% for agenteedit in resultados_agentes_data %}
+                                        <option value="{{ agenteedit.id }}">
+                                            {{ agenteedit.full_name }}
+                                        </option>
+                                    {% endfor %}
+                                    <!-- Agrega más opciones según sea necesario -->
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="moduloEdit">Modulo Actualizar</label>
+                                <select class="select2" id="moduloEdit" style="width: 100%;" name="moduloEdit">
+                                    <option value="">Seleccione Modulo</option>
+                                    {% for moduloedit in resultados_modulos_data %}
+                                        <option value="{{ moduloedit.id }}">
+                                            {{ moduloedit.modulo }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="horasDiariasAsignadasedit">Horas Asignadas:</label>
+                                <input class="form-control" id="horasDiariasAsignadasedit"
+                                       name="horasDiariasAsignadasedit"
+                                       placeholder="Ingrese las Horas">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="observacionesedit">Observaciones:</label>
+                                <textarea class="form-control" id="observacionesedit" name="observacionesedit"
+                                          placeholder="Ingrese Observaciones"></textarea>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="descripcionGeneraledit">Descripción General:</label>
+                                <textarea class="form-control" id="descripcionGeneraledit" name="descripcionGeneraledit"
+                                          placeholder="Ingrese Descripción General"></textarea>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="prioridadEdit">Prioridad:</label>
+                                <select class="select2" id="prioridadEdit" style="width: 100%;" name="prioridadEdit">
+                                    <option value="Alta">Alta</option>
+                                    <option value="Media">Media</option>
+                                    <option value="Baja">Baja</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="facturaEdit">¿Se debe emitir factura?</label>
+                                <select class="select2" id="facturaEdit" style="width: 100%;" name="facturaEdit">
+                                    <option value="1">Sí</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label for="estadoEdit">Estado:</label>
+                                <select class="select2" id="estadoEdit" style="width: 100%;" name="estadoEdit">
+                                    <option value="">Seleccione Estado</option>
+                                    {% for estadoedit in resultados_estados_data %}
+                                        <option value="{{ estadoedit.id }}">
+                                            {{ estadoedit.descripcion }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="fecha_ticket_asignacionedit">Fecha asignación:</label>
-                            <input type="text" class="form-control" id="fecha_ticket_asignacionedit"
-                                name="fecha_ticket_asignacionedit">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="fecha_estimadoedit">Fecha Estimada Fin:</label>
-                            <input type="text" class="form-control" id="fecha_estimadoedit" name="fecha_estimadoedit">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="fecha_finalizacionedit">Fecha Finalización:</label>
-                            <input type="text" class="form-control" id="fecha_finalizacionedit"
-                                name="fecha_finalizacionedit">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="solicitanteEdit">Solicitante:</label>
-                            <select class="select2" id="solicitanteEdit" style="width: 100%;" name="solicitanteEdit">
-                                <option value="">Seleccione Solicitante</option>
-                                {% for solicitanteedit in resultados_solicitantes_data %}
-                                <option value="{{ solicitanteedit.id }}"
-                                    data-empresa="{{ solicitanteedit.nombreEmpresa }}">
-                                    {{ solicitanteedit.nombreApellido }} - {{ solicitanteedit.nombreEmpresa }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="agentesolicitadoedit">Agente Asignado</label>
-                            <select class="select2" id="agentesolicitadoedit" style="width: 100%;"
-                                name="agentesolicitadoedit">
-                                <option value="">Seleccione Agente</option>
-                                <!-- Opciones para el select de agente solicitado -->
-                                {% for agenteedit in resultados_agentes_data %}
-                                <option value="{{ agenteedit.id }}">
-                                    {{ agenteedit.full_name }}
-                                </option>
-                                {% endfor %}
-                                <!-- Agrega más opciones según sea necesario -->
-                            </select>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="moduloEdit">Modulo Actualizar</label>
-                            <select class="select2" id="moduloEdit" style="width: 100%;" name="moduloEdit">
-                                <option value="">Seleccione Modulo</option>
-                                {% for moduloedit in resultados_modulos_data %}
-                                <option value="{{ moduloedit.id }}">
-                                    {{ moduloedit.modulo }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="horasDiariasAsignadasedit">Horas Asignadas:</label>
-                            <input class="form-control" id="horasDiariasAsignadasedit" name="horasDiariasAsignadasedit"
-                                placeholder="Ingrese las Horas">
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="observacionesedit">Observaciones:</label>
-                            <textarea class="form-control" id="observacionesedit" name="observacionesedit"
-                                placeholder="Ingrese Observaciones"></textarea>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="descripcionGeneraledit">Descripción General:</label>
-                            <textarea class="form-control" id="descripcionGeneraledit" name="descripcionGeneraledit"
-                                placeholder="Ingrese Descripción General"></textarea>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="prioridadEdit">Prioridad:</label>
-                            <select class="select2" id="prioridadEdit" style="width: 100%;" name="prioridadEdit">
-                                <option value="Alta">Alta</option>
-                                <option value="Media">Media</option>
-                                <option value="Baja">Baja</option>
-                            </select>
-                        </div>
-                        <div class="form-group col-md-6">
-                            <label for="facturaEdit">¿Se debe emitir factura?</label>
-                            <select class="select2" id="facturaEdit" style="width: 100%;" name="facturaEdit">
-                                <option value="1">Sí</option>
-                                <option value="0">No</option>
-                            </select>
-                        </div>
-                        <div class="form-group col-md-4">
-                            <label for="estadoEdit">Estado:</label>
-                            <select class="select2" id="estadoEdit" style="width: 100%;" name="estadoEdit">
-                                <option value="">Seleccione Estado</option>
-                                {% for estadoedit in resultados_estados_data %}
-                                <option value="{{ estadoedit.id }}">
-                                    {{ estadoedit.descripcion }}
-                                </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
-<script type="text/javascript">
-    // Incorporar datos directamente en el script
-    window.resultados_agentes_data = [
-        {% for agente in resultados_agentes_data %}
-    {
-        id: "{{ agente.id }}",
-            full_name: "{{ agente.full_name }}"
-    },
-    {% endfor %}
+    <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
+    <script type="text/javascript">
+        // Incorporar datos directamente en el script
+        window.resultados_agentes_data = [
+            {% for agente in resultados_agentes_data %}
+                {
+                    id: "{{ agente.id }}",
+                    full_name: "{{ agente.full_name }}"
+                },
+            {% endfor %}
         ];
-        
-</script>
-<script src="../static/dist/utils/actualizacion.js"></script>
+        var resultadosConsulta = {{ resultados|safe }};
+    </script>
+    <script src="../static/dist/utils/actualizacion.js"></script>
 {% endblock %}
