@@ -1181,7 +1181,7 @@ def ticketsActualizacionCreados(request):
                 resultados_empresa_tickets = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
             return JsonResponse(resultados_empresa_tickets, safe=False)
-    
+
 
 def ticketsoportescreadosid(request):
     # Obtener el valor del parámetro "id" de la solicitud
@@ -2002,7 +2002,6 @@ def crear_ticket_actualizacion(request):
         else:
             id_estado = 2
             fecha_inicio = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
-            
 
         # Creacion del registro de ticket principal
         newTicketActualizacion = TicketActualizacion(
@@ -2021,7 +2020,7 @@ def crear_ticket_actualizacion(request):
         )
 
         newTicketActualizacion.save()
-            
+
         # # Creacion de la consulta para ver el nombre del soporte
         # # Consulta para el ID de las personas
         consulta_sql = """
@@ -2051,13 +2050,11 @@ def crear_ticket_actualizacion(request):
                 )
                 newTaskMain.save()
 
-        
         return JsonResponse({'status': 'success', 'message': 'Ticket de actualización creado con exito'})
     except Exception as e:
-            return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
+        return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
 
-
-@require_POST
+from django.db import transaction
 def crear_empresa(request):
     fecha_actual = datetime.now()
     # Obtener los datos del formulario
@@ -2066,18 +2063,34 @@ def crear_empresa(request):
     direccion = request.POST.get('direccion', '')
     telefono = request.POST.get('telefono', '')
     email = request.POST.get('email', '')
-    nueva_empresa = Empresa(
 
-        fechaCreacion=fecha_creacion,
-        nombreEmpresa=nombreEmpresa,
-        direccion=direccion,
-        telefono=telefono,
-        email=email,
-    )
+    # Verificar si la empresa ya existe
+    if Empresa.objects.filter(nombreEmpresa=nombreEmpresa).exists():
+        return JsonResponse({'status': 'error', 'message': 'La empresa ya existe'})
 
-    nueva_empresa.save()
+    # Crear la empresa y el usuario asociado dentro de una transacción atómica
+    with transaction.atomic():
+        # Crear la nueva empresa
+        nueva_empresa = Empresa(
+            fechaCreacion=fecha_creacion,
+            nombreEmpresa=nombreEmpresa,
+            direccion=direccion,
+            telefono=telefono,
+            email=email,
+        )
+        nueva_empresa.save()
+
+        # Crear el usuario asociado a la empresa
+        username = nombreEmpresa
+        password = '8soptativa'  # Contraseña por defecto
+        user = User.objects.create_user(username=username, password=password, email=email)
+
+        # Asignar el usuario al grupo correspondiente (group_id=1)
+        group = Group.objects.get(pk=1)  # Suponiendo que el grupo Administradores tiene pk=1
+        user.groups.add(group)
 
     return JsonResponse({'status': 'success', 'message': 'Empresa creada con éxito'})
+
 
 
 @require_POST

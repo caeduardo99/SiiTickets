@@ -455,7 +455,7 @@
 
     <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
-    <script type="text/javascript">
+    <script type="text/javascript"  >
         // Incorporar datos directamente en el script
         window.resultados_agentes_data = [
             {% for agente in resultados_agentes_data %}
@@ -469,9 +469,16 @@
 
 
     <script>
+
+        function obtenerDireccionIP() {
+            // Lógica para obtener la dirección IP, puede variar según el entorno
+            // Aquí se utiliza un ejemplo simple para obtener la IP del host actual
+            return 'http://' + window.location.host + '/media/';
+        }
+
         function cargarTablaTickets() {
             $.ajax({
-                url: '{% url "ticketsoportescreados" %}',
+                url: 'ticketsoportescreados/',
                 method: 'GET',
                 dataType: 'json',
                 success: function (data) {
@@ -480,53 +487,53 @@
                     var nombreUsuario = $('#usuario').text();
                     console.log('Nombre de usuario:', nombreUsuario);
 
-
-                    // Iterar sobre los datos y agregar filas a la tabla
-                    $.each(data, function (index, ticket) {
-                        var newRow = '<tr>' +
-                            '<td>' + ticket.NumTicket + '</td>' +
-                            '<td>' + ticket.NombreEmpresa + '</td>' +
-                            '<td>' + ticket.Motivo + '</td>' +
-                            '<td>' + ticket.Solicitante + '</td>' +
-                            '<td>' + ticket.Prioridad + '</td>' +
-                            '<td>' + ticket.full_name + '</td>' +
-                            '<td>' + ticket.Estado + '</td>' +
-                            '<td><button class="btn btn-success ver-button" data-ticket-id="' + ticket.NumTicket + '">Ver</button></td>' +
-                            '</tr>';
-                        $('#tickets-table tbody').append(newRow);
-
-                    });
-
-                    // Agregar un evento de clic a los botones "Ver"
-                    $('.ver-button').on('click', function () {
-                        var ticketId = $(this).data('ticket-id');
-
-                        // Realizar una nueva solicitud AJAX para obtener la información detallada del ticket
-                        $.ajax({
-                            url: '{% url "ticketsoportescreadosid" %}?id=' + ticketId,
-                            method: 'GET',
-                            dataType: 'json',
-
-                            success: function (detalleTicket) {
-                                // Llenar el modticketIdal con la información obtenida
-                                llenarModal(detalleTicket);
-                                // Abrir el modal
-
-                                // Agregar un evento clic específico para el botón "Generar PDF"
-                                $('#otroBoton').off('click').on('click', function () {
-                                    generarpdf(detalleTicket);
-                                });
-
-                                $('#detalleTicketModal').modal('show');
-                            },
-                            error: function (error) {
-                                console.log('Error en la solicitud AJAX:', error);
-                            }
+                    // Verificar si hay datos en el arreglo
+                    if (data.length === 0) {
+                        // Mostrar mensaje centrado cuando no hay datos
+                        $('#tickets-table tbody').append('<tr><td colspan="8" class="text-center">No hay tickets de soporte creados en ningún estado.</td></tr>');
+                    } else {
+                        // Iterar sobre los datos y agregar filas a la tabla
+                        $.each(data, function (index, ticket) {
+                            var newRow = '<tr>' +
+                                '<td>' + ticket.NumTicket + '</td>' +
+                                '<td>' + ticket.NombreEmpresa + '</td>' +
+                                '<td>' + ticket.Motivo + '</td>' +
+                                '<td>' + ticket.Solicitante + '</td>' +
+                                '<td>' + ticket.Prioridad + '</td>' +
+                                '<td>' + ticket.full_name + '</td>' +
+                                '<td>' + ticket.Estado + '</td>' +
+                                '<td><button class="btn btn-success ver-button" data-ticket-id="' + ticket.NumTicket + '">Ver</button></td>' +
+                                '</tr>';
+                            $('#tickets-table tbody').append(newRow);
                         });
 
+                        // Agregar un evento de clic a los botones "Ver"
+                        $('.ver-button').on('click', function () {
+                            var ticketId = $(this).data('ticket-id');
 
-                    });
+                            // Realizar una nueva solicitud AJAX para obtener la información detallada del ticket
+                            $.ajax({
+                                url: 'ticketsoportescreadosid/?id=' + ticketId,
+                                method: 'GET',
+                                dataType: 'json',
 
+                                success: function (detalleTicket) {
+                                    // Llenar el modal con la información obtenida
+                                    llenarModal(detalleTicket);
+
+                                    // Agregar un evento clic específico para el botón "Generar PDF"
+                                    $('#otroBoton').off('click').on('click', function () {
+                                        generarpdf(detalleTicket);
+                                    });
+
+                                    $('#detalleTicketModal').modal('show');
+                                },
+                                error: function (error) {
+                                    console.log('Error en la solicitud AJAX:', error);
+                                }
+                            });
+                        });
+                    }
                 },
                 error: function (error) {
                     console.log('Error en la solicitud AJAX:', error);
@@ -536,7 +543,7 @@
 
         function llenarModal(detalleTicket) {
             var imagenModal = $('#imagenModal');
-            var rutaImagen = 'http://192.168.1.121:8000/media/' + detalleTicket.ticket[0].imagenes;
+            var rutaImagen = obtenerDireccionIP() + detalleTicket.ticket[0].imagenes;
 
             var imagenInput = $('#imagenInput');
             var valorImagen = detalleTicket.ticket[0].imagenes;
@@ -844,7 +851,7 @@
             return Promise.all(actividades.map(actividad => {
                 return new Promise((resolve, reject) => {
                     if (actividad.imagen_actividades) {
-                        var rutaImagen = 'http://192.168.1.121:8000/media/' + actividad.imagen_actividades;
+                        var rutaImagen = obtenerDireccionIP() + actividad.imagen_actividades;
 
                         convertirImagenABase64(rutaImagen, function (imagenBase64) {
                             resolve(imagenBase64);
@@ -864,8 +871,11 @@
             var solicitante = detalleTicket.ticket[0].nombreApellido;
             var motivosoporte = detalleTicket.ticket[0].comentario;
             var fechaInicioCompleta = detalleTicket.ticket[0].fechaInicio;
+            var fechaFinalizacion = detalleTicket.ticket[0].fechaFinalizacionReal
             var fecha = moment(fechaInicioCompleta);
+            var fechafina = moment(fechaFinalizacion)
             var horaincio = fecha.format('DD/MM/YYYY HH:mm');
+            var horafinal = fechafina.format('DD/MM/YYYY HH:mm');
 
             if (detalleTicket.actividades && detalleTicket.actividades.length > 0) {
                 convertirImagenesABase64(detalleTicket.actividades)
@@ -953,7 +963,7 @@
                                     {text: empresa, alignment: 'left'},
                                     {
                                         text: '                                ' +
-                                            '                   ' +
+                                            '                  ' +
                                             'SOLICITANTE: ', style: 'subheaderNegritaFecha', alignment: 'right'
                                     },
                                     {
@@ -980,6 +990,17 @@
                                     },
                                 ],
                             },
+                            {
+                                text: [
+                                    {
+                                        text: 'HORA FINALIZACION: ', style: 'subheaderNegritaFecha', alignment: 'left'
+                                    },
+                                    {
+                                        text: horafinal,
+                                        alignment: 'left'
+                                    }
+                                ],
+                            },
                             '\n',
                             // Contenido de la segunda página con todas las imágenes y descripciones
                             {
@@ -1000,7 +1021,7 @@
                             var margenDerecho = (index < imagenesFiltradas.length - 1) ? [0, 10, 20, 0] : [0, 10, 0, 0];
                             return {
                                 image: imagenBase64,
-                                width: 150,
+                                width: 250,
                                 alignment: 'center',
                                 margin: margenDerecho,
                             };
@@ -1246,7 +1267,7 @@
                 var imageName = imagenInput.value;
 
                 // Construye la URL completa de la imagen
-                var imageUrl = "http://192.168.1.121:8000/media/" + imageName;
+                var imageUrl = obtenerDireccionIP() + imageName;
 
                 // Abre la imagen en una nueva ventana
                 window.open(imageUrl, "_blank");
