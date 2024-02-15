@@ -332,8 +332,10 @@ $(document).ready(function () {
     inputFechaDesarrollo.addEventListener('change', function(){
       if(inputFechaDesarrollo.value != ''){
         btnCreateTicket.disabled = false;
+        btnNewTask.disabled = false;
       }else{
         btnCreateTicket.disabled = true;
+        btnNewTask.disabled = true;
       }
     })
 
@@ -365,7 +367,6 @@ $(document).ready(function () {
   // METODO PARA MANEJAR EL EVENTO CLICK DEL BOTON DE LA NUEVA TAREA PRINCIPAL
   btnNewTask.addEventListener("click", function () {
     rowTableTask.style.display = "";
-    btnNewTask.disabled = true;
     btnCreateTicket.disabled = true;
 
     var nuevaFila = document.createElement("tr");
