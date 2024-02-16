@@ -31,7 +31,18 @@ $(document).ready(function () {
     const tbodyTasksMain = document.getElementById("tbodyTasksMain");
     const rowFechaEstimada = document.getElementById("rowFechaEstimada");
     var resultadosAgentesData = window.resultados_agentes_data;
-    let arrayTasksMain = [];
+    let arrayTasksMain = [], idTicket, infoTicketActualizar, horasCompletasTicket= 0, detalleTicket;
+
+    // Variables para el modal de edicion de tareas
+    const inputDescripcionGeneral = document.getElementById('inputDescripcionGeneral');
+    const inputEditNumHoras = document.getElementById('inputEditNumHoras');
+    const selectEditPrioridad = document.getElementById('selectEditPrioridad');
+    const selectEditAgenteSolicitado = document.getElementById('selectEditAgenteSolicitado');
+    const selectEditSolicitante = document.getElementById('selectEditSolicitante');
+    var nombreUsuario = document.getElementById("nombreUsuario").value;
+    const editFechaCreacion = document.getElementById('editFechaCreacion');
+    const editFechaFinEstimada = document.getElementById('editFechaFinEstimada');
+    const tbodyTareas = document.getElementById('tbodyTareas');
 
     //   Funcion principal para la carga de datos en la lista de ticket
     function cargarTablaTickets() {
@@ -39,8 +50,7 @@ $(document).ready(function () {
             .then((response) => response.json())
             .then((data) => {
                 tbodyTicketsActualizacionCreados.innerHTML = "";
-                console.log(data);
-                console.log('nazi', resultadosConsulta)
+
                 if (resultadosConsulta[0].group_id != 1) {
                     cardAlertNoPermissions.style.display = 'none';
                     newTicketActualizacion.style.display = '';
@@ -50,10 +60,8 @@ $(document).ready(function () {
                 }
                 // Informacion de la tabla y carga de la tabla
                 if (data.length != 0) {
-
                     // En caso de que la consulta tenga datos
                     tbodyTicketsActualizacionCreados.innerHTML = '';
-
                     data.forEach(function (item) {
                         var row = document.createElement("tr");
 
@@ -64,7 +72,7 @@ $(document).ready(function () {
                         cellEmpresa.textContent = item.NombreEmpresa;
 
                         var cellModulo = document.createElement("td");
-                        cellModulo.textContent = item.modulo;
+                        cellModulo.textContent = item.Modulo;
 
                         var cellSolicitante = document.createElement("td");
                         cellSolicitante.textContent = item.Solicitante;
@@ -80,6 +88,84 @@ $(document).ready(function () {
                         btnVer.className = 'btn btn-info btn-sm';
                         btnVer.id = 'btnVerDetallesTicket';
                         btnVer.textContent = 'Ver';
+                        btnVer.dataset.toggle = "modal";
+                        btnVer.dataset.target = "#detalleTicketModal";
+
+                        // Funcionamiento del boton Ver
+                        btnVer.addEventListener('click', function(){
+                            idTicket = item.NumTicket
+                            infoTicketActualizar = item;
+                            inputDescripcionGeneral.textContent = infoTicketActualizar.descripcionGeneral;
+                            // Consulta para los detalles del Ticket
+                            fetch(`detalleTicketActualizacion/${idTicket}/`)
+                            .then((response) => response.json())
+                            .then(async (data) => {
+                                detalleTicket = data
+                                horasCompletasTicket = 0
+                                console.log(detalleTicket)
+                                // Sumatoria de las horas
+                                for (let i = 0; i < detalleTicket.length; i++) {
+                                    horasCompletasTicket += detalleTicket[i].horasTarea;
+                                }
+                                inputEditNumHoras.value = horasCompletasTicket;
+
+                                selectEditPrioridad.value = "";
+                                selectEditPrioridad.value = infoTicketActualizar.Prioridad
+                                const changeEvent = new Event("change");
+                                selectEditPrioridad.dispatchEvent(changeEvent);
+                                
+                                selectEditAgenteSolicitado.value = "";
+                                selectEditAgenteSolicitado.value = infoTicketActualizar.idAgente
+                                const changeEventAgente = new Event("change");
+                                selectEditAgenteSolicitado.dispatchEvent(changeEventAgente);
+                                
+                                if(infoTicketActualizar.idEstado == 1 && (nombreUsuario == 'mafer' || nombreUsuario == 'superadmin')){
+                                    selectEditAgenteSolicitado.disabled = false
+                                }else{
+                                    selectEditAgenteSolicitado.disabled = true
+                                }
+
+                                // Aqui deberia ir el evento donde se cambia el valor del Select Agente para poder asignar al nuevo agente
+
+                                selectEditSolicitante.value = "";
+                                selectEditSolicitante.value = infoTicketActualizar.idSolicitante
+                                const changeEventSolicitante = new Event("change");
+                                selectEditSolicitante.dispatchEvent(changeEventSolicitante);
+
+                                editFechaCreacion.value = "";
+                                editFechaCreacion.value = infoTicketActualizar.fechaCreacion;
+
+                                editFechaFinEstimada.value = "";
+                                editFechaFinEstimada.value = infoTicketActualizar.fechaFinalizacionEstimada;
+
+                                // Tabulacion de las tareas
+                                tbodyTareas.innerHTML = ''
+                                detalleTicket.forEach(tarea => {
+                                    const row = document.createElement('tr');
+
+                                    const cellTarea = document.createElement('td');
+                                    cellTarea.textContent = tarea.DescripcionTarea;
+                                    row.appendChild(cellTarea);
+
+                                    const cellHoras = document.createElement('td');
+                                    cellHoras.textContent = tarea.horasTarea;
+                                    row.appendChild(cellHoras);
+
+                                    const cellFecha = document.createElement('td');
+                                    cellFecha.textContent = tarea.fechaDesarrollo;
+                                    row.appendChild(cellFecha)
+
+                                    const cellResponsable = document.createElement('td');
+                                    cellResponsable.textContent = `${tarea.NombreAgente} ${tarea.ApellidoAgente}`;
+                                    row.appendChild(cellResponsable);
+
+                                    // Aqui debe ir la funcionalidad de los checks primeramente ver el usuario que esta logeado, usar la variable nombreUsuario que ya esta definida globalmente
+
+
+                                    tbodyTareas.appendChild(row);
+                                })
+                            })
+                        });
                         cellAccion.appendChild(btnVer);
 
                         row.appendChild(cellTicket);
@@ -93,7 +179,6 @@ $(document).ready(function () {
                         tbodyTicketsActualizacionCreados.appendChild(row);
                     })
                 } else {
-
                     var row = document.createElement("tr");
                     var cell = document.createElement("td");
                     cell.textContent =
@@ -219,7 +304,7 @@ $(document).ready(function () {
 
         // Input para la fecha y hora del desarrollo de la actividad
         var inputDate = document.createElement("input");
-        inputDate.type = "date";
+        inputDate.type = "datetime-local";
         inputDate.className = "form-control form-control-sm";
         inputDate.id = "inputDateTask";
 

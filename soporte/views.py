@@ -1115,10 +1115,10 @@ def ticketsActualizacionCreados(request):
     consulta_sql = """"""
     if id_usuario == 2 or id_usuario == 1:
         consulta_sql += """
-        SELECT st.id as NumTicket, sm.modulo as Modulo, ss.nombreapellido as Solicitante,
-        st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa,
-        sm2.id as idModulo, sm2.modulo,
-        au.username as nombreUsuario, au.first_name as nombreAgente, au.last_name as apellidoAgente
+        SELECT st.id as NumTicket, sm.modulo as Modulo, ss.id as idSolicitante,ss.nombreapellido as Solicitante, st.descripcionGeneral,
+        st.prioridad as Prioridad, ses.id as idEstado,ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa,
+        sm2.id as idModulo, st.fechaCreacion, st.fechaInicio as fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion,
+        au.id as idAgente, au.username as nombreUsuario, au.first_name as nombreAgente, au.last_name as apellidoAgente
         FROM soporte_ticketactualizacion st
         left JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
         LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
@@ -1372,6 +1372,36 @@ def ticketDesarrolloCreados(request):
 
             return JsonResponse(resultados_empresa_tickets, safe=False)
 
+
+def detalleTicketActualizacion(request, ticket_id):
+    id_usuario = request.user.id if request.user.is_authenticated else None
+    consulta_sql = """
+    SELECT st.id as idTicket, st.descripcionGeneral, st.fechaCreacion, st.fechaInicio, st.fechaFinalizacionEstimada, st.fechaFinalizacion,
+	st.facturar,
+	sm.id as idModulo, sm.modulo,
+	se.id as idEstado, se.descripcion as Estado,
+	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante,
+	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+	sa.id as idTarea, sa.descripcion as DescripcionTarea, sa.fechaDesarrollo, sa.horasDiariasAsignadas as horasTarea
+    FROM soporte_ticketactualizacion st 
+    INNER JOIN soporte_modulosii4 sm on sm.id = st.moduloActualizar_id
+    INNER JOIN soporte_estadosticket se on se.id = st.idestado_id 
+    INNER JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
+    INNER JOIN soporte_actividadprincipalactualizacion sa on sa.idTicketDesarrollo_id = st.id 
+    INNER JOIN auth_user au on au.id = sa.idAgente_id  
+    WHERE st.id = %s
+    """
+
+    connection = connections["default"]
+
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql, [ticket_id])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
 
 def detalleTicketDesarrollo(request, ticket_id):
     id_usuario = request.user.id if request.user.is_authenticated else None

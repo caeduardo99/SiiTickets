@@ -10,6 +10,7 @@
             </div>
         </div><!-- /.container-fluid -->
     </section>
+    <input type="hidden" id="nombreUsuario" value="{{ user.username }}">
     <div class="content">
         <ul class="nav nav-tabs" id="myTabs">
             <li class="nav-item">
@@ -184,7 +185,7 @@
     <!-- Modal para Detalles de la actualización -->
     <div class="modal fade" id="detalleTicketModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
          aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">Detalles del Ticket de Actualización</h5>
@@ -193,112 +194,109 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <form id="editarTicketForm" method="post" action="{% url 'editar_ticket_actualizar' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="_method" value="PUT">
-                        <div class="form-row">
-                            <div class="form-group col-md-6">
-                                <label for="modalNumTicket">Número de Ticket:</label>
-                                <input type="number" class="form-control" id="modalNumTicket" name="numeroticketedit"
-                                       readonly>
+                    <form class="form">
+                        <div class="row g-1">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Descripcion general del Requerimiento</label>
+                                    <textarea id="inputDescripcionGeneral" class="form-control"
+                                        placeholder="Descripcion principal del requerimiento" name="inputDescripcionGeneral" disabled></textarea>
+                                </div>
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="fecha_ticket_asignacionedit">Fecha asignación:</label>
-                                <input type="text" class="form-control" id="fecha_ticket_asignacionedit"
-                                       name="fecha_ticket_asignacionedit">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Observaciones</label>
+                                    <textarea id="inputEditObservaciones" class="form-control"
+                                        placeholder="Escribir las observaciones" name="inputEditObservaciones" disabled></textarea>
+                                </div>
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="fecha_estimadoedit">Fecha Estimada Fin:</label>
-                                <input type="text" class="form-control" id="fecha_estimadoedit"
-                                       name="fecha_estimadoedit">
+                        </div>
+                        <div class="row g-1">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label># Horas del ticket</label>
+                                    <input type="number" id="inputEditNumHoras" class="form-control"
+                                        placeholder="Escriba el número de Horas completas" name="inputEditNumHoras" disabled>
+                                </div>
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="fecha_finalizacionedit">Fecha Finalización:</label>
-                                <input type="text" class="form-control" id="fecha_finalizacionedit"
-                                       name="fecha_finalizacionedit">
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="solicitanteEdit">Solicitante:</label>
-                                <select class="select2" id="solicitanteEdit" style="width: 100%;"
-                                        name="solicitanteEdit">
-                                    <option value="">Seleccione Solicitante</option>
-                                    {% for solicitanteedit in resultados_solicitantes_data %}
-                                        <option value="{{ solicitanteedit.id }}"
-                                                data-empresa="{{ solicitanteedit.nombreEmpresa }}">
-                                            {{ solicitanteedit.nombreApellido }} - {{ solicitanteedit.nombreEmpresa }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="agentesolicitadoedit">Agente Asignado</label>
-                                <select class="select2" id="agentesolicitadoedit" style="width: 100%;"
-                                        name="agentesolicitadoedit">
-                                    <option value="">Seleccione Agente</option>
-                                    <!-- Opciones para el select de agente solicitado -->
-                                    {% for agenteedit in resultados_agentes_data %}
-                                        <option value="{{ agenteedit.id }}">
-                                            {{ agenteedit.full_name }}
-                                        </option>
-                                    {% endfor %}
-                                    <!-- Agrega más opciones según sea necesario -->
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="moduloEdit">Modulo Actualizar</label>
-                                <select class="select2" id="moduloEdit" style="width: 100%;" name="moduloEdit">
-                                    <option value="">Seleccione Modulo</option>
-                                    {% for moduloedit in resultados_modulos_data %}
-                                        <option value="{{ moduloedit.id }}">
-                                            {{ moduloedit.modulo }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="horasDiariasAsignadasedit">Horas Asignadas:</label>
-                                <input class="form-control" id="horasDiariasAsignadasedit"
-                                       name="horasDiariasAsignadasedit"
-                                       placeholder="Ingrese las Horas">
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="observacionesedit">Observaciones:</label>
-                                <textarea class="form-control" id="observacionesedit" name="observacionesedit"
-                                          placeholder="Ingrese Observaciones"></textarea>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="descripcionGeneraledit">Descripción General:</label>
-                                <textarea class="form-control" id="descripcionGeneraledit" name="descripcionGeneraledit"
-                                          placeholder="Ingrese Descripción General"></textarea>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="prioridadEdit">Prioridad:</label>
-                                <select class="select2" id="prioridadEdit" style="width: 100%;" name="prioridadEdit">
+                            <div class="form-group col-md-3">
+                                <label for="prioridad">Prioridad:</label>
+                                <select class="select2" id="selectEditPrioridad" style="width: 100%;"
+                                        name="selectEditPrioridad" disabled>
+                                    <option selected>Dificultad del trabajo</option>
                                     <option value="Alta">Alta</option>
                                     <option value="Media">Media</option>
                                     <option value="Baja">Baja</option>
                                 </select>
                             </div>
-                            <div class="form-group col-md-6">
-                                <label for="facturaEdit">¿Se debe emitir factura?</label>
-                                <select class="select2" id="facturaEdit" style="width: 100%;" name="facturaEdit">
-                                    <option value="1">Sí</option>
-                                    <option value="0">No</option>
+                            <div class="form-group col-md-3">
+                                <label for="selectEditAgenteSolicitado">Agente encargado</label>
+                                <select class="select2" id="selectEditAgenteSolicitado" style="width: 100%;"
+                                    name="selectEditAgenteSolicitado">
+                                    <option value="">Seleccione Agente</option>
+                                    {% for agente in resultados_agentes_data %}
+                                    <option value="{{ agente.id }}">
+                                        {{ agente.full_name }}
+                                    </option>
+                                    {% endfor %}
                                 </select>
                             </div>
-                            <div class="form-group col-md-4">
-                                <label for="estadoEdit">Estado:</label>
-                                <select class="select2" id="estadoEdit" style="width: 100%;" name="estadoEdit">
-                                    <option value="">Seleccione Estado</option>
-                                    {% for estadoedit in resultados_estados_data %}
-                                        <option value="{{ estadoedit.id }}">
-                                            {{ estadoedit.descripcion }}
-                                        </option>
+                            <div class="form-group col-md-3">
+                                <label for="solicitante">Solicitante:</label>
+                                <select class="select2" id="selectEditSolicitante" style="width: 100%;" name="selectEditSolicitante" disabled>
+                                    <option value="">Seleccione Solicitante</option>
+                                    {% for solicitante in resultados_solicitantes_data %}
+                                    <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
+                                        {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
+                                    </option>
                                     {% endfor %}
                                 </select>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <div class="row g-1">
+                            <div class="col-md-6">
+                                <label>Fecha de creación</label>
+                                <div class="input-group">
+                                    <input type="text" id="editFechaCreacion" name="editFechaCreacion" class="form-control"
+                                        placeholder="Seleccione la fecha de creacion" disabled />
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label>Fecha de Finalizacion Estimada</label>
+                                <div class="input-group">
+                                    <input type="text" id="editFechaFinEstimada" name="editFechaFinEstimada" class="form-control"
+                                        placeholder="Seleccione la fecha de finalizacion" disabled />
+                                    <div class="input-group-append">
+                                        <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <hr>
+                        <div class="row g-1">
+                            <div class="col-md-12">
+                                <div class="table-responsive table-sm table-striped table-hover">
+                                    <table class="table">
+                                        <thead>
+                                          <tr>
+                                            <th scope="col">Tarea</th>
+                                            <th scope="col">Horas</th>
+                                            <th scope="col">Fecha de trabajo</th>
+                                            <th scope="col">Responsable</th>
+                                            <th scope="col">Acciones</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody id="tbodyTareas">
+                                            <!-- Informacion del cuerpo de la tabla -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
