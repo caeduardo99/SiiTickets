@@ -1130,10 +1130,10 @@ def ticketsActualizacionCreados(request):
         """
     else:
         consulta_sql += """
-        SELECT st.id as NumTicket, sm.modulo as Modulo, ss.nombreapellido as Solicitante,
+        SELECT st.id as NumTicket, sm.modulo as Modulo, ss.nombreapellido as Solicitante, ss.id as idSolicitante,
         st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa,
-        sm2.id as idModulo, sm2.modulo,
-        au.username as nombreUsuario, au.first_name as nombreAgente, au.last_name as apellidoAgente
+        sm2.id as idModulo, sm2.modulo,st.fechaCreacion, st.fechaInicio as fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion,
+        au.id as idAgente, au.username as nombreUsuario, au.first_name as nombreAgente, au.last_name as apellidoAgente
         FROM soporte_ticketactualizacion st
         left JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
         LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
@@ -1141,17 +1141,18 @@ def ticketsActualizacionCreados(request):
         LEFT JOIN soporte_modulosii4 sm on sm.id = st.moduloActualizar_id
         LEFT JOIN auth_user au ON au.id = st.idAgente_id
         LEFT JOIN soporte_modulosii4 sm2 on sm2.id = st.moduloActualizar_id
-        WHERE (st.idAgente_id = %s OR au.username = %s) AND ses.id = 2
+        INNER JOIN soporte_actividadprincipalactualizacion sa on sa.idTicketDesarrollo_id = st.id 
+        WHERE (sa.idAgente_id = %s OR au.username = %s) AND ses.id = 2
         """
 
     consulta_info_solicitantes = """
     SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
     """
     consulta_get_projects = """
-    SELECT st.id as NumTicket, sm.modulo as Modulo, ss.nombreapellido as Solicitante,
+    SELECT st.id as NumTicket, sm.modulo as Modulo, ss.nombreapellido as Solicitante, ss.id as idSolicitante,
     st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa,
-    sm2.id as idModulo, sm2.modulo,
-    au.username as nombreUsuario, au.first_name as nombreAgente, au.last_name as apellidoAgente
+    sm2.id as idModulo, sm2.modulo,st.fechaCreacion, st.fechaInicio as fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion,
+    au.id as idAgente, au.username as nombreUsuario, au.first_name as nombreAgente, au.last_name as apellidoAgente
     FROM soporte_ticketactualizacion st
     left JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
     LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id
@@ -1376,8 +1377,8 @@ def ticketDesarrolloCreados(request):
 def detalleTicketActualizacion(request, ticket_id):
     id_usuario = request.user.id if request.user.is_authenticated else None
     consulta_sql = """
-    SELECT st.id as idTicket, st.descripcionGeneral, st.fechaCreacion, st.fechaInicio, st.fechaFinalizacionEstimada, st.fechaFinalizacion,
-	st.facturar,
+    SELECT st.id as idTicket, st.descripcionGeneral, st.fechaCreacion, st.fechaInicio, st.fechaFinalizacionEstimada, st.fechaFinalizacion,au.username,
+	st.facturar, st.idestado_id as idEstadoProyecto,
 	sm.id as idModulo, sm.modulo,
 	se.id as idEstado, se.descripcion as Estado,
 	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante,
@@ -1385,10 +1386,10 @@ def detalleTicketActualizacion(request, ticket_id):
 	sa.id as idTarea, sa.descripcion as DescripcionTarea, sa.fechaDesarrollo, sa.horasDiariasAsignadas as horasTarea
     FROM soporte_ticketactualizacion st 
     INNER JOIN soporte_modulosii4 sm on sm.id = st.moduloActualizar_id
-    INNER JOIN soporte_estadosticket se on se.id = st.idestado_id 
+    INNER JOIN soporte_estadosticket se on se.id = sa.idestado_id 
     INNER JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
     INNER JOIN soporte_actividadprincipalactualizacion sa on sa.idTicketDesarrollo_id = st.id 
-    INNER JOIN auth_user au on au.id = sa.idAgente_id  
+    INNER JOIN auth_user au on au.id = sa.idAgente_id   
     WHERE st.id = %s
     """
 
@@ -2133,15 +2134,17 @@ def crear_empresa(request):
         nueva_empresa.save()
 
         # Crear el usuario asociado a la empresa
-        username = nombreEmpresa
-        password = '8soptativa'  # Contraseña por defecto
-        user = User.objects.create_user(username=username, password=password, email=email)
+        print(nombreEmpresa.split())
+        
+    #     username = nombreEmpresa
+    #     password = '8soptativa'  # Contraseña por defecto
+    #     user = User.objects.create_user(username=username, password=password, email=email)
 
-        # Asignar el usuario al grupo correspondiente (group_id=1)
-        group = Group.objects.get(pk=1)  # Suponiendo que el grupo Administradores tiene pk=1
-        user.groups.add(group)
+    #     # Asignar el usuario al grupo correspondiente (group_id=1)
+    #     group = Group.objects.get(pk=1)  # Suponiendo que el grupo Administradores tiene pk=1
+    #     user.groups.add(group)
 
-    return JsonResponse({'status': 'success', 'message': 'Empresa creada con éxito'})
+    # return JsonResponse({'status': 'success', 'message': 'Empresa creada con éxito'})
 
 
 @require_POST

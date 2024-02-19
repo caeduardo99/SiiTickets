@@ -984,7 +984,6 @@ $(document).ready(function () {
                   // Agregar una nueva celda con un checkbox, revisa que en primer lugar el estado de la tarea debe ser diferente de 5 por el tema de que debe estar en proceso,tambien debe ser del grupo de agentes y debe el estadod el proyecto ser diferente a 1 que POR ASIGNAR
                   if (
                     tarea.idEstadoActividadPrincipal != 5 &&
-                    resultadosConsulta[0].group_id !== 1 &&
                     tarea.idEstadoProyecto !== 1
                   ) {
                     // Condicion en caso de que las actividades esten en proceso
