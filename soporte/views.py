@@ -2134,17 +2134,16 @@ def crear_empresa(request):
         nueva_empresa.save()
 
         # Crear el usuario asociado a la empresa
-        print(nombreEmpresa.split())
         
-    #     username = nombreEmpresa
-    #     password = '8soptativa'  # Contraseña por defecto
-    #     user = User.objects.create_user(username=username, password=password, email=email)
+        username = nombreEmpresa
+        password = '8soptativa'  # Contraseña por defecto
+        user = User.objects.create_user(username=username, password=password, email=email)
 
-    #     # Asignar el usuario al grupo correspondiente (group_id=1)
-    #     group = Group.objects.get(pk=1)  # Suponiendo que el grupo Administradores tiene pk=1
-    #     user.groups.add(group)
+        # Asignar el usuario al grupo correspondiente (group_id=1)
+        group = Group.objects.get(pk=1)  # Suponiendo que el grupo Administradores tiene pk=1
+        user.groups.add(group)
 
-    # return JsonResponse({'status': 'success', 'message': 'Empresa creada con éxito'})
+    return JsonResponse({'status': 'success', 'message': 'Empresa creada con éxito'})
 
 
 @require_POST
