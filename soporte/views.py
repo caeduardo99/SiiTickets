@@ -2376,6 +2376,33 @@ def finalizar_proyecto(request, id_ticket):
 
 
 @csrf_exempt
+def tareas_actualizacion_success(request):
+    if request.method == 'POST':
+        array_ids_tasks = request.POST.getlist('arrayIdsTasks')
+        array_finish_tasks = request.POST.getlist('arrayTaskFinish')
+
+        array_ids_tasks = json.loads(array_ids_tasks[0])
+        array_finish_tasks = json.loads(array_finish_tasks[0])
+        
+        if len(array_ids_tasks) > 0:
+            for tarea in array_ids_tasks:
+                id_tarea_principal = tarea['idPrincipalTask']
+                registros_filtrados_process = ActividadPrincipalActualizacion.objects.filter(id=id_tarea_principal, idestado_id=2)
+                registros_filtrados_process.update(idestado_id=4)
+            
+        if len(array_finish_tasks) > 0:
+            for tarea in array_finish_tasks:
+                id_tarea_principal = tarea['idPrincipalTask']
+                registros_filtrados_just_finish = ActividadPrincipalActualizacion.objects.filter(id=id_tarea_principal, idestado_id=4)
+                registros_filtrados_just_finish.update(idestado_id=5)
+            
+        
+        return JsonResponse({'status': 'success', 'message': 'Tareas cambiadas con exito'})
+
+    else:
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@csrf_exempt
 def tareas_desarrollo_success(request):
     if request.method == 'POST':
         array_ids_tasks = request.POST.getlist('arrayIdsTasks')

@@ -36,10 +36,13 @@ $(document).ready(function () {
   const rowFechaEstimada = document.getElementById("rowFechaEstimada");
   var resultadosAgentesData = window.resultados_agentes_data;
   let arrayTasksMain = [],
+    arrayIdsTasks = [],
+    arrayTaskFinish = [],
     idTicket,
     infoTicketActualizar,
     horasCompletasTicket = 0,
-    detalleTicket;
+    detalleTicket, 
+    checkFinishTaskMainCreate = false;
 
   // Variables para el modal de edicion de tareas
   const inputDescripcionGeneral = document.getElementById(
@@ -58,6 +61,8 @@ $(document).ready(function () {
   const editFechaFinEstimada = document.getElementById("editFechaFinEstimada");
   const tbodyTareas = document.getElementById("tbodyTareas");
   const idUsuario = document.getElementById("idUsuario").value;
+  const btnChangeState = document.getElementById("btnChangeState");
+  
 
   //   Funcion principal para la carga de datos en la lista de ticket
   function cargarTablaTickets() {
@@ -85,6 +90,7 @@ $(document).ready(function () {
             }
           });
           const resultadosAgrupados = Array.from(mapaAgrupado.values());
+
           resultadosAgrupados.forEach(function (item) {
             var row = document.createElement("tr");
 
@@ -99,6 +105,9 @@ $(document).ready(function () {
 
             var cellSolicitante = document.createElement("td");
             cellSolicitante.textContent = item.Solicitante;
+
+            var cellAgente = document.createElement("td");
+            cellAgente.textContent = `${item.nombreAgente} ${item.apellidoAgente}`;
 
             var cellPrioridad = document.createElement("td");
             cellPrioridad.textContent = item.Prioridad;
@@ -118,6 +127,7 @@ $(document).ready(function () {
             btnVer.addEventListener("click", function () {
               idTicket = item.NumTicket;
               infoTicketActualizar = item;
+              btnChangeState.style.display = "none";
               inputDescripcionGeneral.textContent =
                 infoTicketActualizar.descripcionGeneral;
               // Consulta para los detalles del Ticket
@@ -194,72 +204,91 @@ $(document).ready(function () {
                     row.appendChild(cellEstado);
 
                     // Agregar una nueva celda con un checkbox, revisa que en primer lugar el estado de la tarea debe ser diferente de 5 por el tema de que debe estar en proceso,tambien debe ser del grupo de agentes y debe el estadod el proyecto ser diferente a 1 que POR ASIGNAR
-                    if (
-                      tarea.idEstadoActividadPrincipal != 5 &&
-                      tarea.idEstadoProyecto !== 1
-                    ) {
-                      if (infoTicketActualizar.idAgente != idUsuario) {
-                        if (tarea.idAgente == idUsuario) {
-                          const checkboxCell = row.insertCell();
-                          const checkbox = document.createElement("input");
-                          checkbox.type = "checkbox";
-                          checkboxCell.appendChild(checkbox);
-                          checkbox.addEventListener("change", function () {
+                    if(idUsuario == infoTicketActualizar.idAgente){
+                        if(tarea.idEstado == 2){
+                            const checkboxCell = row.insertCell();
+                            const checkbox = document.createElement("input");
+                            checkbox.type = "checkbox";
+                            checkboxCell.appendChild(checkbox);
+                            checkbox.addEventListener("change", function () {
                             if (checkbox.checked) {
-                              arrayIdsTasks.push({
-                                idPrincipalTask: tarea.idTareaPrincipal,
-                                idSecondaryTask: tarea.idTareaSecundaria,
-                              });
+                                arrayIdsTasks.push({
+                                idPrincipalTask: tarea.idTarea,
+                                });
                             } else {
-                              const index = arrayIdsTasks.findIndex(
+                                const index = arrayIdsTasks.findIndex(
                                 (item) =>
-                                  item.idPrincipalTask ===
-                                    tarea.idTareaPrincipal &&
-                                  item.idSecondaryTask ===
-                                    tarea.idTareaSecundaria
-                              );
-                              if (index !== -1) {
+                                    item.idPrincipalTask ===
+                                    tarea.idTarea
+                                );
+                                if (index !== -1) {
                                 arrayIdsTasks.splice(index, 1);
-                              }
+                                }
                             }
                             // Verificacion de que si el arreglo esta con items me permita ver el botón
                             if (arrayIdsTasks.length != 0) {
-                              btnChangeState.style.display = "";
+                                btnChangeState.style.display = "";
                             } else {
-                              btnChangeState.style.display = "none";
+                                btnChangeState.style.display = "none";
                             }
-                          });
-                        }
-                      } else {
-                        const checkboxCell = row.insertCell();
-                        const checkbox = document.createElement("input");
-                        checkbox.type = "checkbox";
-                        checkboxCell.appendChild(checkbox);
-                        checkbox.addEventListener("change", function () {
-                          if (checkbox.checked) {
-                            arrayIdsTasks.push({
-                              idPrincipalTask: tarea.idTareaPrincipal,
-                              idSecondaryTask: tarea.idTareaSecundaria,
                             });
-                          } else {
-                            const index = arrayIdsTasks.findIndex(
-                              (item) =>
-                                item.idPrincipalTask ===
-                                  tarea.idTareaPrincipal &&
-                                item.idSecondaryTask === tarea.idTareaSecundaria
-                            );
-                            if (index !== -1) {
-                              arrayIdsTasks.splice(index, 1);
+                        }else if(tarea.idEstado == 4){
+                            const checkboxCell = row.insertCell();
+                            const checkbox = document.createElement("input");
+                            checkbox.type = "checkbox";
+                            checkboxCell.appendChild(checkbox);
+                            checkbox.addEventListener("change", function () {
+                            if (checkbox.checked) {
+                                arrayTaskFinish.push({
+                                idPrincipalTask: tarea.idTarea,
+                                });
+                            } else {
+                                const index = arrayTaskFinish.findIndex(
+                                (item) =>
+                                    item.idPrincipalTask ===
+                                    tarea.idTarea
+                                );
+                                if (index !== -1) {
+                                arrayTaskFinish.splice(index, 1);
+                                }
                             }
-                          }
-                          // Verificacion de que si el arreglo esta con items me permita ver el botón
-                          if (arrayIdsTasks.length != 0) {
-                            btnChangeState.style.display = "";
-                          } else {
-                            btnChangeState.style.display = "none";
-                          }
-                        });
-                      }
+                            // Verificacion de que si el arreglo esta con items me permita ver el botón
+                            if (arrayTaskFinish.length != 0) {
+                                btnChangeState.style.display = "";
+                            } else {
+                                btnChangeState.style.display = "none";
+                            }
+                            });
+                        }
+                    }else{
+                        if(nombreUsuario == tarea.username && tarea.idEstado == 2){
+                            const checkboxCell = row.insertCell();
+                            const checkbox = document.createElement("input");
+                            checkbox.type = "checkbox";
+                            checkboxCell.appendChild(checkbox);
+                            checkbox.addEventListener("change", function () {
+                            if (checkbox.checked) {
+                                arrayIdsTasks.push({
+                                idPrincipalTask: tarea.idTarea,
+                                });
+                            } else {
+                                const index = arrayIdsTasks.findIndex(
+                                (item) =>
+                                    item.idPrincipalTask ===
+                                    tarea.idTarea
+                                );
+                                if (index !== -1) {
+                                arrayIdsTasks.splice(index, 1);
+                                }
+                            }
+                            // Verificacion de que si el arreglo esta con items me permita ver el botón
+                            if (arrayIdsTasks.length != 0) {
+                                btnChangeState.style.display = "";
+                            } else {
+                                btnChangeState.style.display = "none";
+                            }
+                            });
+                        }
                     }
 
                     tbodyTareas.appendChild(row);
@@ -272,6 +301,7 @@ $(document).ready(function () {
             row.appendChild(cellEmpresa);
             row.appendChild(cellModulo);
             row.appendChild(cellSolicitante);
+            row.appendChild(cellAgente);
             row.appendChild(cellPrioridad);
             row.appendChild(cellEstado);
             row.appendChild(cellAccion);
@@ -458,4 +488,32 @@ $(document).ready(function () {
 
     tbodyTasksMain.appendChild(row);
   });
+
+  //   Boton para la el cambio de estado de las actividades
+  btnChangeState.addEventListener("click", function () {
+    $.ajax({
+      type: "POST",
+      url: "/tareas_actualizacion_success/",
+      data: {
+        arrayIdsTasks: JSON.stringify(arrayIdsTasks),
+        arrayTaskFinish: JSON.stringify(arrayTaskFinish)
+      },
+      dataType: "json",
+      success: function (response) {
+        if (response.status == "success") {
+          toastr.success(response.status, "Tareas hechas existosamente.");
+          // Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
+          setTimeout(function () {
+            window.location.reload();
+          }, 1000);
+        } else {
+          toastr.error(
+            "Error al crear el ticket: " + response.message,
+            "Error"
+          );
+        }
+      },
+    });
+  });
+
 });

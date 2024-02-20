@@ -77,6 +77,7 @@ urlpatterns = [
     path('editar_desarrollo/', views.editar_desarrollo, name='editar_desarrollo'),
     path('crear_solicitante/', views.crear_solicitante, name='crear_solicitante'),
     path('tareas_desarrollo_success/', views.tareas_desarrollo_success, name='tareas_desarrollo_success'),
+    path('tareas_actualizacion_success/', views.tareas_actualizacion_success, name='tareas_actualizacion_success'),
     path('solicitantescreados/', views.solicitantescreados, name='solicitantescreados'),
 
     path('consultatareas_view/', views.consultatareas_view, name='consultatareas_view'),
