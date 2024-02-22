@@ -1443,7 +1443,7 @@ $(document).ready(function () {
       footer: function (currentPage, pageCount) {
         return [
           {
-            text: `Proyecto generado por el usuario ${nombreUsuario} el día ${fechaFormateadaActualReport}`,
+            text: `Reporte generado por el usuario ${nombreUsuario} el día ${fechaFormateadaActualReport}`,
             fontSize: 9,
             italics: true,
             margin: [35, 5, 0, 0],
@@ -1457,7 +1457,6 @@ $(document).ready(function () {
         ];
       },
     };
-
     pdfMake.createPdf(objGeneratePdf).open();
   }
   // CAMBIAR ESTADO DE LAS TAREAS

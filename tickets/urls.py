@@ -61,6 +61,7 @@ urlpatterns = [
     path('detalleTicketActualizacion/<int:ticket_id>/', views.detalleTicketActualizacion, name='detalleTicketActualizacion'),
     path('getInfoReport/<int:id_ticket>/', views.getInfoReport, name='getInfoReport'),
     path('finalizar_proyecto/<int:id_ticket>', views.finalizar_proyecto, name='finalizar_proyecto'),
+    path('finish_ticket_update/<int:id_ticket>', views.finish_ticket_update, name='finish_ticket_update'),
     path('infoAgenteSolicitado/<int:id_agente>/', views.infoAgenteSolicitado, name='infoAgenteSolicitado'),
     path('asgin_admin_project/<int:id_agente>/<int:id_ticket>/', views.asgin_admin_project, name='asgin_admin_project'),
 

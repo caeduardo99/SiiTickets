@@ -1126,7 +1126,7 @@ def ticketsActualizacionCreados(request):
         LEFT JOIN soporte_modulosii4 sm on sm.id = st.moduloActualizar_id
         LEFT JOIN auth_user au ON au.id = st.idAgente_id
         LEFT JOIN soporte_modulosii4 sm2 on sm2.id = st.moduloActualizar_id
-        where au.username = %s OR ses.id = 4 OR ses.id = 2
+        where au.username = %s OR ses.id = 4 OR ses.id = 5 OR ses.id = 2
         """
     else:
         consulta_sql += """
@@ -2395,7 +2395,18 @@ def tareas_actualizacion_success(request):
                 id_tarea_principal = tarea['idPrincipalTask']
                 registros_filtrados_just_finish = ActividadPrincipalActualizacion.objects.filter(id=id_tarea_principal, idestado_id=4)
                 registros_filtrados_just_finish.update(idestado_id=5)
-            
+                # Obtencion del ticke de desarrollo principal
+                registro_actividades = ActividadPrincipalActualizacion.objects.filter(id=id_tarea_principal)
+                for registro in registro_actividades:
+                    id_ticket_desarrollo = registro.idTicketDesarrollo_id
+                
+                registros_ticket = ActividadPrincipalActualizacion.objects.filter(idTicketDesarrollo_id=id_ticket_desarrollo)
+                todos_en_estado_5 = all(registro.idestado_id == 5 for registro in registros_ticket)
+                if todos_en_estado_5:
+                    registro_ticket_general = TicketActualizacion.objects.filter(id=id_ticket_desarrollo)
+                    registro_ticket_general.update(idestado_id=4)
+                
+                    
         
         return JsonResponse({'status': 'success', 'message': 'Tareas cambiadas con exito'})
 
@@ -2472,3 +2483,22 @@ def asgin_admin_project(request, id_agente, id_ticket):
         return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'})
     except:
         return JsonResponse({'error': 'No se pudo realizar el cambio de Agente administrador del proyecto'}, status=405)
+
+@csrf_exempt
+def finish_ticket_update(request, id_ticket):
+    try:
+        ticket = TicketActualizacion.objects.get(id=id_ticket)
+
+        if request.method == 'POST':
+            estado_finalizado = EstadosTicket.objects.get(id=5)
+            ticket.idestado = estado_finalizado
+            # Obtener la fecha y hora actuales
+            fecha_actual = timezone.now()
+            # Asignar la fecha actual a la propiedad fechaFinalizacion
+            ticket.fechaFinalizacion = fecha_actual
+            ticket.save()
+            return JsonResponse({'status': 'success', 'message': 'Ticket cerrado correctamente'})
+
+
+    except TicketDesarrollo.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'El ticket no existe'}, status=404)
