@@ -42,7 +42,8 @@ $(document).ready(function () {
     idTicket,
     infoTicketActualizar,
     horasCompletasTicket = 0,
-    detalleTicket;
+    detalleTicket,
+    idAgenteSelect;
 
   // Variables para el modal de edicion de tareas
   const inputDescripcionGeneral = document.getElementById(
@@ -63,6 +64,7 @@ $(document).ready(function () {
   const idUsuario = document.getElementById("idUsuario").value;
   const btnChangeState = document.getElementById("btnChangeState");
   const btnGenerateReport = document.getElementById("btnGenerateReport");
+  const btnAsignarProyecto = document.getElementById("btnAsignarProyecto");
 
   //   Funcion principal para la carga de datos en la lista de ticket
   function cargarTablaTickets() {
@@ -147,7 +149,6 @@ $(document).ready(function () {
             btnVer.addEventListener("click", function () {
               idTicket = item.NumTicket;
               infoTicketActualizar = item;
-              console.log(infoTicketActualizar)
               btnChangeState.style.display = "none";
               inputDescripcionGeneral.textContent =
                 infoTicketActualizar.descripcionGeneral;
@@ -172,6 +173,7 @@ $(document).ready(function () {
                   selectEditAgenteSolicitado.value = "";
                   selectEditAgenteSolicitado.value =
                     infoTicketActualizar.idAgente;
+                  idAgenteSelect = infoTicketActualizar.idAgente;
                   const changeEventAgente = new Event("change");
                   selectEditAgenteSolicitado.dispatchEvent(changeEventAgente);
 
@@ -224,7 +226,11 @@ $(document).ready(function () {
                     row.appendChild(cellEstado);
 
                     // Agregar una nueva celda con un checkbox, revisa que en primer lugar el estado de la tarea debe ser diferente de 5 por el tema de que debe estar en proceso,tambien debe ser del grupo de agentes y debe el estadod el proyecto ser diferente a 1 que POR ASIGNAR
-                    if (idUsuario == infoTicketActualizar.idAgente) {
+                    if (
+                      idUsuario == infoTicketActualizar.idAgente &&
+                      nombreUsuario != "mafer" &&
+                      nombreUsuario != "superadmin"
+                    ) {
                       if (tarea.idEstado == 2) {
                         const checkboxCell = row.insertCell();
                         const checkbox = document.createElement("input");
@@ -585,7 +591,6 @@ $(document).ready(function () {
     });
   });
 
-  // Funcion para generar el Reporte
   // FUNCION PARA LA CREACION DE LOS PDF
   function makePdf(
     descripcionGeneral,
@@ -626,8 +631,7 @@ $(document).ready(function () {
           margin: [0, 0, 0, 10],
         },
         {
-          text:
-          descripcionGeneral || "No hay descripción del proyecto.",
+          text: descripcionGeneral || "No hay descripción del proyecto.",
           fontSize: 12,
           margin: [0, 5, 0, 5],
         },
@@ -649,7 +653,7 @@ $(document).ready(function () {
             }`,
             `Estado del proyecto: ${estadoTicket}`,
             `Horas completas del Proyecto: ${horasCompletasTicket} horas`,
-            `Prioridad: ${prioridad}`
+            `Prioridad: ${prioridad}`,
           ],
           margin: [0, 5, 0, 0], // Ajusta el margen superior según tus necesidades,
           fontSize: 11,
@@ -701,15 +705,65 @@ $(document).ready(function () {
 
   // Boton para generar el reporte
   btnGenerateReport.addEventListener("click", function () {
-    var descripcion = infoTicketActualizar.descripcionGeneral
-    var solicitante = infoTicketActualizar.Solicitante
-    var empresa = infoTicketActualizar.NombreEmpresa
-    var agenteAdministrador = `${infoTicketActualizar.nombreAgente} ${infoTicketActualizar.apellidoAgente}`
-    var fechaCreacion = infoTicketActualizar.fechaCreacion
-    var fechaFinEstimada = infoTicketActualizar.fechaFinalizacionEstimada
-    var estado = infoTicketActualizar.Estado
-    var prioridad = infoTicketActualizar.Prioridad
-    
-    makePdf(descripcion, solicitante, empresa, agenteAdministrador, fechaCreacion, fechaFinEstimada, estado, prioridad, detalleTicket)
+    var descripcion = infoTicketActualizar.descripcionGeneral;
+    var solicitante = infoTicketActualizar.Solicitante;
+    var empresa = infoTicketActualizar.NombreEmpresa;
+    var agenteAdministrador = `${infoTicketActualizar.nombreAgente} ${infoTicketActualizar.apellidoAgente}`;
+    var fechaCreacion = infoTicketActualizar.fechaCreacion;
+    var fechaFinEstimada = infoTicketActualizar.fechaFinalizacionEstimada;
+    var estado = infoTicketActualizar.Estado;
+    var prioridad = infoTicketActualizar.Prioridad;
+
+    makePdf(
+      descripcion,
+      solicitante,
+      empresa,
+      agenteAdministrador,
+      fechaCreacion,
+      fechaFinEstimada,
+      estado,
+      prioridad,
+      detalleTicket
+    );
+  });
+
+  // Metodo de control para el select
+  $("#selectEditAgenteSolicitado").on("change", function () {
+    if (idAgenteSelect != selectEditAgenteSolicitado.value) {
+      btnAsignarProyecto.style.display = "";
+    } else {
+      btnAsignarProyecto.style.display = "none";
+    }
+  });
+
+  // Boton para cambiar de agente
+  btnAsignarProyecto.addEventListener("click", function () {
+    var idAgente = selectEditAgenteSolicitado.value;
+
+    $.ajax({
+      url: `/asgin_agent_actualizacion/${idAgente}/${idTicket}/`,
+      type: "GET", // Puedes ajustar esto según tu lógica
+      dataType: "json",
+      success: function (data) {
+        if (data.status == "success") {
+          toastr.success(
+            data.status,
+            "Se cambio el agente a cargo de este proyecto!"
+          );
+          // Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
+          setTimeout(function () {
+            window.location.reload();
+          }, 1000);
+        } else {
+          toastr.error(
+            "Error al cambiar el Agente administrador: " + response.message,
+            "Error"
+          );
+        }
+      },
+      error: function (error) {
+        console.error(error);
+      },
+    });
   });
 });

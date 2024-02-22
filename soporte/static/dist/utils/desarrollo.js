@@ -1593,5 +1593,5 @@ $(document).ready(function () {
       rowButtonTask.style.display = "none";
       rowButtonCreateTicket.style.display = "none";
     }
-  })
+  });
 });

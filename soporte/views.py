@@ -1132,7 +1132,7 @@ def ticketsActualizacionCreados(request):
         consulta_sql += """
         SELECT st.id as NumTicket, sm.modulo as Modulo, ss.nombreapellido as Solicitante, ss.id as idSolicitante,
         st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa,
-        sm2.id as idModulo, sm2.modulo,st.fechaCreacion, st.fechaInicio as fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion,
+        sm2.id as idModulo, sm2.modulo,st.fechaCreacion, st.fechaInicio as fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion, ses.id as idEstado,ses.descripcion as Estado,
         au.id as idAgente, au.username as nombreUsuario, au.first_name as nombreAgente, au.last_name as apellidoAgente
         FROM soporte_ticketactualizacion st
         left JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
@@ -1150,7 +1150,7 @@ def ticketsActualizacionCreados(request):
     """
     consulta_get_projects = """
     SELECT st.id as NumTicket, sm.modulo as Modulo, ss.nombreapellido as Solicitante, ss.id as idSolicitante,
-    st.prioridad as Prioridad, ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa,
+    st.prioridad as Prioridad, ses.id as idEstado,ses.descripcion as Estado,se.nombreEmpresa as NombreEmpresa,
     sm2.id as idModulo, sm2.modulo,st.fechaCreacion, st.fechaInicio as fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion,
     au.id as idAgente, au.username as nombreUsuario, au.first_name as nombreAgente, au.last_name as apellidoAgente
     FROM soporte_ticketactualizacion st
@@ -2478,6 +2478,22 @@ def asgin_admin_project(request, id_agente, id_ticket):
         # Cambio de estado a en proceso
         proyecto.idestado_id = 2
         proyecto.fechaAsignacion = fechaAsignacion
+        proyecto.save()
+        # Devolver la respuesta JSON
+        return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'})
+    except:
+        return JsonResponse({'error': 'No se pudo realizar el cambio de Agente administrador del proyecto'}, status=405)
+
+def asgin_agent_actualizacion(request, id_agente, id_ticket):
+    try:
+        fecha_actual = datetime.now()
+        fechaInicio = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
+        proyecto = TicketActualizacion.objects.get(id=id_ticket)
+        # Cambio de agente administrador
+        proyecto.idAgente_id = id_agente
+        # Cambio de estado a en proceso
+        proyecto.idestado_id = 2
+        proyecto.fechaInicio = fechaInicio
         proyecto.save()
         # Devolver la respuesta JSON
         return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'})

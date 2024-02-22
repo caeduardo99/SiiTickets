@@ -64,6 +64,7 @@ urlpatterns = [
     path('finish_ticket_update/<int:id_ticket>', views.finish_ticket_update, name='finish_ticket_update'),
     path('infoAgenteSolicitado/<int:id_agente>/', views.infoAgenteSolicitado, name='infoAgenteSolicitado'),
     path('asgin_admin_project/<int:id_agente>/<int:id_ticket>/', views.asgin_admin_project, name='asgin_admin_project'),
+    path('asgin_agent_actualizacion/<int:id_agente>/<int:id_ticket>/', views.asgin_agent_actualizacion, name='asgin_agent_actualizacion'),
 
     path('empresascreados/', views.empresascreados, name='empresascreados'),
     path('moduloscreados/', views.moduloscreados, name='moduloscreados'),
