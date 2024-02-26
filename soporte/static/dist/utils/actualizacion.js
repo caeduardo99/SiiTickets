@@ -65,6 +65,7 @@ $(document).ready(function () {
   const btnChangeState = document.getElementById("btnChangeState");
   const btnGenerateReport = document.getElementById("btnGenerateReport");
   const btnAsignarProyecto = document.getElementById("btnAsignarProyecto");
+  const inputEditObservaciones = document.getElementById('inputEditObservaciones');
 
   //   Funcion principal para la carga de datos en la lista de ticket
   function cargarTablaTickets() {
@@ -150,8 +151,7 @@ $(document).ready(function () {
               idTicket = item.NumTicket;
               infoTicketActualizar = item;
               btnChangeState.style.display = "none";
-              inputDescripcionGeneral.textContent =
-                infoTicketActualizar.descripcionGeneral;
+              
               // Consulta para los detalles del Ticket
               fetch(`detalleTicketActualizacion/${idTicket}/`)
                 .then((response) => response.json())
@@ -169,6 +169,12 @@ $(document).ready(function () {
                   selectEditPrioridad.value = infoTicketActualizar.Prioridad;
                   const changeEvent = new Event("change");
                   selectEditPrioridad.dispatchEvent(changeEvent);
+                  console.log(detalleTicket)
+                  inputDescripcionGeneral.value = "";
+                  inputDescripcionGeneral.value = detalleTicket[0].descripcionGeneral;
+
+                  inputEditObservaciones.value = "";
+                  inputEditObservaciones.value = detalleTicket[0].observaciones
 
                   selectEditAgenteSolicitado.value = "";
                   selectEditAgenteSolicitado.value =
@@ -345,7 +351,7 @@ $(document).ready(function () {
           var row = document.createElement("tr");
           var cell = document.createElement("td");
           cell.textContent =
-            "No hay tickets de desarrollo creados en ningun estado.";
+            "No hay tickets de actualizacion creados en ningun estado para este usuario.";
           cell.colSpan = 7;
           cell.style.textAlign = "center";
           row.appendChild(cell);
@@ -631,7 +637,7 @@ $(document).ready(function () {
           margin: [0, 0, 0, 10],
         },
         {
-          text: descripcionGeneral || "No hay descripción del proyecto.",
+          text: `Requerimiento del cliente: ${descripcionGeneral}` || "No hay descripción del ticket.",
           fontSize: 12,
           margin: [0, 5, 0, 5],
         },
@@ -705,7 +711,7 @@ $(document).ready(function () {
 
   // Boton para generar el reporte
   btnGenerateReport.addEventListener("click", function () {
-    var descripcion = infoTicketActualizar.descripcionGeneral;
+    var descripcion = detalleTicket[0].descripcionGeneral;
     var solicitante = infoTicketActualizar.Solicitante;
     var empresa = infoTicketActualizar.NombreEmpresa;
     var agenteAdministrador = `${infoTicketActualizar.nombreAgente} ${infoTicketActualizar.apellidoAgente}`;

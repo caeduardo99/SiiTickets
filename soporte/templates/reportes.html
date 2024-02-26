@@ -141,6 +141,28 @@
                             </div>
                         </div>
                     </div>
+                    <div class="row g-1" id="rowTableTicketsActualizacion" style="display: none;">
+                        <div class="col-md-12">
+                            <div class="table-responsive" id="tableResponsiveActualizacion"
+                                style="overflow-y: auto; max-height: 240px;">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col"># Ticket</th>
+                                            <th scope="col">Razon del Soporte</th>
+                                            <th scope="col">Fecha de inicio/creación</th>
+                                            <th scope="col">Fecha de Finalización</th>
+                                            <th scope="col">Estado</th>
+                                            <th scope="col">Agente Encargado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tableBodyActualizaciones">
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -148,4 +170,11 @@
 </div>
 <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
 <script src="../static/dist/utils/reportes.js"></script>
+<script>
+    function obtenerDireccionIP() {
+            // Lógica para obtener la dirección IP, puede variar según el entorno
+            // Aquí se utiliza un ejemplo simple para obtener la IP del host actual
+            return 'http://' + window.location.host + '/media/';
+        }
+</script>
 {% endblock %}

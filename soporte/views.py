@@ -946,7 +946,9 @@ def generateReport(request):
         """
     elif tipo_ticket == '2':
         consulta = """
-        select * from soporte_ticketactualizacion st
+        SELECT st.*, se.descripcion as Estado, au.first_name as Nombre, au.last_name as Apellido FROM soporte_ticketactualizacion st 
+        INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
+        INNER JOIN auth_user au ON au.id = st.idAgente_id
         """
     elif tipo_ticket == '3':
         consulta = """
@@ -1106,6 +1108,33 @@ def getInfoReport(request, id_ticket):
 
     return JsonResponse(context, safe=False)
 
+
+def getInfoActualizacionReport(request, id_ticket):
+    consulta_general = """
+    SELECT st.*, 
+	ss.id as idSolicitante, ss.nombreApellido,
+	se.id as idEstado, se.descripcion as estado,
+	au.id as idAgente, au.first_name as nombreAgente, au.last_name as apellidoAgente,
+	se2.id as idEmpresa, se2.nombreEmpresa 
+	FROM soporte_ticketactualizacion st 
+	INNER JOIN auth_user au ON au.id = st.idAgente_id
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
+	INNER JOIN soporte_empresa se2 ON se2.id = ss.idEmpresa_id
+    WHERE st.id = %s
+    """
+    connection = connections["default"]
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_general, [id_ticket])
+        columns = [col[0] for col in cursor.description]
+        resultados_info_general = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    context = {
+        'infoGeneralProject': resultados_info_general[0],
+    }
+
+    return JsonResponse(context, safe=False)
 
 def ticketsActualizacionCreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
@@ -1377,7 +1406,7 @@ def ticketDesarrolloCreados(request):
 def detalleTicketActualizacion(request, ticket_id):
     id_usuario = request.user.id if request.user.is_authenticated else None
     consulta_sql = """
-    SELECT st.id as idTicket, st.descripcionGeneral, st.fechaCreacion, st.fechaInicio, st.fechaFinalizacionEstimada, st.fechaFinalizacion,au.username,
+    SELECT st.id as idTicket, st.descripcionGeneral, st.observaciones ,st.fechaCreacion, st.fechaInicio, st.fechaFinalizacionEstimada, st.fechaFinalizacion,au.username,
 	st.facturar, st.idestado_id as idEstadoProyecto,
 	sm.id as idModulo, sm.modulo,
 	se.id as idEstado, se.descripcion as Estado,

@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.6.0/css/bootstrap.min.css">
     <!-- Contenido específico de la página de dashboard -->
     <section class="content-header">
         <div class="container-fluid">
@@ -52,20 +51,22 @@
                 <div class="card mb-3">
                     <div class="card-header bg-danger text-white">Lista de Módulos</div>
                     <div class="card-body">
-                        <table class="table" id="tickets-table">
-                            <thead>
-                            <tr>
-                                <th>NumModulo</th>
-                                <th>Modulo</th>
-                                <th>Descripcion</th>
-                                <th>Acciones</th>
-                                <!-- Otros encabezados según tus campos -->
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <!-- Aquí se llenarán las filas de la tabla -->
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table" id="tickets-table">
+                                <thead>
+                                <tr>
+                                    <th>NumModulo</th>
+                                    <th>Modulo</th>
+                                    <th>Descripcion</th>
+                                    <th>Acciones</th>
+                                    <!-- Otros encabezados según tus campos -->
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!-- Aquí se llenarán las filas de la tabla -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
