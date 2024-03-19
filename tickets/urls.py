@@ -43,10 +43,10 @@ urlpatterns = [
     path('modulojson/', views.modulojson, name='modulojson'),
 
     path('ticketsoportescreados/', views.ticketsoportescreados, name='ticketsoportescreados'),
-    path('ticketsoportescreadosid/', views.ticketsoportescreadosid, name='ticketsoportescreadosid'),
+    path('ticketsoportescreadosid/<int:ticket_id>/', views.ticketsoportescreadosid, name='ticketsoportescreadosid'),
     path('crear_ticket_soporte/', views.crear_ticket_soporte, name='crear_ticket_soporte'),
     path('get_tickets_cpanel/', views.get_tickets_cpanel, name='get_tickets_cpanel'),
-    path('editar_ticket_soporte/', views.editar_ticket_soporte, name='editar_ticket_soporte'),
+    path('editar_ticket_soporte/<int:ticket_id>/', views.editar_ticket_soporte, name='editar_ticket_soporte'),
 
     path('ticketsActualizacionCreados/', views.ticketsActualizacionCreados, name='ticketsActualizacionCreados'),
     path('crear_ticket_actualizacion/', views.crear_ticket_actualizacion, name='crear_ticket_actualizacion'),
@@ -66,6 +66,12 @@ urlpatterns = [
     path('infoAgenteSolicitado/<int:id_agente>/', views.infoAgenteSolicitado, name='infoAgenteSolicitado'),
     path('asgin_admin_project/<int:id_agente>/<int:id_ticket>/', views.asgin_admin_project, name='asgin_admin_project'),
     path('asgin_agent_actualizacion/<int:id_agente>/<int:id_ticket>/', views.asgin_agent_actualizacion, name='asgin_agent_actualizacion'),
+    path('asign_admin_ticket_support/<int:id_agente>/<int:id_ticket>/', views.asign_admin_ticket_support, name='asign_admin_ticket_support'),
+    path('agregar_tareas/<int:id_ticket>', views.agregar_tareas, name='agregar_tareas'),
+    path('eliminar_tarea/<int:id_ticket>', views.eliminar_tarea, name='eliminar_tarea'),
+    path('editar_tareas_soporte/', views.editar_tareas_soporte, name='editar_tareas_soporte'),
+    path('finalizar_tareas_soporte/', views.finalizar_tareas_soporte, name='finalizar_tareas_soporte'),
+    path('cerrar_ticket/<int:id_ticket>',views.cerrar_ticket, name='cerrar_ticket'),
 
     path('empresascreados/', views.empresascreados, name='empresascreados'),
     path('moduloscreados/', views.moduloscreados, name='moduloscreados'),

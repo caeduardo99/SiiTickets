@@ -82,6 +82,7 @@ $(document).ready(function () {
   const textDescripcionRequerimiento = document.getElementById(
     "textDescripcionRequerimiento"
   );
+  const buttonNoficacion = document.getElementById('buttonNoficacion');
 
   var resultadosAgentesData = window.resultados_agentes_data;
   var resultadosProyectos;
@@ -934,14 +935,15 @@ $(document).ready(function () {
         const buttonCell = row.insertCell();
         const button = document.createElement("button");
         button.className = "btn btn-info btn-block btn-sm";
-        button.textContent = "Ver";
         button.dataset.toggle = "modal";
         button.dataset.target = "#modalInfoProyect";
+        button.textContent = "Ver proyecto";
 
         // FUNCIONALIDAD DEL BOTON Ver para poder abrir un modal donde deje ver las actividades y el detalle del desarrollo a detalle
         button.addEventListener("click", function () {
           ticketId = proyecto.NumTicket;
           infoGeneralProject = proyecto;
+          buttonNoficacion.style.display = 'none'
           btnChangeState.style.display = "none";
           btnAsignarProyecto.style.display = "none";
           btnFinishProject.style.display = "none";
@@ -1087,6 +1089,10 @@ $(document).ready(function () {
                         checkFinishTaskMainCreate = true;
                       }
                     }
+                  }
+
+                  if(detalleTicket[0].idEstadoProyecto == 5){
+                    buttonNoficacion.style.display = ''
                   }
 
                   if (resultadosConsulta[0].group_id === 2) {
@@ -1459,6 +1465,7 @@ $(document).ready(function () {
     };
     pdfMake.createPdf(objGeneratePdf).open();
   }
+
   // CAMBIAR ESTADO DE LAS TAREAS
   btnChangeState.addEventListener("click", function () {
     $.ajax({
@@ -1594,4 +1601,24 @@ $(document).ready(function () {
       rowButtonCreateTicket.style.display = "none";
     }
   });
+
+  // Boton de envio para la notificaion
+  buttonNoficacion.addEventListener('click', function(){
+    var telefono = detalleTicket[0].telefonoSolicitante;
+    telefono = telefono.replace(/^0/, "");
+    telefono = "593" + telefono;
+    var tituloProyecto = detalleTicket[0].tituloProyecto;
+    var numTicket = detalleTicket[0].NumTicket;
+    var fullName = `${detalleTicket[0].nomAgenteAdmin} ${detalleTicket[0].apellidoAgente}`;
+    var fechaFinalizacion = detalleTicket[0].fechaFinalizacion;
+    var mensaje = `Hola, le saludamos desde el departamento de soporte de Ishida Software, su requerimiento de desarrollo:
+
+Número de Ticket: *${numTicket}*
+Finalizado: *${fechaFinalizacion}*
+*${tituloProyecto}*
+, a cargo de ${fullName} se encuentra resuelto existosamente!`;
+    var url =
+      "https://wa.me/" + telefono + "?text=" + encodeURIComponent(mensaje);
+    window.open(url, "_blank");
+  })
 });

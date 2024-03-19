@@ -65,7 +65,10 @@ $(document).ready(function () {
   const btnChangeState = document.getElementById("btnChangeState");
   const btnGenerateReport = document.getElementById("btnGenerateReport");
   const btnAsignarProyecto = document.getElementById("btnAsignarProyecto");
-  const inputEditObservaciones = document.getElementById('inputEditObservaciones');
+  const inputEditObservaciones = document.getElementById(
+    "inputEditObservaciones"
+  );
+  const buttonNoficacion = document.getElementById("buttonNoficacion");
 
   //   Funcion principal para la carga de datos en la lista de ticket
   function cargarTablaTickets() {
@@ -151,7 +154,8 @@ $(document).ready(function () {
               idTicket = item.NumTicket;
               infoTicketActualizar = item;
               btnChangeState.style.display = "none";
-              
+              buttonNoficacion.style.display = 'none'
+
               // Consulta para los detalles del Ticket
               fetch(`detalleTicketActualizacion/${idTicket}/`)
                 .then((response) => response.json())
@@ -169,12 +173,13 @@ $(document).ready(function () {
                   selectEditPrioridad.value = infoTicketActualizar.Prioridad;
                   const changeEvent = new Event("change");
                   selectEditPrioridad.dispatchEvent(changeEvent);
-                  console.log(detalleTicket)
+
                   inputDescripcionGeneral.value = "";
-                  inputDescripcionGeneral.value = detalleTicket[0].descripcionGeneral;
+                  inputDescripcionGeneral.value =
+                    detalleTicket[0].descripcionGeneral;
 
                   inputEditObservaciones.value = "";
-                  inputEditObservaciones.value = detalleTicket[0].observaciones
+                  inputEditObservaciones.value = detalleTicket[0].observaciones;
 
                   selectEditAgenteSolicitado.value = "";
                   selectEditAgenteSolicitado.value =
@@ -329,6 +334,10 @@ $(document).ready(function () {
                     } else {
                       btnCloseTicket.style.display = "none";
                     }
+                    
+                    if(detalleTicket[0].idEstado == 5){
+                      buttonNoficacion.style.display = ''
+                    }
 
                     tbodyTareas.appendChild(row);
                   });
@@ -440,7 +449,6 @@ $(document).ready(function () {
       arrayTasksMain.push(rowData);
     });
 
-    console.log(arrayTasksMain);
     form.append(
       '<input type="hidden" name="arrayTasksMain" value=\'' +
         JSON.stringify(arrayTasksMain) +
@@ -637,7 +645,9 @@ $(document).ready(function () {
           margin: [0, 0, 0, 10],
         },
         {
-          text: `Requerimiento del cliente: ${descripcionGeneral}` || "No hay descripción del ticket.",
+          text:
+            `Requerimiento del cliente: ${descripcionGeneral}` ||
+            "No hay descripción del ticket.",
           fontSize: 12,
           margin: [0, 5, 0, 5],
         },
@@ -771,5 +781,25 @@ $(document).ready(function () {
         console.error(error);
       },
     });
+  });
+
+  // Boton para notificar la informacion
+  buttonNoficacion.addEventListener("click", function () {
+    var telefono = detalleTicket[0].telefonoSolicitante;
+    telefono = telefono.replace(/^0/, "");
+    telefono = "593" + telefono;
+    var descripcion = detalleTicket[0].descripcionGeneral;
+    var numTicket = detalleTicket[0].idTicket;
+    var modulo = detalleTicket[0].modulo;
+    var fechaFinalizacion = detalleTicket[0].fechaFinalizacion;
+    var mensaje = `Hola, le saludamos desde el departamento de soporte de Ishida Software, su requerimiento:
+
+Número de Ticket: *${numTicket}*
+Finalizado: *${fechaFinalizacion}*
+*${descripcion}*
+, en el modulo *${modulo}* se encuentra resuelto existosamente!`;
+    var url =
+      "https://wa.me/" + telefono + "?text=" + encodeURIComponent(mensaje);
+    window.open(url, "_blank");
   });
 });

@@ -6,8 +6,11 @@ from django.shortcuts import render
 from django.db import connections
 from django.shortcuts import get_object_or_404
 import json
+from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from django.core.files.uploadedfile import InMemoryUploadedFile
+import os
 from .models import (
     TicketSoporte,
     TicketDesarrollo,
@@ -25,7 +28,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.mail import EmailMessage
 from collections import defaultdict
 from django.utils import timezone
-
+from django.core.files.base import ContentFile
+from io import BytesIO
 
 def login_user(request):
     # Verificar si el usuario ya está autenticado
@@ -82,8 +86,6 @@ def soporte(request):
         # Mostrar el campo
         mostrar_campo = True
 
-    print('mostrar_campo', mostrar_campo)
-
     # Llamar a la función solicitantes para obtener los resultados
     resultados_solicitantes = solicitantesjson(request)
 
@@ -97,7 +99,7 @@ def soporte(request):
     resultados_estados = estadosjson(request)
 
     resultados_estados_data = json.loads(resultados_estados.content)
-
+    
     context = {
         'nombre_usuario': nombre_usuario,
         'mostrar_campo': mostrar_campo,
@@ -866,68 +868,107 @@ def solicitantescreados(request):
 
 def ticketsoportescreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    id_usuario = request.user.id if request.user.is_authenticated else None
+    email_usuario = request.user.email if request.user.is_authenticated else None
 
-    # Construir la consulta SQL original
-    consulta_sql = """
-        SELECT st.id as NumTicket, st.comentario as Motivo, ss.nombreapellido as Solicitante,
-        st.prioridad as Prioridad, ses.descripcion as Estado, se.nombreEmpresa as NombreEmpresa,
-        (au.first_name || ' ' || au.last_name) AS full_name
-        FROM soporte_ticketsoporte st
-        LEFT JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-        LEFT JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
-        LEFT JOIN soporte_estadosticket ses ON ses.id = st.idestado_id
-        LEFT JOIN auth_user au ON au.id = st.idAgente_id
+    consulta_sql = """"""
+    if id_usuario == 2 or id_usuario == 1:
+        consulta_sql += """
+        select st.id as NumTicket, st.comentario, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
+        au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+        ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante,
+        se.id as idEstado, se.descripcion as estado,
+        sa.id as idActividad, sa.descripcion as actividad, sa.imagen_actividades as imagen, sa.fechainicio as fechaInicioActividad, sa.fechafinal as fechaFinalActividad,
+        se2.id as idEstadoActividad, se2.descripcion as estadoActividad,
+        se3.id as idEmpresa, se3.nombreEmpresa
+        FROM soporte_ticketsoporte st 
+        INNER JOIN auth_user au ON au.id  = st.idAgente_id 
+        INNER JOIN soporte_solicitante ss ON ss.id  = st.idSolicitante_id 
+        INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id 
+        LEFT JOIN soporte_empresa se3 ON se3.id = ss.idEmpresa_id 
+        LEFT JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
+        LEFT JOIN soporte_estadosticket se2 ON se2.id = sa.idestado_id
+        where au.username = %s OR se.id = 2 OR se.id = 4 OR se.id = 5
+        """
+    else:
+        consulta_sql += """
+        select st.id as NumTicket, st.comentario, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
+        au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+        ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante,
+        se.id as idEstado, se.descripcion as estado,
+        sa.id as idActividad, sa.descripcion as actividad, sa.imagen_actividades as imagen, sa.fechainicio as fechaInicioActividad, sa.fechafinal as fechaFinalActividad,
+        se2.id as idEstadoActividad, se2.descripcion as estadoActividad,
+        se3.id as idEmpresa, se3.nombreEmpresa
+        FROM soporte_ticketsoporte st 
+        INNER JOIN auth_user au ON au.id  = st.idAgente_id 
+        INNER JOIN soporte_solicitante ss ON ss.id  = st.idSolicitante_id 
+        INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id 
+        INNER JOIN soporte_empresa se3 ON se3.id = ss.idEmpresa_id 
+        LEFT JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
+        LEFT JOIN soporte_estadosticket se2 ON se2.id = sa.idestado_id  
+        WHERE (sa.idAgente_id = %s OR au.username = %s) AND se.id = 2
+        """
+
+    consulta_info_solicitantes = """
+    SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
     """
 
-    # Crear una copia de la consulta original
-    consulta_sql_copia = consulta_sql
+    consulta_get_projects = """
+select st.id as NumTicket, st.comentario, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
+        au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+        ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante,
+        se.id as idEstado, se.descripcion as estado,
+        sa.id as idActividad, sa.descripcion as actividad, sa.imagen_actividades as imagen, sa.fechainicio as fechaInicioActividad, sa.fechafinal as fechaFinalActividad,
+        se2.id as idEstadoActividad, se2.descripcion as estadoActividad,
+        se3.id as idEmpresa, se3.nombreEmpresa
+        FROM soporte_ticketsoporte st 
+        INNER JOIN auth_user au ON au.id  = st.idAgente_id 
+        INNER JOIN soporte_solicitante ss ON ss.id  = st.idSolicitante_id 
+        INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id 
+        LEFT JOIN soporte_empresa se3 ON se3.id = ss.idEmpresa_id 
+        LEFT JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
+        LEFT JOIN soporte_estadosticket se2 ON se2.id = sa.idestado_id
+    WHERE ss.id = %s
+    """
 
-    # Agregar condición de filtro si hay un nombre de usuario logeado
-    if nombre_usuario:
-        consulta_sql_copia += " WHERE au.username = %s "
-    consulta_sql_copia += " ORDER BY st.id DESC "
-
-    print('consulta_sql_copia', consulta_sql_copia)
     connection = connections["default"]
 
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        cursor.execute(consulta_sql_copia, [nombre_usuario])
-        resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+        if id_usuario == 2 or id_usuario == 1:
+            cursor.execute(consulta_sql, [nombre_usuario])
+        else:
+            cursor.execute(consulta_sql, [id_usuario, nombre_usuario])
 
-        # Imprimir los resultados y nombre de usuario (para depuración)
-        print("Nombre de usuario:", nombre_usuario)
-        print("Resultados de la consulta JSON:", resultados)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    # Si la consulta devuelve un conjunto vacío y había un nombre de usuario, ejecutar la segunda consulta sin la condición WHERE original
-    if not resultados and nombre_usuario:
-        # Imprimir la consulta_sql_sin_filtro con el valor de nombre_usuario
-
-        consulta_sql_sin_filtro = consulta_sql.replace("WHERE au.username = %s", "")
-        consulta_sql_sin_filtro += " WHERE se.nombreEmpresa = %s"  # Nueva condición WHERE
-        consulta_sql_sin_filtro += " ORDER BY st.id DESC "  # Cláusula ORDER BY agregada
+    if len(resultados) != 0:
+            return JsonResponse(resultados, safe=False)
+    else:
         with connection.cursor() as cursor:
-            cursor.execute(consulta_sql_sin_filtro, [nombre_usuario])
-            resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+            cursor.execute(consulta_info_solicitantes, [email_usuario])
+            columns = [col[0] for col in cursor.description]
+            info_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    # Si la segunda consulta también devuelve un conjunto vacío y el nombre de usuario es "mafer", ejecutar una tercera consulta sin la condición WHERE original
-    if not resultados and nombre_usuario == "mafer":
-        print(
-            "La segunda consulta también devolvió un conjunto vacío y el nombre de usuario es 'mafer'. Ejecutando la tercera consulta.")
-        consulta_sql_tercera = consulta_sql.replace("WHERE au.username = %s", "")
-        consulta_sql_tercera += " ORDER BY st.id DESC "  # Cláusula ORDER BY agregada
-        print("Consulta SQL tercera sin filtro")
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_sql_tercera)
-            resultados = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+        if len(info_solicitante) != 0:
+            idSolicitante = info_solicitante[0]['id']
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_get_projects, [idSolicitante])
+                columns = [col[0] for col in cursor.description]
+                resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-            # Imprimir los resultados de la tercera consulta (para depuración)
-            print("Resultados de la tercera consulta JSON:", resultados)
+            return JsonResponse(resultados, safe=False)
+        else:
+            # En el caso de que sea una empresa
+            consulta_get_projects = consulta_get_projects.replace("WHERE ss.id = %s", "WHERE se3.nombreEmpresa = %s")
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_get_projects, [nombre_usuario])
+                columns = [col[0] for col in cursor.description]
+                resultados_empresa_tickets = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    # Devolver la respuesta JSON
-    return JsonResponse(resultados, safe=False)
-
-
+            return JsonResponse(resultados_empresa_tickets, safe=False)
+    
 def generateReport(request):
     consulta = ""
     tipo_ticket = request.GET.get('tipo_ticket')
@@ -1136,6 +1177,7 @@ def getInfoActualizacionReport(request, id_ticket):
 
     return JsonResponse(context, safe=False)
 
+
 def ticketsActualizacionCreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
     id_usuario = request.user.id if request.user.is_authenticated else None
@@ -1232,11 +1274,7 @@ def ticketsActualizacionCreados(request):
             return JsonResponse(resultados_empresa_tickets, safe=False)
 
 
-def ticketsoportescreadosid(request):
-    # Obtener el valor del parámetro "id" de la solicitud
-    ticket_id = request.GET.get('id', None)
-    print(ticket_id)
-
+def ticketsoportescreadosid(request, ticket_id):
     # Construir la consulta SQL para obtener la información del ticket principal
     consulta_sql_ticket = """
     SELECT 
@@ -1290,6 +1328,8 @@ def ticketsoportescreadosid(request):
         auth_user au_aps ON au_aps.id = aps.idAgente_id
     LEFT JOIN
         soporte_estadosticket est ON est.id = aps.idestado_id
+    LEFT JOIN
+    	soporte_estadosticket se ON se.id = aps.id 
     WHERE
         aps.idTicketSoporte_id = {ticket_id}
     """
@@ -1410,7 +1450,7 @@ def detalleTicketActualizacion(request, ticket_id):
 	st.facturar, st.idestado_id as idEstadoProyecto,
 	sm.id as idModulo, sm.modulo,
 	se.id as idEstado, se.descripcion as Estado,
-	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante,
+	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante, ss.telefonoSolicitante,
 	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
 	sa.id as idTarea, sa.descripcion as DescripcionTarea, sa.fechaDesarrollo, sa.horasDiariasAsignadas as horasTarea
     FROM soporte_ticketactualizacion st 
@@ -1433,15 +1473,18 @@ def detalleTicketActualizacion(request, ticket_id):
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
+
 def detalleTicketDesarrollo(request, ticket_id):
     id_usuario = request.user.id if request.user.is_authenticated else None
     consulta_sql = """
-    SELECT st.id as NumTicket, st.tituloProyecto , st.idAgente_id as idAgenteAdmin, au.first_name as nomAgenteAdmin,st.idestado_id as idEstadoProyecto, au.username,
+    SELECT st.id as NumTicket, st.tituloProyecto , st.idAgente_id as idAgenteAdmin, st.fechaFinalizacion,
+	au.first_name as nomAgenteAdmin, au.last_name as apellidoAgente ,st.idestado_id as idEstadoProyecto, au.username,
 	sa.id as idTareaPrincipal, sa.descripcion as TareaPrincipal, sa.idAgente_id as idAgenteTarPrincipal, 
 	sa.horasDiariasAsignadas as horasPrincipales, se.id as idEstadoActividadPrincipal ,se.descripcion as estadoActividadPrincipal,
 	au2.first_name as nomAgentTareaPrincipal,
 	sa2.id as idTareaSecundaria, sa2.descripcion as TareaSecundaria, sa2.horasDiariasAsignadas as horasSecundarias,
-	se2.id as idEstadoActividadSecundaria, se2.descripcion as estadoActividadSecundaria
+	se2.id as idEstadoActividadSecundaria, se2.descripcion as estadoActividadSecundaria,
+	ss.id as idSolicitante, ss.nombreApellido as Solicitante, ss.telefonoSolicitante
     FROM soporte_ticketdesarrollo st 
     LEFT JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id
     LEFT JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id = sa.id 
@@ -1449,6 +1492,7 @@ def detalleTicketDesarrollo(request, ticket_id):
     LEFT JOIN auth_user au2 ON au2.id = sa.idAgente_id
     LEFT JOIN soporte_estadosticket se ON se.id = sa.idestado_id 
     LEFT JOIN soporte_estadosticket se2 ON se2.id = sa2.idestado_id
+    INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
     WHERE st.id = %s
     """
 
@@ -1520,69 +1564,69 @@ def infoAgenteSolicitado(request, id_agente):
 
 @require_POST
 def crear_ticket_soporte(request):
-    fecha_actual = datetime.now()
-    # Obtener los datos del formulario
-    id_agente = request.POST.get('agentesolicitado', '')
-    id_solicitante = request.POST.get('solicitante', '')
-    fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
-    fecha_inicio = request.POST.get('fecha_asignacion', '')
-    fecha_finalizacion = request.POST.get('fecha_estimado', '')
-    fecha_finalizacion_real = request.POST.get('fecha_finalizacion', '')
-    comentario = request.POST.get('motivo', '')
-    prioridad = request.POST.get('prioridad', '')
-    observacion = request.POST.get('observaciones', '')
-    id_estado = request.POST.get('estado', '')
-    facturar = request.POST.get('factura', '')
-    imagenes = request.FILES.get('imagenes')
-    imagensoporte = request.FILES.get('imagensoporte')
     try:
-        # Obtener la instancia del solicitante
-        solicitante = Solicitante.objects.get(id=id_solicitante)
+        fecha_actual = datetime.now()
+        detalle_problema = request.POST.get('exampleFormControlTextarea1', '')
+        imagen_problema = request.FILES.get('inputGroupFile03', None)
+        prioridad = request.POST.get('prioridadSelect', '')
+        solicitante = request.POST.get('solicitante', '')
+        url_imagen = 'ticket_images/' + str(imagen_problema)
+        fecha_inicio = None
+        fecha_finalizacion = None
+        fecha_finalizacion_real = None
+        causa_error = ' '
+        factura = None
+        chat = None
+        trabajo_realizado = None
+        idAgente = 2
+        idEstado = 1
 
-        # Obtener la instancia del usuario (agente)
-        agente = User.objects.get(id=id_agente)
+        # Guardar la imagen en el directorio /media/ticket_images/
+        if imagen_problema:
+            image_name = str(imagen_problema)
+            path = os.path.join(settings.MEDIA_ROOT, 'ticket_images', image_name)
+            with open(path, 'wb') as f:
+                f.write(imagen_problema.read())
+            url_imagen = 'ticket_images/' + image_name
 
-        if id_estado:
-            estado = EstadosTicket.objects.get(id=id_estado)
-        else:
-            # Si id_estado es vacío o None, asignar el estado por defecto (id=1)
-            estado = EstadosTicket.objects.get(id=1)
-
-        # Verificar y asignar fechas
-        fecha_inicio = fecha_inicio if fecha_inicio else None
-        fecha_finalizacion = fecha_finalizacion if fecha_finalizacion else None
-        fecha_finalizacion_real = fecha_finalizacion_real if fecha_finalizacion_real else None
-        prioridad = prioridad if prioridad else None
-        facturar = "" if facturar != 'True' and facturar != 'False' else facturar
-        imagensoporte = imagensoporte if imagensoporte else None
-
-        # Crear una instancia de TicketSoporte con los datos del formulario
         nuevo_ticket = TicketSoporte(
-            idAgente=agente,
-            idSolicitante=solicitante,
-            fechaCreacion=fecha_creacion,
-            fechaInicio=fecha_inicio,
-            fechaFinalizacion=fecha_finalizacion,
-            fechaFinalizacionReal=fecha_finalizacion_real,
-            comentario=comentario,
-            prioridad=prioridad,
-            causaerror=observacion,
-            idestado=estado,
-            facturar=facturar,
-            imagenes=imagenes,
+            idAgente = User.objects.get(id=idAgente),
+            idSolicitante = Solicitante.objects.get(id=solicitante),
+            fechaCreacion = fecha_actual,
+            fechaInicio = fecha_inicio,
+            fechaFinalizacion = fecha_finalizacion,
+            fechaFinalizacionReal = fecha_finalizacion_real,
+            comentario = detalle_problema,
+            prioridad = prioridad,
+            causaerror = causa_error,
+            idestado = EstadosTicket.objects.get(id=idEstado),
+            facturar = factura,
+            chat = chat,
+            trabajoRealizado = trabajo_realizado,
+            imagenes = url_imagen
         )
 
-        # Guardar el nuevo ticket en la base de datos
         nuevo_ticket.save()
 
-        return JsonResponse({'status': 'success', 'message': 'Ticket creado con éxito'})
-    except Solicitante.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Solicitante no encontrado'}, status=400)
-    except User.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Usuario (agente) no encontrado'}, status=400)
+        return JsonResponse({'status': 'success', 'message': 'Ticket creado exitosamente'})
     except Exception as e:
-        return JsonResponse({'status': 'error', 'message': f'Error al crear el ticket: {str(e)}'}, status=400)
+        return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
 
+def asign_admin_ticket_support(request,id_agente,id_ticket):
+    try:
+        fecha_actual = datetime.now()
+        fechaAsignacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
+        ticket = TicketSoporte.objects.get(id=id_ticket)
+        # Cambio de agente administrador
+        ticket.idAgente_id = id_agente
+        # Cambio de estado a en proceso
+        ticket.idestado_id = 2
+        ticket.fechaInicio = fechaAsignacion
+        ticket.save()
+        # Devolver la respuesta JSON
+        return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'})
+    except:
+        return JsonResponse({'error': 'No se pudo realizar el cambio de Agente administrador del proyecto'}, status=405)
 
 @require_POST
 def crear_usuario_empresa(request):
@@ -1670,6 +1714,106 @@ def crear_usuario_empresa(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
 
+@csrf_exempt
+def agregar_tareas(request, id_ticket):
+    try:
+        data = json.loads(request.body)
+        descripcion = data.get('descripcion')
+        idAgente = data.get('idAgente')
+        fecha = data.get('fechaFinalizacion')
+        fecha_actual = datetime.now()
+        fecha_creacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
+        imagen = data.get('imagen')
+
+        nueva_actividad = ActividadPrincipalSoporte(
+            descripcion=descripcion,
+            idTicketSoporte=TicketSoporte.objects.get(id=id_ticket),
+            idestado=EstadosTicket.objects.get(id=2),
+            imagen_actividades=imagen,
+            idAgente=User.objects.get(id=idAgente),
+            fechainicio=fecha_creacion,
+            fechafinal=fecha
+        )
+        nueva_actividad.save()
+        
+        return JsonResponse({'status': 'success', 'message': 'Tareas agregadas correctamente'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
+
+@csrf_exempt
+def eliminar_tarea(request, id_ticket):
+    try:
+        data = json.loads(request.body)
+        descripcion = data.get('descripcion')
+        print(id_ticket, descripcion)
+        actividad = ActividadPrincipalSoporte.objects.filter(idTicketSoporte_id=id_ticket, descripcion=descripcion).first()
+        print(actividad)
+        if actividad:
+            actividad.delete()
+            return JsonResponse({'status': 'success', 'message': 'Tarea eliminada correctamente'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Actividad no encontrada'}, status=404)
+        
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al eliminar la tarea: {str(e)}'}, status=400)
+
+@csrf_exempt
+def editar_tareas_soporte(request):
+    try:
+        data = json.loads(request.body)
+        tasks = data.get('tasks', [])
+        
+        task_ids = [task.get('id') for task in tasks]
+
+        actividades = ActividadPrincipalSoporte.objects.filter(id__in=task_ids)
+
+        for actividad, task in zip(actividades, tasks):
+            actividad.descripcion = task.get('descripcion')
+            actividad.idestado = EstadosTicket.objects.get(id=4)
+            actividad.fechafinal = task.get('fechaFinalizacion')
+            actividad.imagen_actividades = task.get('imagen')
+
+            actividad.save()
+
+        return JsonResponse({'status': 'success', 'message': 'La/s tarea/s se ha/n puesto en revisión'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al eliminar la tarea: {str(e)}'}, status=400)
+
+@csrf_exempt
+def finalizar_tareas_soporte(request):
+    try:
+        data = json.loads(request.body)
+        tasks = data.get('tasks', [])
+
+        ActividadPrincipalSoporte.objects.filter(id__in=tasks).update(idestado=5)
+
+        id_tickets = ActividadPrincipalSoporte.objects.filter(id__in=tasks).values_list('idTicketSoporte', flat=True)
+        
+        todas_tareas_estado_5 = ActividadPrincipalSoporte.objects.filter(idTicketSoporte__in=id_tickets).exclude(idestado=5).count() == 0
+
+        if todas_tareas_estado_5:
+            for id_ticket in id_tickets:
+                TicketSoporte.objects.filter(id=id_ticket).update(idestado=4)
+
+
+        return JsonResponse({'status': 'success', 'message': 'La/s tarea/s se ha/n fue finalizada'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al eliminar la tarea: {str(e)}'}, status=400)
+
+@csrf_exempt
+def cerrar_ticket(request, id_ticket):
+    try:
+        fecha_actual = datetime.now()
+        fecha_finalizacion = fecha_actual.strftime('%Y-%m-%d %H:%M:%S')
+
+        ticket = TicketSoporte.objects.get(id=id_ticket)
+        ticket.idestado_id = 5
+        ticket.fechaFinalizacionReal = fecha_finalizacion
+        ticket.save()
+        
+        return JsonResponse({'status': 'success', 'message': 'El ticket ha sido cerrado'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al cerrar el ticket: {str(e)}'}, status=400)
 
 @require_POST
 def crear_solicitante(request):
@@ -1705,135 +1849,25 @@ def crear_solicitante(request):
 
 
 @csrf_exempt
-def editar_ticket_soporte(request):
-    if request.method in ('PUT', 'POST'):
-        ticket_id = request.POST.get('numeroticketedit')
+def editar_ticket_soporte(request, ticket_id):
+    try:
+        data = json.loads(request.body)
+        causa_error = data.get('causaError')
+        fecha_finalizacion = data.get('fechaFinalizacion')
 
-        # Obtener el ID de la actividad
-        id_actividad = request.POST.get('actividad_id', '')
+        # Buscar el ticket por su ID
+        ticket = TicketSoporte.objects.get(id=ticket_id)
 
-        # Obtener los datos del formulario
-        id_agente = request.POST.get('agentesolicitadoedit', '')
-        id_solicitante = request.POST.get('solicitanteeditar', '')
-        fecha_inicio = request.POST.get('fecha_asignacionedit', '')
-        fecha_finalizacion = request.POST.get('fecha_estimadoedit', '')
-        fecha_finalizacion_real = request.POST.get('fechafinalizacionedit', '')
-        comentario = request.POST.get('motivoedit', '')
-        prioridad = request.POST.get('prioridadedit', '')
-        observacion = request.POST.get('observacionesedit', '')
-        id_estado = request.POST.get('estadoeditar', '')
-        facturar = request.POST.get('facturaedit', '')
-        contenido_chat = request.POST.get('chat', '')
-        trabajo_realizado = request.POST.get('trabajo_realizado', '')
+        # Actualizar las propiedades
+        ticket.causaerror = causa_error
+        ticket.fechaFinalizacion = fecha_finalizacion
 
-        try:
-            # Obtener la instancia del solicitante
-            solicitante = Solicitante.objects.get(id=id_solicitante)
+        # Guardar los cambios
+        ticket.save()
 
-            # Obtener la instancia del usuario (agente)
-            agente = User.objects.get(id=id_agente)
-
-            estado = EstadosTicket.objects.get(id=id_estado)
-
-            # Obtener el ticket existente para editar
-            ticket = get_object_or_404(TicketSoporte, id=ticket_id)
-
-            # Verificar y asignar fechas
-            fecha_inicio = fecha_inicio if fecha_inicio else None
-            fecha_finalizacion = fecha_finalizacion if fecha_finalizacion else None
-            fecha_finalizacion_real = fecha_finalizacion_real if fecha_finalizacion_real else None
-
-            # Actualizar los campos del ticket con los nuevos datos del formulario
-            ticket.idAgente = agente
-            ticket.idSolicitante = solicitante
-            ticket.fechaInicio = fecha_inicio
-            ticket.fechaFinalizacion = fecha_finalizacion
-            ticket.fechaFinalizacionReal = fecha_finalizacion_real
-            ticket.comentario = comentario
-            ticket.prioridad = prioridad
-            ticket.causaerror = observacion
-            ticket.idestado = estado
-            ticket.facturar = facturar
-            ticket.trabajoRealizado = trabajo_realizado
-            ticket.chat = contenido_chat
-
-            # Guardar los cambios en el ticket
-            ticket.save()
-
-            # Obtener la instancia de la actividad usando el ID
-            actividades_existentes = ActividadPrincipalSoporte.objects.filter(idTicketSoporte=ticket)
-
-            # Iterar sobre datos de actividades enviados desde el cliente
-            for i in range(len(request.POST.getlist('descripciontabla'))):
-                descripcion = request.POST.getlist('descripciontabla')[i]
-                id_agente_actividad = request.POST.getlist('agentesolicitadotabla')[i]
-                id_estado_actividad = request.POST.getlist('estadotabla')[i]
-                fechainicioactividad = request.POST.getlist('fechaIniciotabla')[i]
-                fechafinalactividad = request.POST.getlist('fechaFintabla')[i]
-                print('fechainicioactividad', fechainicioactividad)
-                print('fechafinalactividad', fechafinalactividad)
-                # Resto de los campos de la actividad...
-
-                fechainicioactividad = fechainicioactividad if fechainicioactividad else None
-                fechafinalactividad = fechafinalactividad if fechafinalactividad else None
-
-                # Verificar si hay una actividad existente para actualizar
-                if i < len(actividades_existentes):
-                    actividad_existente = actividades_existentes[i]
-                    actividad_existente.descripcion = descripcion
-                    actividad_existente.idAgente = User.objects.get(id=id_agente_actividad)
-                    actividad_existente.idestado = EstadosTicket.objects.get(id=id_estado_actividad)
-                    actividad_existente.fechainicio = fechainicioactividad
-                    actividad_existente.fechafinal = fechafinalactividad
-
-                    # Manejo de la imagen
-                    imagen_data = request.FILES.getlist(f'imagensoporte_{actividad_existente.id}')
-                    print(imagen_data)
-                    if imagen_data:
-                        # Obtener datos de la imagen y guardarla
-                        imagen_data = imagen_data[0]
-                        actividad_existente.imagen_actividades.save(imagen_data.name, imagen_data, save=True)
-
-                    # Resto de los campos de la actividad...
-                    actividad_existente.save()
-                else:
-                    # Si no hay una actividad existente, crear una nueva instancia
-                    actividad_nueva = ActividadPrincipalSoporte(
-                        idTicketSoporte=ticket,
-                        descripcion=descripcion,
-                        idAgente=User.objects.get(id=id_agente_actividad),
-                        idestado=EstadosTicket.objects.get(id=id_estado_actividad),
-                        # Resto de los campos de la actividad...
-                    )
-                    actividad_nueva.save()
-
-                    # Manejo de la imagen
-                    imagen_data = request.FILES.getlist(f'imagensoporte_{actividad_nueva.id}')
-                    if imagen_data:
-                        # Obtener datos de la imagen y guardarla
-                        imagen_data = imagen_data[0]
-                        actividad_nueva.imagen_actividades.save(imagen_data.name, imagen_data, save=True)
-
-                # Eliminar actividades restantes si hay más actividades existentes
-            for actividad_existente in actividades_existentes[len(request.POST.getlist('descripciontabla')):]:
-                actividad_existente.imagen_actividades.delete()  # Eliminar la imagen asociada
-                actividad_existente.delete()
-
-            return JsonResponse({'status': 'success', 'message': 'Ticket editado con éxito'})
-        except Solicitante.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Solicitante no encontrado'}, status=400)
-        except User.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Usuario (agente) no encontrado'}, status=400)
-        except EstadosTicket.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Estado de ticket no encontrado'}, status=400)
-        except TicketSoporte.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Ticket no encontrado'}, status=400)
-        except ActividadPrincipalSoporte.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Actividad no encontrada'}, status=400)
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': f'Error al editar el ticket: {str(e)}'}, status=400)
-    else:
-        return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
+        return JsonResponse({'status': 'success', 'message': 'El ticket ha sido cerrado'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al cerrar el ticket: {str(e)}'}, status=400)
 
 
 @require_POST
@@ -2260,6 +2294,10 @@ def actualizar_empresa(request):
             # Ejecutar la consulta SQL de actualización
             with connection.cursor() as cursor:
                 cursor.execute(consulta_sql, [nombre_empresa, direccion, telefono, email, num_empresa])
+
+            # Crear el registro para crear un registro para los usuarios en la nueva empresa
+            user = User.objects.create_user(username=nombre_empresa, password='8soptativa', email=email)
+            user.save()
 
             return JsonResponse({'success': True})
         except Exception as e:

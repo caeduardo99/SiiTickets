@@ -2,6 +2,9 @@
 
 {% load static %}
 {% block content %}
+    <input type="hidden" id="nombreUsuario" value="{{ user.username }}">
+    <input type="hidden" id="idUsuario" value="{{ user.id }}">
+    <div id="datos" data-mostrar-campo="{{ mostrar_campo|safe }}"></div>
 
     <!-- Contenido específico de la página de dashboard -->
     <section class="content-header">
@@ -30,432 +33,206 @@
                 <div class="card mb-3">
                     <div class="card-header bg-danger text-white">Detalles del Ticket</div>
                     <div class="card-body">
-                        <form class="form-row" method="post" action="{% url 'crear_ticket_soporte' %}">
-                            {% csrf_token %}
-                            {% if not mostrar_campo %}
-                                <!-- No mostrar este campo -->
-                            {% else %}
-                                <div class="form-group col-md-4">
-                                    <div class="form-group">
-                                        <label>Fecha asignación:</label>
-                                        <div class="input-group">
-                                            <input type="text" id="fecha_ticket_asignacion" name="fecha_asignacion"
-                                                   class="form-control"/>
-                                            <div class="input-group-append">
-                                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            <div id="formularioCliente" style="display: none;">
+                                <form class="form-group" method="post" action="{% url 'crear_ticket_soporte' %}">
+                                    {% csrf_token %}
+                                    <div class="row g-1">
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
+                                                <label for="exampleFormControlTextarea1" class="form-label">Detalle su problema</label>
+                                                <textarea class="form-control" name="exampleFormControlTextarea1" id="exampleFormControlTextarea1" rows="3"></textarea>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            {% endif %}
-                            {% if not mostrar_campo %}
-                                <!-- No mostrar este campo -->
-                            {% else %}
-                                <div class="form-group col-md-4">
-                                    <div class="form-group">
-                                        <label>Fecha Estimada Fin:</label>
-                                        <div class="input-group">
-                                            <input type="text" id="fecha_ticket_estimado" name="fecha_estimado"
-                                                   class="form-control"/>
-                                            <div class="input-group-append">
-                                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                    <div class="row g-1">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Imagen</label>
+                                            <div class="input-group mb-3">
+                                                <div class="custom-file">
+                                                  <input type="file" class="custom-file-input" id="inputGroupFile03" aria-describedby="inputGroupFileAddon03" name="inputGroupFile03" onchange="mostrarNombreArchivo()">
+                                                  <label class="custom-file-label" for="inputGroupFile03">Sube una imagen del problema que presentas</label>
+                                                </div>
+                                              </div>                                       
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group" id="rowSolicitante">
+                                                <label for="solicitante">Solicitante:</label>
+                                                <select class="select2" id="solicitante" style="width: 100%;" name="solicitante">
+                                                    <option value="">Seleccione Solicitante</option>
+                                                    {% for solicitante in resultados_solicitantes_data %}
+                                                    <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
+                                                        {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            {% endif %}
-                            {% if not mostrar_campo %}
-                                <!-- No mostrar este campo -->
-                            {% else %}
-                                <div class="form-group col-md-4">
-                                    <div class="form-group">
-                                        <label>Fecha Finalización:</label>
-                                        <div class="input-group">
-                                            <input type="text" id="fecha_ticket_finalizacion" name="fecha_finalizacion"
-                                                   class="form-control"/>
-                                            <div class="input-group-append">
-                                                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                                            </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Prioridad del requerimiento</label>
+                                            <select class="custom-select" name="prioridadSelect">
+                                                <option selected>Seleccionar la prioridad</option>
+                                                <option value="Alta">Alta</option>
+                                                <option value="Media">Media</option>
+                                                <option value="Baja">Baja</option>
+                                              </select>
                                         </div>
                                     </div>
-                                </div>
-                            {% endif %}
-                            <div class="form-group col-md-6">
-                                <label for="imagenes">Adjuntar Imágenes:</label>
-                                <input type="file" id="imagenes" name="imagenes" accept="image/*">
+                                    <div class="row g-1">
+                                        <div class="col-md-12">
+                                            <button type="submit" id="btnCreateTicket" class="btn btn-success btn-block"
+                                                disabled>Crear Ticket de Soporte
+                                        </button>
+                                        </div>
+                                    </div>
+                                </form>
                             </div>
-                            <div class="form-group col-md-12">
-                                <div class="form-group">
-                                    <label>Motivo de Soporte</label>
-                                    <textarea type="text" id="inputTitleProject" class="form-control"
-                                              placeholder="Escriba el motivo del soporte"
-                                              name="motivo"></textarea>
-                                    <small id="spanTitleProject" class="form-text">Este campo es
-                                        obligatorio!</small>
-                                </div>
+                            <div id="formularioAgente" style="display: none;">
+                                <p>Formulario del agente</p>
                             </div>
-                            <div class="form-group col-md-6" id="rowSolicitante">
-                                <label for="solicitante">Solicitante:</label>
-                                <select class="select2" id="solicitante" style="width: 100%;" name="solicitante">
-                                    <option value="">Seleccione Solicitante</option>
-                                    {% for solicitante in resultados_solicitantes_data %}
-                                        <option value="{{ solicitante.id }}"
-                                                data-empresa="{{ solicitante.nombreEmpresa }}">
-                                            {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6" id="rowAgente" style="display: none;">
-                                <label for="agentesolicitado">Agente Asignado</label>
-                                <select class="select2" id="agentesolicitado" style="width: 100%;"
-                                        name="agentesolicitado">
-                                    {% for agente in resultados_agentes_data %}
-                                        <option value="{{ agente.id }}" {% if agente.id == 2 %}selected{% endif %}>
-                                            {{ agente.full_name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            {% if not mostrar_campo %}
-                                <!-- No mostrar este campo -->
-                            {% else %}
-                                <div class="form-group col-md-4">
-                                    <label for="prioridad">Prioridad:</label>
-                                    <select class="select2" id="prioridad" style="width: 100%;" name="prioridad">
-                                        <!-- Opciones para el select de prioridad -->
-                                        <option value="Alta">Alta</option>
-                                        <option value="Media">Media</option>
-                                        <option value="Baja">Baja</option>
-                                    </select>
-                                </div>
-                            {% endif %}
-                            {% if not mostrar_campo %}
-                                <!-- No mostrar este campo -->
-                            {% else %}
-                                <div class="form-group col-md-4">
-                                    <label for="factura">¿Se debe emitir factura?</label>
-                                    <select class="select2" id="factura" style="width: 100%;" name="factura">
-                                        <option value="1">Sí</option>
-                                        <option value="0">No</option>
-                                    </select>
-                                </div>
-                            {% endif %}
-                            {% if not mostrar_campo %}
-                                <!-- No mostrar este campo -->
-                            {% else %}
-                                <div class="form-group col-md-4">
-                                    <label for="Estado">Estado:</label>
-                                    <select class="select2" id="estado" style="width: 100%;" name="estado">
-                                        <option value="">Seleccione Estado</option>
-                                        <!-- Opciones para el select de agente solicitado -->
-                                        {% for agente in resultados_estados_data %}
-                                            <option value="{{ agente.id }}">
-                                                {{ agente.descripcion }}
-                                            </option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            {% endif %}
-                            <div class="form-group col-md-6" id="rowButtonTask" style="display: none;">
-                                <button type="button" id="btnNewTask" class="btn btn-outline-dark btn-block">Agregar
-                                    nueva
-                                    tarea principal
-                                </button>
-                            </div>
-                            <div class="form-group col-md-6" id="rowButtonCreateTicket">
-                                <button type="submit" id="btnCreateTicket" class="btn btn-success btn-block">Crear
-                                    ticket de
-                                    Soporte
-                                </button>
-                            </div>
-
-                            <div class="form-group col-md-12" id="rowTableTask" style="display: none;">
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-sm">
-                                        <thead>
-                                        <tr>
-                                            <th scope="col">#</th>
-                                            <th scope="col">Descripcion de la Tarea</th>
-                                            <th scope="col">Horas diarias</th>
-                                            <th scope="col">Responsable</th>
-                                            <th scope="col">Tareas adicionales</th>
-                                            <th scope="col">Fecha desarrollo</th>
-                                            <th scope="col">Acciones</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody id="tableBodyTasks">
-                                        <!-- Las filas se agregarán aquí dinámicamente -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <input type="hidden" name="estadoTicket" id="estadoTicketField" value="">
-                        </form>
                     </div>
                 </div>
             </div>
+            
             <div class="tab-pane fade" id="vertickets">
                 <div class="card mb-3">
                     <div class="card-header bg-danger text-white">Detalles del Ticket</div>
                     <div class="card-body">
-                        <table class="table" id="tickets-table">
-                            <thead>
-                            <tr>
-                                <th>NumTicket</th>
-                                <th>Empresa</th>
-                                <th>Motivo</th>
-                                <th>Solicitante</th>
-                                <th>Prioridad</th>
-                                <th>Agente</th>
-                                <th>Estado</th>
-                                <th>Accion</th>
-                                <!-- Otros encabezados según tus campos -->
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <!-- Aquí se llenarán las filas de la tabla -->
-                            </tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm">
+                                <thead>
+                                <tr>
+                                    <th>NumTicket</th>
+                                    <th>Empresa</th>
+                                    <th>Motivo</th>
+                                    <th>Solicitante</th>
+                                    <th>Prioridad</th>
+                                    <th>Estado</th>
+                                    <th>Accion</th>
+                                </tr>
+                                </thead>
+                                <tbody id="tbodyTicketTable">
+                                <!-- Aquí se llenarán las filas de la tabla -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <style>
 
-        .custom-file-label::after {
-            content: "Subir";
-        }
-
-    </style>
     <!-- MODAL EDITAR TICKET -->
-    <div class="modal fade" id="detalleTicketModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Detalles del Ticket</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form class="form-row" id="editarTicketForm" method="post"
-                          action="{% url 'editar_ticket_soporte' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="_method" value="PUT">
-                        <!-- Primera columna de campos -->
-                        <div class="form-group col-12 text-center">
-                            <img id="imagenModal" class="img-fluid"
-                                 style="max-width: 60%; max-height: 60vh; display: block; margin: 0 auto;"
-                                 alt="Imagen del Ticket">
-                            <input type="text" id="imagenInput" name="imagenInput" value="" class="form-control" hidden>
-                            <a href="#" id="verImagenLink">Ver Imagen</a>
+    <div class="modal fade" id="modalInfoTicket" tabindex="-1" aria-labelledby="modalInfoTicketLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="modalInfoTicketLabel"></h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+                <form class="form">
+                    <div class="row g-1">
+                        <div class="col-md-12">
+                            <label for="textAreaComentarioEdit" class="form-label">Comentario</label>
+                            <textarea class="form-control" id="textAreaComentarioEdit" rows="3" disabled></textarea>
                         </div>
-
-                        {% if not mostrar_campo %}
-                            <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                        {% else %}
-                            <div class="form-group col-md-3">
-                                <label>Fecha Creacion</label>
-                                <div class="input-group">
-                                    <input type="text" id="modalFechaCreacion" name="modalFechaCreacion"
-                                           class="form-control" disabled/>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                        {% if not mostrar_campo %}
-                            <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                        {% else %}
-                            <div class="form-group col-md-3">
-                                <label>Fecha Asignacion:</label>
-                                <div class="input-group">
-                                    <input type="text" id="fecha_asignacionedit" name="fecha_asignacionedit"
-                                           class="form-control"/>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                        {% if not mostrar_campo %}
-                            <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                        {% else %}
-                            <div class="form-group col-md-3">
-                                <label>Fecha Estimada Fin:</label>
-                                <div class="input-group">
-                                    <input type="text" id="fecha_ticket_estimadoedit" name="fecha_estimadoedit"
-                                           class="form-control"/>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                        {% if not mostrar_campo %}
-                            <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                        {% else %}
-                            <div class="form-group col-md-3">
-                                <label>Fecha Finalización:</label>
-                                <div class="input-group">
-                                    <input type="text" id="fechafinalizacionedit" name="fechafinalizacionedit"
-                                           class="form-control"/>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text"><i class="fa fa-calendar"></i></span>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-
-                        {% if not mostrar_campo %}
-                            <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                        {% else %}
-                            <div class="form-group col-md-3">
-                                <label for="modalNumTicket"># Ticket:</label>
-                                <input type="number" class="form-control" id="modalNumTicket"
-                                       name="numeroticketedit" readonly></input>
-                            </div>
-                        {% endif %}
-                        <div class="form-group col-md-3">
-                            <label for="agentesolicitadoedit">Agente Asignado</label>
-                            <select class="select2" id="agentesolicitadoedit" style="width: 100%;"
-                                    name="agentesolicitadoedit">
-                                <option value="">Seleccione Agente</option>
-                                <!-- Opciones para el select de agente solicitado -->
-                                {% for agenteedit in resultados_agentes_data %}
-                                    <option value="{{ agenteedit.id }}">
-                                        {{ agenteedit.full_name }}
+                    </div>
+                    <br>
+                    <div class="row g-1">
+                        <div class="col-md-6">
+                            <label>Agente encargado</label>
+                                <select class="select2" id="selectEditAgenteSolicitado" style="width: 100%;"
+                                    name="selectEditAgenteSolicitado" disabled>
+                                    <option value="">Seleccione Agente</option>
+                                    {% for agente in resultados_agentes_data %}
+                                    <option value="{{ agente.id }}">
+                                        {{ agente.full_name }}
                                     </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group col-md-3">
-                            <label for="estadoeditar">Estado:</label>
-                            <select class="select2" id="estadoeditar" style="width: 100%;"
-                                    name="estadoeditar">
-                                <option value="">Seleccione Estado</option>
-                                <!-- Opciones para el select de agente solicitado -->
-                                {% for estadoedit in resultados_estados_data %}
-                                    <option value="{{ estadoedit.id }}">
-                                        {{ estadoedit.descripcion }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                        </div>
-
-                        {% if not mostrar_campo %}
-                            <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                        {% else %}
-                            <div class="form-group col-md-3">
-                                <label for="prioridadedit">Prioridad:</label>
-                                <select class="select2" id="prioridadedit" style="width: 100%;"
-                                        name="prioridadedit">
-                                    <option value="Alta">Alta</option>
-                                    <option value="Media">Media</option>
-                                    <option value="Baja">Baja</option>
-                                </select>
-                            </div>
-                        {% endif %}
-                        {% if not mostrar_campo %}
-                            <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                        {% else %}
-                            <div class="form-group col-md-3">
-                                <label for="facturaedit">¿Se debe emitir factura?</label>
-                                <select class="select2" id="facturaedit" style="width: 100%;"
-                                        name="facturaedit">
-                                    <option value="">Seleccione si se factura</option>
-                                    <option value="1">Sí</option>
-                                    <option value="0">No</option>
-                                </select>
-                            </div>
-                        {% endif %}
-                        {% if not mostrar_campo %}
-                            <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                        {% else %}
-                            <div class="form-group col-md-6">
-                                <label for="solicitanteeditar">Solicitante:</label>
-                                <select class="select2" id="solicitanteeditar" style="width: 100%;"
-                                        name="solicitanteeditar">
-                                    <option value="">Seleccione Solicitante</option>
-                                    {% for solicitanteeditar in resultados_solicitantes_data %}
-                                        <option value="{{ solicitanteeditar.id }}"
-                                                data-empresa="{{ solicitanteeditar.nombreEmpresa }}">
-                                            {{ solicitanteeditar.nombreApellido }}
-                                            - {{ solicitanteeditar.nombreEmpresa }}
-                                        </option>
                                     {% endfor %}
                                 </select>
-                            </div>
-                        {% endif %}
-
-                        <div class="form-group col-md-12">
-                            <label for="motivoedit">Motivo Soporte:</label>
-                            <textarea type="text" class="form-control" id="motivoedit" name="motivoedit"></textarea>
                         </div>
-                        {% if not mostrar_campo %}
-                            <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                        {% else %}
-                            <div class="form-group col-md-6">
-                                <label for="observacionesedit">Causa del Error:</label>
-                                <textarea type="text" class="form-control" id="observacionesedit"
-                                          name="observacionesedit"
-                                          placeholder="Describa la causa del error">></textarea>
-                            </div>
-                        {% endif %}
-
-
-                        <!-- Agregar la tabla debajo del bloque de Estado -->
-                        {% if not mostrar_campo %}
-                        {% else %}
-                            <div class="form-group col-12 mt-4">
-                                <h5>Tabla de Actividades Principales</h5>
-                                <table id="actividadesTable" class="table table-striped table-sm">
-                                    <thead>
-                                    <tr>
-                                        <th>Descripción</th>
-                                        <th>Agente</th>
-                                        <th>Imagen</th>
-                                        <th>Estado</th>
-                                        <th>Fecha Inicio</th>
-                                        <th>Fecha Fin</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <!-- Filas dinámicas se agregarán aquí -->
-                                    </tbody>
-                                </table>
-                                <button type="button" class="btn btn-success" id="agregarFila">Agregar Fila</button>
-                            </div>
-                        {% endif %}
-                        <div class="form-group col-12">
-                            {% if not mostrar_campo %}
-                                <!-- No se muestra ningún contenido aquí para que el botón no aparezca -->
-                            {% else %}
-                                <!-- Si el nombre de usuario no es 'POLINOX', mostrar el botón -->
-                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                                <button type="button" class="btn btn-danger" id="otroBoton">Informe PDF</button>
-                            {% endif %}
+                        <div class="col-md-6">
+                            <label for="solicitante">Solicitante:</label>
+                            <select class="select2" id="selectSolicitante" style="width: 100%;" name="selectSolicitante" disabled>
+                                <option value="">Seleccione Solicitante</option>
+                                {% for solicitante in resultados_solicitantes_data %}
+                                <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
+                                    {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
-
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                </div>
+                    </div>
+                    <br>
+                    <div class="row g-1">
+                        <div class="col-md-4">
+                            <label for="datetimeInput">Fecha Creación:</label>
+                            <input type="datetime-local" id="fechaCreacionEdit" name="fechaCreacionEdit" class="form-control" disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="datetimeInput">Fecha Finalización estimada:</label>
+                            <input type="datetime-local" id="fechaFinalizacionEdit" name="fechaFinalizacionEdit" class="form-control" disabled>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="datetimeInput">Fecha Finalización:</label>
+                            <input type="datetime-local" id="fechaFinalizacionRealEdit" name="fechaFinalizacionRealEdit" class="form-control" disabled>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row g-1">
+                        <div class="col-md-6">
+                            <label for="textAreaCausaError" class="form-label">Causa del error:</label>
+                            <textarea class="form-control" id="textAreaCausaError" rows="5" disabled></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <img class="img-fluid" id="imageError">
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row g-1">
+                        <div class="col-md-12">
+                            <button type="button" id="btnNewTask" class="btn btn-success btn-block"
+                                                disabled>Agregar nueva tarea +
+                                        </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive" style="display: none;" id="rowTableTaskEdit">
+                        <table class="table table-hover table-sm">
+                            <thead>
+                              <tr>
+                                <th scope="col">Descripcion</th>
+                                <th scope="col">Estado</th>
+                                <th scope="col">Agente</th>
+                                <th scope="col">Fecha finalización</th>
+                                <th scope="col">Imagen del requerimiento solucionado</th>
+                                <th scope="col">Acciones</th>
+                              </tr>
+                            </thead>
+                            <tbody id="tbodyListTask">
+                              
+                            </tbody>
+                          </table>
+                    </div>
+                </form>
             </div>
-
-            </form>
+            <div class="modal-footer">
+                <button class="btn btn-danger btn-sm" id="btnGenerarReporte" style="display: none;">Generar Reporte</button>
+                <button class="btn btn-success btn-sm" id="btnFinisTasks" style="display: none;">Finalizar Tareas</button>
+                <button class="btn btn-warning btn-sm" id="btnTerminarTareas" style="display: none;">Enviar Tareas</button>
+                <button class="btn btn-info btn-sm" id="btnAsignarAgente" style="display: none;">Asignar Agente</button>
+                <button class="btn btn-info btn-sm" id="btnFinishTicket">Cerrar el ticket</button>
+                <button class="btn btn-success btn-sm" id="btnNotificar">Notificar al administrador</button>
+                <button class="btn btn-warning btn-sm" id="btnEditarDatos" style="display: none;">Editar datos</button>
+            </div>
+          </div>
         </div>
-
-    </div>
+      </div>
 
     <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
-    <script type="text/javascript"  >
+    <script type="text/javascript">
         // Incorporar datos directamente en el script
         window.resultados_agentes_data = [
             {% for agente in resultados_agentes_data %}
@@ -465,816 +242,17 @@
                 },
             {% endfor %}
         ];
-    </script>
 
-
-    <script>
-
-        function obtenerDireccionIP() {
-            // Lógica para obtener la dirección IP, puede variar según el entorno
-            // Aquí se utiliza un ejemplo simple para obtener la IP del host actual
-            return 'http://' + window.location.host + '/media/';
-        }
-
-        function cargarTablaTickets() {
-            $.ajax({
-                url: 'ticketsoportescreados/',
-                method: 'GET',
-                dataType: 'json',
-                success: function (data) {
-                    // Limpiar el cuerpo de la tabla
-                    $('#tickets-table tbody').empty();
-                    var nombreUsuario = $('#usuario').text();
-                    console.log('Nombre de usuario:', nombreUsuario);
-
-                    // Verificar si hay datos en el arreglo
-                    if (data.length === 0) {
-                        // Mostrar mensaje centrado cuando no hay datos
-                        $('#tickets-table tbody').append('<tr><td colspan="8" class="text-center">No hay tickets de soporte creados en ningún estado.</td></tr>');
-                    } else {
-                        // Iterar sobre los datos y agregar filas a la tabla
-                        $.each(data, function (index, ticket) {
-                            var newRow = '<tr>' +
-                                '<td>' + ticket.NumTicket + '</td>' +
-                                '<td>' + ticket.NombreEmpresa + '</td>' +
-                                '<td>' + ticket.Motivo + '</td>' +
-                                '<td>' + ticket.Solicitante + '</td>' +
-                                '<td>' + ticket.Prioridad + '</td>' +
-                                '<td>' + ticket.full_name + '</td>' +
-                                '<td>' + ticket.Estado + '</td>' +
-                                '<td><button class="btn btn-success ver-button" data-ticket-id="' + ticket.NumTicket + '">Ver</button></td>' +
-                                '</tr>';
-                            $('#tickets-table tbody').append(newRow);
-                        });
-
-                        // Agregar un evento de clic a los botones "Ver"
-                        $('.ver-button').on('click', function () {
-                            var ticketId = $(this).data('ticket-id');
-
-                            // Realizar una nueva solicitud AJAX para obtener la información detallada del ticket
-                            $.ajax({
-                                url: 'ticketsoportescreadosid/?id=' + ticketId,
-                                method: 'GET',
-                                dataType: 'json',
-
-                                success: function (detalleTicket) {
-                                    // Llenar el modal con la información obtenida
-                                    llenarModal(detalleTicket);
-
-                                    // Agregar un evento clic específico para el botón "Generar PDF"
-                                    $('#otroBoton').off('click').on('click', function () {
-                                        generarpdf(detalleTicket);
-                                    });
-
-                                    $('#detalleTicketModal').modal('show');
-                                },
-                                error: function (error) {
-                                    console.log('Error en la solicitud AJAX:', error);
-                                }
-                            });
-                        });
-                    }
+        window.resultados_solicitantes_data = [
+            {% for agente in resultados_solicitantes_data %}
+                {
+                    id: "{{ agente.id }}",
+                    full_name: "{{ agente.full_name }}"
                 },
-                error: function (error) {
-                    console.log('Error en la solicitud AJAX:', error);
-                }
-            });
-        }
+            {% endfor %}
+        ];
 
-        function llenarModal(detalleTicket) {
-            var imagenModal = $('#imagenModal');
-            var rutaImagen = obtenerDireccionIP() + detalleTicket.ticket[0].imagenes;
-
-            var imagenInput = $('#imagenInput');
-            var valorImagen = detalleTicket.ticket[0].imagenes;
-            imagenInput.val(valorImagen);
-
-
-            // Verifica si hay una ruta de imagen antes de intentar mostrarla
-            if (detalleTicket.ticket[0].imagenes && detalleTicket.ticket[0].imagenes.trim() !== '') {
-                // Establece la fuente de la imagen
-                imagenModal.attr('src', rutaImagen);
-                // Muestra la imagen
-                imagenModal.show();
-            } else {
-                // Oculta la imagen si no hay ninguna ruta
-                imagenModal.hide();
-            }
-
-            // Llenar el modal con la información detallada del ticket
-            $('#modalNumTicket').val(detalleTicket.ticket[0].id);
-            $('#modalFechaCreacion').val(detalleTicket.ticket[0].fechaCreacion);
-            $('#chat').empty();
-            var chatContenido = detalleTicket.ticket[0].chat;
-            //console.log('meswaje', detalleTicket[0].chat)
-            $('#trabajo_realizado').val(detalleTicket.ticket[0].trabajoRealizado);
-
-            // Vuelve a inicializar DateRangePicker
-            $('#modalFechaCreacion').daterangepicker({
-                timePicker: true,
-                singleDatePicker: true,
-                timePicker24Hour: true,
-                startDate: moment(detalleTicket.ticket[0].fechaCreacion),  // Usa el valor proporcionado
-                locale: {
-                    format: 'YYYY-MM-DD HH:mm:ss'
-                },
-                readOnly: true  // Establece readOnly a true para hacer el DateRangePicker no editable
-            });
-
-
-            var fechaInicio = detalleTicket.ticket[0].fechaInicio;
-
-            // Inicializar DateRangePicker para fecha asignación
-            var datePickerAsignacion = $('#fecha_asignacionedit');
-
-            datePickerAsignacion.daterangepicker({
-                timePicker: true,
-                singleDatePicker: true,
-                timePicker24Hour: true,
-                locale: {
-                    format: 'YYYY-MM-DD HH:mm:ss'
-                }
-            });
-
-            // Obtener la instancia del DateRangePicker después de la inicialización
-            var datePickerAsignacionInstance = datePickerAsignacion.data('daterangepicker');
-
-            // Verificar si la instancia se obtuvo correctamente antes de intentar establecer la fecha inicial
-            if (datePickerAsignacionInstance) {
-                // Establecer la fecha inicial
-                var fechaInicial = fechaInicio || (detalleTicket.ticket[0] && detalleTicket.ticket[0].fechaInicio) || moment();
-                datePickerAsignacionInstance.setStartDate(moment(fechaInicial));
-            } else {
-                console.log('Error: No se pudo obtener la instancia del DateRangePicker.');
-            }
-
-
-            var fechaFinalizacion = detalleTicket.ticket[0].fechaFinalizacion;
-
-            // Inicializar DateRangePicker para fecha de finalización
-            var datePickerFinalizacionn = $('#fecha_ticket_estimadoedit');
-
-            datePickerFinalizacionn.daterangepicker({
-                timePicker: true,
-                singleDatePicker: true,
-                timePicker24Hour: true,
-                locale: {
-                    format: 'YYYY-MM-DD HH:mm:ss'
-                }
-            });
-
-            var datePickerFinalizacionInstancee = datePickerFinalizacionn.data('daterangepicker');
-
-            // Establecer la fecha de finalización si está disponible
-            if (fechaFinalizacion && datePickerFinalizacionInstancee) {
-                datePickerFinalizacionInstancee.setStartDate(moment(fechaFinalizacion));
-            } else {
-                datePickerFinalizacionn.val('');
-            }
-
-
-            var fechaFinalizacionReal = detalleTicket.ticket[0].fechaFinalizacionReal;
-
-            // Inicializar DateRangePicker para fecha de finalización
-            var datePickerFinalizacion = $('#fechafinalizacionedit');
-
-            datePickerFinalizacion.daterangepicker({
-                timePicker: true,
-                singleDatePicker: true,
-                timePicker24Hour: true,
-                locale: {
-                    format: 'YYYY-MM-DD HH:mm:ss'
-                }
-            });
-
-            var datePickerFinalizacionInstance = datePickerFinalizacion.data('daterangepicker');
-
-            // Establecer la fecha de finalización si está disponible
-            if (fechaFinalizacionReal && datePickerFinalizacionInstance) {
-                datePickerFinalizacionInstance.setStartDate(moment(fechaFinalizacionReal));
-            } else {
-                datePickerFinalizacion.val('');
-            }
-
-
-            $('#motivoedit').val(detalleTicket.ticket[0].comentario);
-            var prioridadSelect = $('#prioridadedit');
-            prioridadSelect.val(detalleTicket.ticket[0].prioridad).trigger('change')
-            $('#observacionesedit').val(detalleTicket.ticket[0].causaerror);
-            var estadoSelect = $('#estadoeditar');
-            estadoSelect.val(detalleTicket.ticket[0].idestado_id).trigger('change'); // Asegurar que Select2 actualice la visualización
-            console.log('estadoSelect.val()', estadoSelect.val());
-
-            var conversacionRow = $('#conversacionRow');
-            var otroBoton = $('#otroBoton');
-
-            // Asumiendo que 5 es el valor que determina la visualización de la sección
-
-
-            var solicitanteSelect = $('#solicitanteeditar');
-            solicitanteSelect.val(detalleTicket.ticket[0].idSolicitante_id).trigger('change'); // Asegurar que Select2 actualice la visualización
-            var facturarValor = detalleTicket.ticket[0].facturar;
-            var agenteSelect = $('#agentesolicitadoedit');
-            agenteSelect.val(detalleTicket.ticket[0].idAgente_id).trigger('change'); // Asegurar que Select2 actualice la visualización
-            // Convertir el valor booleano a cadena ('1' o '0')
-            var facturarString = facturarValor !== null && facturarValor !== undefined ? (facturarValor ? '1' : '0') : '';
-            console.log('facturarString', facturarString)
-            // Establecer el valor del campo de facturaedit
-            $('#facturaedit').val(facturarString).trigger('change.select2'); // Asegurar que Select2 actualice la visualización
-            // Obtener el contenido del chat y establecerlo en el campo oculto
-
-            $(document).ready(function () {
-
-                function agregarFila(actividad, contadorSelect) {
-                    // Crear una nueva fila con campos de entrada y agregarla a la tabla
-                    var nuevaFila = `
-            <tr>
-                <td>
-                    <div class="form-group">
-                        <input type="text" class="form-control" placeholder="Descripción" name="descripciontabla" value="${actividad.descripcion}">
-                    </div>
-                </td>
-                <td>
-                    <div class="form-group">
-                        <select class="form-control select2" style="width: 100%;" name="agentesolicitadotabla" id="agentesolicitadotabla_${contadorSelect}">
-                            <option value="">Seleccione Agente</option>
-                            <!-- Opciones para el select de agente solicitado -->
-                            {% for agente in resultados_agentes_data %}
-                                <option value="{{ agente.id }}" {% if actividad.idAgente_id == agente.id %} selected
-                    {% endif %}>
-                                    {{ agente.full_name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </td>
-                <td>
-                   <div class="form-group col-md-12">
-            <div class="custom-file">
-      <input type="file" class="custom-file-input" id="imagensoporte_${actividad.id}" multiple
-    name="imagensoporte_${actividad.id}" accept="image/*"
-    aria-describedby="inputGroupFileAddon01" data-id="${actividad.id}">
-
-        <label class="custom-file-label" for="inputGroupFile01">Subir Imagen</label>
-    </div>
-    <input type="hidden" id="imagensoporte_actual_${contadorSelect}" name="imagensoporte_actual" data-id="${contadorSelect}">
-    <input type="hidden" id="actividad_id_${contadorSelect}" name="actividad_id" value="${contadorSelect}">
-
-                </td>
-                <td>
-                    <div class="form-group">
-                        <select class="form-control select2" style="width: 100%;" name="estadotabla" id="estadotabla_${contadorSelect}">
-                            <option value="">Seleccione Estado</option>
-                            <!-- Opciones para el select de estado -->
-                            {% for estadoedit in resultados_estados_data %}
-                                <option value="{{ estadoedit.id }}" {% if actividad.idestado_id == estadoedit.id %}
-                         selected {% endif %}>
-                                    {{ estadoedit.descripcion }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </td>
-                <td>
-                    <div class="form-group">
-                        <input type="datetime-local" class="form-control" name="fechaIniciotabla" value="${actividad.fechainicio}">
-                    </div>
-                </td>
-                <td>
-                    <div class="form-group">
-                        <input type="datetime-local" class="form-control" name="fechaFintabla" value="${actividad.fechafinal}">
-                    </div>
-                </td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm eliminarFila">-</button>
-                </td>
-            </tr>
-        `;
-                    $('#actividadesTable tbody').append(nuevaFila);
-
-                    // Inicializar el nuevo select2 agregado dinámicamente para el agente
-                    $('#agentesolicitadotabla_' + contadorSelect).select2();
-
-                    // Establecer el valor del nuevo select basado en la actividad actual para el agente
-                    $('#agentesolicitadotabla_' + contadorSelect).val(actividad.idAgente_id).trigger('change.select2');
-
-                    // Inicializar el nuevo select2 agregado dinámicamente para el estado
-                    $('#estadotabla_' + contadorSelect).select2();
-
-                    // Establecer el valor del nuevo select basado en la actividad actual para el estado
-                    // Si la actividad ya tiene un estado definido, utilizar ese valor; de lo contrario, establecerlo en 2
-                    var estadoSeleccionado = actividad.idestado_id ? actividad.idestado_id : 2;
-                    $('#estadotabla_' + contadorSelect).val(estadoSeleccionado).trigger('change.select2');
-
-                    console.log('Imagen:', actividad.imagen_actividades);
-                    $('#imagensoporte_actual_' + contadorSelect).val(actividad.imagen_actividades);
-
-                }
-
-
-                // Manejar el clic en el botón "Agregar Fila"
-                $('#agregarFila').on('click', function () {
-                    agregarFila({
-                        descripcion: '',
-                        idAgente_id: '',
-                        idestado_id: '',
-                        fechaInicio: '',
-                        fechaFin: ''
-                    }, obtenerNuevoContador());
-
-                });
-
-                // Manejar el clic en el botón "Eliminar Fila"
-                $('#actividadesTable').on('click', '.eliminarFila', function () {
-                    // Eliminar la fila actual al hacer clic en el botón "Eliminar"
-                    $(this).closest('tr').remove();
-                });
-
-                // Limpiar la tabla antes de agregar nuevas filas
-                $('#actividadesTable tbody').empty();
-
-                // Asumiendo que `detalleTicket.actividades` es una lista de objetos con propiedades como `descripcion`, `idAgente`, etc.
-                if (detalleTicket.actividades && detalleTicket.actividades.length > 0) {
-                    // Contador para IDs únicos
-                    var contadorSelect = 1;
-
-                    // Recorrer las actividades y agregar las filas correspondientes
-                    detalleTicket.actividades.forEach(function (actividad) {
-                        agregarFila(actividad, contadorSelect);
-                        contadorSelect++;
-                    });
-                }
-
-                // Evento clic para el input de imágenes
-                $('#actividadesTable').on('change', 'input[type="file"]', function () {
-                    var idActividad = $(this).data('id');
-                    var inputImagenActual = $('#imagensoporte_actual_' + idActividad);
-
-                    // Obtener el ID de la actividad y usarlo como necesites
-                    console.log('ID de la actividad:', idActividad);
-
-                    // Agregar el ID de la actividad al campo oculto en el formulario
-                    $('#actividad_id_hidden').val(idActividad);
-
-                    // Resto del código para manejar las imágenes
-                });
-
-                // Función para obtener un nuevo contador único
-                function obtenerNuevoContador() {
-                    return $('.eliminarFila').length + 1;
-                }
-            });
-
-
-        }
-
-        function convertirImagenABase64(rutaImagen, callback) {
-            var img = new Image();
-            img.crossOrigin = 'Anonymous';
-
-            img.onload = function () {
-                var canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-
-                var ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-
-                var dataURL = canvas.toDataURL('image/png');
-                callback(dataURL);
-            };
-
-            img.src = rutaImagen;
-        }
-
-        function convertirImagenesABase64(actividades) {
-            return Promise.all(actividades.map(actividad => {
-                return new Promise((resolve, reject) => {
-                    if (actividad.imagen_actividades) {
-                        var rutaImagen = obtenerDireccionIP() + actividad.imagen_actividades;
-
-                        convertirImagenABase64(rutaImagen, function (imagenBase64) {
-                            resolve(imagenBase64);
-                        });
-                    } else {
-                        resolve(null);
-                    }
-                });
-            }));
-        }
-
-        function generarpdf(detalleTicket) {
-            console.log('detalleTicket', detalleTicket);
-            var fechaCreacionFormateada = moment(detalleTicket.ticket[0].fechaCreacion).format('DD/MM/YYYY');
-            var ticket = detalleTicket.ticket[0].id;
-            var empresa = detalleTicket.ticket[0].nombreEmpresa;
-            var solicitante = detalleTicket.ticket[0].nombreApellido;
-            var motivosoporte = detalleTicket.ticket[0].comentario;
-            var fechaInicioCompleta = detalleTicket.ticket[0].fechaInicio;
-            var fechaFinalizacion = detalleTicket.ticket[0].fechaFinalizacionReal
-            var fecha = moment(fechaInicioCompleta);
-            var fechafina = moment(fechaFinalizacion)
-            var horaincio = fecha.format('DD/MM/YYYY HH:mm');
-            var horafinal = fechafina.format('DD/MM/YYYY HH:mm');
-
-            if (detalleTicket.actividades && detalleTicket.actividades.length > 0) {
-                convertirImagenesABase64(detalleTicket.actividades)
-                    .then(imagenesBase64 => {
-                        var todasLasFilasConImagenes = imagenesBase64.every(imagen => imagen !== null);
-
-                        if (!todasLasFilasConImagenes) {
-                            // Obtener las filas sin imágenes y los nombres de los agentes correspondientes
-                            var filasSinImagenes = detalleTicket.actividades
-                                .filter((actividad, index) => imagenesBase64[index] === null)
-                                .map(actividad => ({
-                                    fila: actividad.numero_fila,
-                                    agente: actividad.agente_actividad_nombre
-                                }));
-
-                            // Mostrar mensaje de toast indicando que falta imagen en una o más filas
-                            if (filasSinImagenes.length === 1) {
-                                mostrarToast(`Necesitas subir la imagen del agente ${filasSinImagenes[0].agente} para generar el PDF`);
-                            } else {
-                                var filasSinImagenesMensaje = filasSinImagenes.map(fila => `(${fila.agente})`).join(', ');
-                                mostrarToast(`Necesitas subir las  imágenes de los agentes ${filasSinImagenesMensaje} para generar el PDF`);
-                            }
-                            return;
-                        }
-
-                        var contenidoPDF = [
-                            // Contenido de la primera página
-                            {
-                                columns: [
-                                    {
-                                        stack: [
-                                            {text: 'INFORME DE SOPORTE', style: 'header', alignment: 'left'},
-                                            {
-                                                text: [
-                                                    {
-                                                        text: 'TIPO DE SOPORTE:',
-                                                        style: 'subheaderRojoNegrita',
-                                                        alignment: 'left'
-                                                    },
-                                                    {text: ' REMOTO', style: 'subheaderNegrita', alignment: 'left'},
-                                                ],
-                                            },
-                                        ],
-                                    },
-                                    {
-                                        image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABG4AAAFSCAYAAACjTZkbAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAFCASURBVHhe7d1fjBZX4f/xWWAXWujuUhREyy7RWC8soCT2okXQpDVRI9xo0pqAN+1XTcAb++ei/HrRL73oH2+ERPttb4TENtEbaKyJbaJg24uaVCn1ohoNu1QRFFmW8m/58/z2M5xpn306Z55/c86cmXm/ks3ObJXd53lm5pzzOf8iAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACjGgPleGifu2ty4dOg1c1YNwzsfikYffdjZZ3Hx4KuNk3dvMWfVsXDjndGKVw44e9+qeK3J8pf3R4s2bSjdvd8t35/f2Mypyr+nQLemHnuiMb3rSXPmXl2eb/BrcmhZwxw657pOiHrx/QymLgS4M898BwAAAAAAQGAIbgAAAAAAAAJFcAMAAAAAABAoghsAAAAAAIBAEdwAAAAAAAAEiuAGAAAAAAAgUAQ3AAAAAAAAgSK4AQAAAAAACBTBDQAAAAAAQKAIbgAAAAAAAAJFcAMAAAAAABAoghsAAAAAAIBAEdwAAAAAAAAEiuAGAAAAAAAgUAQ3AAAAAAAAgSK4AQAAAAAACBTBDQAAAAAAQKAIbgAAAAAAAAJFcAMAAAAAABAoghsAAAAAAIBAEdwAAAAAAAAEasB8L40Td21uXDr0mjmrhuGdD0Wjjz7s7LO4ePDVxsm7t5iz6li48c5oxSsHnL1vVbzWZPnL+6NFmzaU7t7v1syfjjSunTljztyrw3sKdGvqsSca07ueNGfu1eX5Br9UjzKHzs0fXxUNrh7nGkYufD+Dx2ZOce0CjpTu5iK46R7BTW8IbgCgPwQ3AFAcghugOpgqBQAAAAAAECiCGwAAAAAAgEAR3AAAAAAAAASK4AYAAAAAACBQBDcAAAAAAACBIrgBAAAAAAAIFMENAAAAAABAoAhuAAAAAAAAAkVwAwAAAAAAECiCGwAAAAAAgEAR3AAAAAAAAASK4AYAAAAAACBQBDcAAAAAAACBIrgBAAAAAAAIFMENAAAAAABAoAhuAAAAAAAAAkVwAwAAAAAAECiCGwAAAAAAgEAR3AAAAAAAAASK4AYAAAAAACBQBDcAAAAAAACBIrgBAAAAAAAIFMENAAAAAABAoAhuAAAAAAAAAkVwAwAAAAAAECiCGwAAAAAAgEAR3AAAAAAAAASK4AYAAAAAACBQBDcAAAAAAACBGjDfS2PmT0ca186cMWfVMH98VTS4etzZZ3H19FTj8ltvm7PqmDcyEg19bo2z962K15oMrr0tmr90tHT3PoDymXrsicb0rifNmXvLX94fLdq0gecbAMzy/QwemznF8xdwhJsLAAA4QXADAMUhuAGqg5sLQCX5HjFFYxH4MIIbVMHFg682zKFzrkdho14IboDq4OYCUEkn7trcuHToNXPmHpWV/CSh27WpM9HM4evTPK9OHouuHJ2Mj0X//bL5b70aXHdbPOWy2cKNd5qjKFow24BasHosPmaKYW8Ibj6QTFtuvq6Tc+n0mp43OhJfj4mhdWuigZHh969XrtX8TQ4t8xbcDO98KBp99GE+P88uH51oXJ041vf9maa5rNE9On9s1ex9PBzfu66n/RPclFfrUhcXD86t0zZfn91Kyo1Ec32H8DhcfCgAKongJmxJJVkVkSSU6acS4ktzozkJeRZtutN55bus6hrcaITGzOEj0dWJd2cbgUe8X9vJdaprdGi20aiGIxXx3hHcVIfKHgUwCmd0X16ZmC17egxk8rRgfCxuMOueVSNaDes8yhSCm3AlnVQqI65NTUdJnTWkulBSz9H3JGwk2CkObzqASiK4CYd6jfRZqKKs72UIaHqVVL6vV25uib/XeQREHYKb5Pq+dOj1uALu87nTDV2bN2z+2mwF/I7oxi1f53nVBYKb8lKIqg6CspY918PXNfF9q+NuyxKCm+IpoFHZcGXiWHwd5jFiOATJtTm49rPxdzqv3OMNBlBJBDfFaW7IXjz0aiUqKP1q7k2t0wiIqgY3qoifP/BSdOHFl0p7fSvEWbz1HkKcDhDclEdyb14vg8IMUfuhsmPRxg2z9+9XO3rWEdz4lYy2vPzWn6+PtqxZ/Ud1HH1pJHKo05bLjDcUQCUR3PilsOZC3JD9daTvaE/TWVTB0YicqlZyqhTcqEF4bt8L8fWt6RVVoetwyfbvRou33cPwdwuCm7BV9d5sJylDbvjGV+MgNm00DsGNO5p2d+mgRnL9mU6qFJ1cn+gObyCASiK48eO9n/28QViTn6Q3tddh8aEpe3Cjivm5vS9E52cbhXVoEC7edm80vPNBApwWBDfhqdu92Qk1jtVIXvKdb79//RDc5CcJai79/vVI37nuuqM6jUZ5EuL0jjcNQCUR3LiTVJjf2/NMZdeqCUVzkFPGKS1lDW4USKoHv4pTLTpBgDMXwU04NBXl7O5n6CzIoJEOahzftP27kaaNEdz0Jpn2rc4pgpp8qYxRiMN0qu7wZgGoJIKb/Cmwmd71VHRu7/PmJ/Dt5md3z+lNDV2ZghtV0tUgpAf/umQKFSECwU0IFKaq/OHe7I7uY58dLFWoCykcPPO/T9Y2uPdJ6/+pk6BM9ZoizTPfAQBIpcDm1H3bG8dvXU9oUzDtSoF8vX99f2Z93DNNw/A6Nfb0fhz/wqaG1hAxPwa8UmDzz09/vvHf+3dwb/aAUbHdS3Yhg3u6p3Vvv7v8kw119KgDxfwnpCC4AQBYqSA9cfuXCWxQOa2BJA2cdFpw81+3fyl+FpgfAc5p1INCQwIboPre7yj4zPo4rDU/RguCGwDAh6jSrF5OFaQ0aFEljCDrjZ4F//7mVnpE4ZTuT11nJ+/ewi49QM2ovqmwVqGt6qHmxzAIbgAAc6hnXZVmejlRJQocGEHWHy0Ie/Irsw3q2ca1+RGQm+kf/yS+P1l4GKg3hbaqh57+4SN0FjQhuAEAxFQ4qpdDPetAlWjotRqEjCDrnyrUei9Z9wZ5UdmjDQWmHtjJ/QngfWd3/zQubxh9cx3BDQAgboRpbjFD01Eluq7VIGSdjHypca2RN4Q36Fe8ls1s2cNisADSqOzW6BuNyDM/qi2CGwCoOVWc1QijpxNVomlRWlSXBqEbhDfoVzItl7IHQDsakaf16eo8dYrgBgBqTFNIqDijShQkJAtrwy09N/7zrW3xVBfzI6AtXS9qgHGPAuiG1qdTh0FdyxyCGwCoKTVwNYUEqIqzu5+Jt65mWpQ/8TD22Yo00Ak1uHS9sEA4gF7ECxfXNLwhuAGAGlJoQ2MLVcNuNMVQRVq7f5hTIFUS2rCWGoB+1DW8IbgBgJpRQafpDUyPApAX7f5xfv+vCG+QitAGQJ7qGN4Q3ABAzbDDDgAX9GypWw8o2iO0AeCCnil1mvJPcAMANaLtFJlOAsAFjeJj3Sw0I7QB4JLqtHWZqktwAwA1cfnoRGN611PmDADyp0r0xYOvMuoGsakHdxLaAHCqLlN1B8x3AKiUE3dtblw69Jo5c29s5lTwz9N/f3NraUfbLBgfi+aPr4rmjY5Eg2tvMz+NoqF1t8U/69aVo5PRlYlj5iyKGmemo5nDR+Lja2fOBNvQGN75UDT66MOlKbunHnuCLX9raHD2vlz5h4OVqWNODi3z1iAo2z2ehfu/fspQF2on5Os2qQu1WrjxTnOU7vJbb39oXUOfdWQfVBdc+c6b0fylo5Upe1pV9oUBqDeCm7nUA37y7vB3kVKlRI0+hTOLNt0ZzRsZiYY+t6aw91ajlK5OHHs/6Lk6ef04/lkB6wQR3JRHUsFOKtS6nhOt13VynSVar7cyVrBvfnZ3tOQ7365EPZPgpnvq/dYi+FXW2pHQLK2hXAcEN71RvScuF9atiQZGhmfLj1XRgtVj1//b7DXmMozQdMbkep05/Hapy50bNn8t+ugv91Wi3ElTuhemOWxJr2hVLN56j9PKjbb9Pf3AI+asOvRwW/qjx529b2r4m8PKcP2ehYTgZi7f70en1LhdONugXfjFO+Lvg6vHS3V9KhBLKjuq+GikjstAh+AmTGrAKaBZuPGO+Dm7aNOG3D8jleWq/1x48ddxhTr0RqHu7Y//9Y+VKG8IbrqjIPLE7V8udXChhnTckTDbaG5uRPd6byeNY0mC2WSkZ1EdAS4Q3Ngl4YzKiuSach3K9Cspdy79/vXo0sHXSnGdLn95v5MyOASle1GhNj764bqQLktPe7f04FvxygFn75vPipovrt+zkBDcfCC0Z4AaueoVuWn7dwsdTeOS3nNVdi6/9ee4Yp7X1CuCm3CoEr5o44a486WI61gjGhTiaPpjqA3kqoy6IbjpTtnq6j6C106o3FCok5QbZWzvENxcp+tJ19Lg2s/GAU1VggSFsipzLh16PS57QlSlToNWLE4MABV3bt8L5qhYKkzVkLvl5N8Hlj23Z6CqoY2okjb8g+/Hr1NrfXzixN/iXiA1ylShQznpGr5px/eij73xu3gNF41gLOo6vnHL169fX++8GV9X+ttCw2Lo9aNGbxkCB4U1upc/8ou9cZmk6RV6ZhfZwNbvVtCp54o62RSCqNwYfXpX3NmBMCnEX7zt3rh+o7JBn5s+P32O+jyrEtqIRkXrPtH9svIvb8bXZmhlj0YFvfezn1eu810IbgCgwjQ8+9ze581ZMZLARj0gVVnzolsaCq3Km3rSmyvkBDnloM9IDTxdw0WGNWl0bcXX1Ru/ja8nNUhDoQq0RhGYU1SceuPf2/OMOQuTApAkrNG9rADU/KcgJZ0Aaign5YYCpxCD2rpQeaBnra4jdcooxFeIrvpNlTukWiUhjspF1fFCqstUtdOA4AYAKuzcvmJDG1Uw1aCsa2CTpTnIUeVPlUD12lEhD4c+D/Uq6jMKvYHXHOCE1Dsfyog/uPff+3YEO20vuZcVgIR+L2dRuaHASY1lje4gxHFPI2qS0Vkqq1Ue6Fmr60jPXfM/qzXV8fS+KMAJ4Xqs6qgbghsAqLCiGk3q9VfPoCqYVGza03uUTH1JKuTq0VOFEf4ljTx9HmVbMFt/rxqnGsIeAo3408g/c4qK0ppLIU6RKvO93I5GdyQhjspbvVb0b97ocBx+K4TQtZNMiyWoaS8OcN74bRx0Fe1s4KP/ekFwAwAVFe9ikdOiuN1Q2KCCu0rzun1ThVw9eqowquKoRjghjnuqrFelkach7AoAQ5g6FeoilsjP1AM7zVEYNG1D138VA5s0Km/1WjUiJNQ1r8oimZqmEKIO107eFG4p6FKYWGT5o/qvdsUyp5VAcAMAFVVEY0nhwvLf7C/dtt4h03upiqRCHIU55sfIUXzdzlYyVVmv0rWrAFD3Y9HhjXa/QnVpQeKQtglW0K1pG3VabyShRrPKiWTdEQIcFEVhYlwfLLDTqWpTdQluAKCiLv3+dXPkhxqHy57dE1cczY+AoOmaVSNPoVhVR4iFEN4oRGa6VDXpcw1lQWKFFPE00x98nzJolkaM3Lj1HnMG+JeUP0WFN1Ub7UlwAwAVNXP4iDnyQ717dezhRDlpKkW8E1MNGnm6L7WwZpGYLlVNZ3c/E8SCxMn9TBkEhEWdeSp/iug80EjAKk2XIrgBgIryub6N1gYp804dqI9klI2mUtRpSp9GFGnti6L4HgEIP84HMBVBi/Lqfma0JxAmlbVFdR6cr1CnAcENAFTQxYOveu1hCGUHGyCLhmvXZZRNGq19oZEJRbh0MLwdh9Afbbdb9No2Cm20KK85BRCoojoPLrxIcAMACNiVo/4q0xptw2LECJ22J9VaNnW/Vm9+brc58ksN/MtHJ1jnpkKK3m6X0AYol5t2fNf7gtlF7K7qCsENAFTQlYlj5si9xSx+iIBpapSGaGt7UvOjWlNwpRCrCIy6qQ6N6iyyQaTRc4Q2QLloOuPwzgfNmT++R6G7QnADABV0ddJfcMPaNgiVeva0owXX6FyqOBexUOTlt/5sjlB2RW6zm9zXAMpHu535Ln8uVqTTgOAGACrI11SpotbLANpJ1rNhl5kPU6+npjj65nunO7ihLcCL3CVMI+hYiBgor8Vb7zVHfvjszHSJ4AYA0DOCG4RIa19oPRsad3ZFDFe/dIipUlWg0KaoLcC1uClhLFBuvqfY+1z30SWCGwBAzxaMrzJHQBhYsLQzWutGo5J8m/nTERYoLrkLL/7aHPml61U7o5lTACWl8NXndKmqdBoQ3ABABV1+y8+ikQtW+90dAMiibekJbTpXxMLi184UM1ID+ShymtTSpx83RwDKbnCt/46DsiO4AYAKKmoYO1CkoXVrzBE6UcQ6N1VZJLKuiuq51ki6RZs2EMoCFeF7qn0VdpYiuAEAAKihIqZLNc5MmyOUUVHTpIpYkwmAO0y17x7BDQAAQE0t2rjBHPnBzlLlVsQ0KY22UchoTgFUAFPtu0dwAwAVVMSiowDKZ+HGO8wRkE0LSxcxDZfRNgD6VYVOA4IbAKigeSN+Vuun9xwoN98hL1uCl9fFQ6+aI3+0DhOjbQD069pU+afpEtwAAHpWhYIQqDMaxejUpUOvmyN/itj5DABCRHADAOgZvedA+fne3UNbSptDlIjv5/2C8bHoxi1fJ1gEgFkENwCAnl1+621zBACd4blRPpePTnhf36aI7eoBIFQENwBQQb560FWR14KV5hRACfkecYPyuXzYf9jGNCkA+ADBDQCgL0UsWAkA8GfGc3Azb3QkGvrcGqZJAYBBcAMAFTTkcaeY93b/nzkCAFSR7/VtmCYFAHMR3ABABam30pcrE5PRxYOvMl0KKKlFm5gqhWxXJ46ZIz8WfvEOcwQAEIIbAKigRZs2eB1ifvqBR8wRAGTzvcgt+qeA3qeFhIkAMAfBDQBUlLZS9UULV07/+CeMugHQlu/1UtAf3yMqVXYNrh5nfRsAaEJwAwAVNX98lTnyY3rXU+wwBQAV43uE1KDHNdoAoCwIbgCgonxv8avK/cmvbImunp4ivAGAivA9QmpwLcENALQiuAGAiipiwVGFNydu/zIjbwAAPfG5KyIQMnWEaaqivjQdfeqxJ+KvU/dtb5y4a3Pq1z8//fnG5NCyOV/vLv9k6v827Sv5HcmXfm/yN+jr8tEJ6ncFKd38UV1QvrckdG1450PR6KMPO/ssdJOdvHuLOasOjSZY8coBZ++bHnTmsDJcv2ch8f2sGJs5FeT7WtR1rF2tbn52d3Tjlq/X4npDurjSt+tJc+be8pf3e1+Yuwp81xNc13vy5vM5GuJ747s8/dgbv4uGPreG+zgHvp/BodaFQqZw5vJbb0czh49EVyfeNd+PeV8QvBeq6yUj5IbWrYkGRoZnfzYcH88bGcm8jyl3useIGwCoMN/TpRIaefOfb22L/v3NrfTOAAA6RmiDKlNgoUBN9SONjvnHik9FCjCmHtgZnd3900ghaRlCG1FdT3+vvvS3KyTU69Dr+dftX4pD72S0j0YJ6XWf3/+rBqOye0NwAwAVdsPmr5qjYlw48FJ0/Nb1kQpsVVbMjwEAJaHef1987oYI+KCQQoGFwgsFGQo1FHCoflSWgKYfSbhzbu/z8etWp55CHZ+jbaqC4AYAKuyGzV8zR8VSga1CWr1Lp3/4SNzjwiLGABA+n41L37shAi4orFFdR3UehRQKLHxON0Q1lW4oImvcdI81bnrDGjflxho3Hzj+hU2Ny553BelUMj+6eZ50EZI52a1YL6U/rHFTDqw1kK3ua9z4fP3qbPjoL/dxD+eENW780bTwc3tfiM7ve6EWI2nKpgpr3JTujye46R7BTW8IbsqN4OYD7/3s543/3r/DnKEXzcGS7qMF46uiBavHCAnaILgpB4KbbHUObjQyUmtw+FKFxlVICG7c0/Pz7O5n4qlPCFcVni1MlQKAilMPpoIH9K55AT5VghWEqaGrBp2GQmuRQW2ZyYJ7AKpEu90A+DAFNuokVF2A0AY+ENwAQMXNXzo6sHjrveYMedOQaFXatJOC5rJrBwUtxqyRTqzjAwBAdTQHNlWbBYKwEdwAQA0s2fE/5giuaXSOFmPWqBxNMdBoHIU45j8DACwWbbrTHAFhUUeMynMCGxSF4AYAamBw9fjATTu+Z87gk0bjKMTRSBztMqEFDM1/AgAAgdNU6OOfWc+UKBSK4AYAamJ454OsdVMgjcQ5u/un0fFb10eaSkWAAwBAuJJRNpoKrTIcKBLBDQDUhNa6UXiD4mkqlQIcjcBhHRwAAMKizQZO3P5lRtkgGAQ3AFAjwz/4/sDguuvbWqN48Qicz6yPh2GbHwFAMK4cnTRHQH1oXbqTX9kSbz4AhILgBgBqZtmze5gyFRANv9YwbO1SwegbACG5MnHMHAH1oNBG69IxNQqhIbgBgJoZ+tyagdGndpkzhEK7VGj0jbYaNT8CAACeJKENECKCGwCooSXf+fbA4m33mjOEQj182mqUqVMAAPhDaIPQEdwAQE0te24P4U2gNHVKO0+ZUwAoxBBroqEGCG1QBgPme2loB46Zw0fMWTUs3npP3PttTnOnVdFPP/CIOauOoXVroqU/etzZ+6b1JsxhZbh+z0Kiz09TT3wZmzlVyvdVa6poAb7Lh982P0FIFKwpYDOnpTP12BON6V1PmjP3lr+8P1q0aUMtnnF50vQ8jfTyZXjnQ9Hoow+X5nOaHFrmrT4Q2nvj+9rgHs6X72dwGetCaiepHsSaNtVWtnInDQ9GAJVEcNM5hTfqaWLLyzCVObwhuCkHgptsBDcEN2VFcJNN9R9t+c3uUdVXheCGqVIAUHPzl44OfPSX+5g2Fahze59nzRsAtcCoB/ikTitCG5QFwQ0AIKZRHaNPs9tUiLTmDbtNAai6GabtwpPz+3/VYKQxyoShiAAqialSvdN87/98axu9UIGZNzoSrXznzXiElPlR8JgqVQ5MlcrGVCmujbJiqlS6sk+RGlx3WzRvZCQ+Xrjxzvh7Hq5OHouuHJ37nlw7c6YS6yBW4dnCgxFAJRHc9EeVmrO7n4l8VvjQnipoK145UJprjeCmHGicZyO44dooK4KbdL7fl14tGB+LFm66M5o/tmq2bJv9Pr4qGlw9Xuh7fPnoROPqxLH4WFMbk1Fyl996Oz4PNeipwrOFqVIAgA/RqA4VcCv/8mauvTnoj8JIbVtqTgGgUtTjD7ik4CHU0EYja7Xe4M3P7o4+ceJv0cf/+seBeBr7bH1MnRJFhzaiv0F/i75u3PL1+G/Tl9ZKVMfSyj8cHFCAp79fnSkf+cXeODTR66I+2R+CGwCAlQpoFcQqfClwwzD14M54RJQ5BQBnfI9ga52mAeRtetdT5igcN2z+Whxw3HLy73FQs+Q73x4o07ToNPr7m8MdvS7VJxXqqFOQNRW7R3ADAGhLha8K3I+98bu41wTF0VBkTWMDAACdU6eHdmoMhepTCjE0WkUBh/lx5alTcGjdGnOGThHcAAA6NvS5NXGviYbAaiiveongn4Z5a7i3OQWAStA6GYAroXR6qO6kwEb1qRCmP6EcCG4AAF3TEFgN5VUvURLiqOdI87Phx7m9L5gjAHDH53NdIwoBV87vK7bc1L2kKVGqOxHYoFsENwCAviQhjnqOND9bvUgKcm7a8b14XRzCHDfe2/MMa90AcG5w7W3myA9GE8KF8/t/1Shy+29t4b3ynTejOk2JQr4IbgAAuVIvkoKcpT96PF4XR2FO6+4C+tJQYQU7yZcqNeiceqYvHHjJnAFANSRbDQN5uvDir82Rf/FaNn84WPoFh1EsghsAgHOtuws0bx2ZfCVbSBb5pdFCzQFT6COGzu5hkWIAbi1YPWaO/Jg5fMQcAfkpqqNDoY1GJJtToGcENwAAGBot1BwwJSOGtJuWtq5cMO63AdPO5cNvM60AgFPzx1aZIz+uTrxrjoB8zPzpSKOI9ZM0knj0Kba9Rj4IbgAAaEO7aQ3/4PsDH//rHwc0IiekLdGZLgXApXmjw+bID0bcIG/nCygnk4WImR6FvBDcAADQBY3I0bBnBTghrMtzruBdMgBU29C6NebID7YER94uHXrNHPkzvPPBeBSvOQX6RnADAEAPFOBoXR6thVMkTZdidykArswb8bvOl6a0MAUUefId3GhatUbpmlMgFwQ3AAD0QWvhaPvzIhXRmwigHjRV1Bx6o0AayIPWtzGH3mi0DZA3ghsAAPqk7c+LDG8uHXrdHAFA/nwvzD5DcIOcXJmYNEd+6F5RncCcArkhuAEAIAeqqBU1bYrFPAG4NH/c785SjCJEXnyHgDds/po5AvJFcAMAQE40bWrhxjvNmT80cgC45Pu5xjMNefG92PXirfeYIyBfBDcAAORo6dOPmyO/WMwTgCsLPI+4kfP7f8UzDX3TYte+aAvwItaEQj0Q3AAAkCNV2hZvu9ec+XN14pg5AoB8+d4SXFi7C3nwWTYWMeIW9UFwAwBAzooYKs06NwBcKWIUwYUDL5kjoHc+FyceXHubOQLyR3ADAEDOFm3aMOB7F5ZrU9PmCADyN7jOb6NUDe4itnIGejXk+R5BvRDcAADggO+dJa5OMlUKgDuLNm4wR/6c2/eCOQLCpzVuAFdKt3jS6R8+0qjacHANqXe53796K04/8Ig5qw7Nt176o8edvW9VvNZEC6fWYeG0E3dtbvjclWJs5lTl31N0Rwtr/udb28yZe5pbv+KVA0Fdh1OPPdGY3vWkOXNv+cv749FO5hQdunjw1cbJu7eYM/e0bb52YDOnwZscWuZt1EfI7817P/t547/37zBnfmjk4sf/+kfu6R75fgaHVhfSov3Hb11vztyjDOoc5U73SvfH+26M+eD6QvJ9Y/jiupFSxWtN6lKoENygaL4rjAQ3VJp7RQU6G8HNdb6faQnu697VPbjx/Wz72Bu/Y1epDlHudI+pUgAAODC4epzKG4DK0DPN99pdwnQplAWhDVwiuAEAwBGfi3lefuttcwQAbizc5H+743N7n4+unp5ikWIET6NIzCGQO4IbAAAcmTfib6HCa1NnzBEAuLHwi3eYI7/O7n7GHAFAPRHcAAAAAGjL9255iff2PMOoG3RtcC3bc6M6CG4AAAAAtDV/6eiAzymgCY0oZNQNuqXr1Rx6wchXuERwAwAAAKAji7feY478YtQNQjdzmLXm4A7BDQAAAICOLNq4wRz5pdEM07ueMmdAeK5OHjNHQP4IbgAAcOTSodfMkXtFTF8AUD/a8riIbcHl7O6fRjN/OsKoG3TM57U6c/iIOQLyR3ADAIADvof0+9zBCkC9LdnxP+bIv1P3bzdHQHvzx1eZI/cuM1UKDhHcAADggM/RNgDgU1G7S4kax1OPPcGoG3Rk3qjfTo3z+3/FtQknCG4AAHDg0qHXzZEfC1YXM3UBQP0Mrh4fWLjxTnPm3/SuJ6OLB1+lgYy2fG8JfuHFX5sjIF8ENwAAOHDhwEvmyI/5Y/6GgwNAUbtLJf7zrW3sMoW2FnicKiW+y37UB8ENAAA501DpKxOT5syPIRYnBuDRku98e8D3NJRm2mXq5Fe2EN4gk+/RqLou3/vZz7kmkTuCGwAAcnZ29zPmyJ+idnkBUF9Ltn/XHBVD69389/4d5gz4sEWbNgyYQ2/O7XvBHAH5IbgBACBH6mkrYmFibdFrDgHAi8Xbip0uJZqacuq+7YxwgNWg5xGpqgOwSHE2jUxCdwhuAADIyeWjE42pB3eaM3+KXCQUQH1pkeLF2+41Z8U5t/f5OLxh2hTSDK1bY478mXpgJ9P4LKZ//JMGI+W6R3ADAEAOVEHTYplF9CIVUSkFABne+aA5KpbCG9a8QZqFX7zDHPmjde6mdz1lziDq3Dpx1+aGQi1G3HSP4AYAakZbqDKEN38aaaP1FoqwcKP/SikASCijbkTP4BO3fzma+dMRyji874bNXzNHfp3d/VMWKp6lMHXqsScax29dH08jQ28IbgCgZi4efC3eRvXd5Z9saGg5IU5/VCFRD5J6e4ugXV1u3PJ11rcBUJhQRt2IRjr86/YvxdMxzI9Qc/OXjg74XucmoU6dOgeJCq6Of2Z9NL3rSfMT9IrgBgBqSsNUFTYkIc6/v7m1oQKWYeadU2VMQ/OL7EEqqicRABIadTO88yFzFgZNx1CorukZ5keoscVbi1lIW3Ut1RPqFt6oPvnPT38+XsuGaVH5ILgBAMSFqnbmUAH7jxWfio5/YVM8rFXTqsz/BC30/qhXt6jpUYkbvvFVcwQAxblpx3fjEYAhUaiu6Rl6XtepU0KvVQ3nCy++ZH6CIjs5VMdSfaHq06aSKVFJYKPRb8gPwQ0A4EMURmhY68m7t0STQ8uuLyZHkBNLepFCGPa7YHyMaVIAgqDpKDc/u9uchUXPa03XqHKAo5FFKp80elYdMGo4F92xEBKNCit6B0Z9JlXc/UxT7vW6dN3pXiOwcYPgBgDQlnotW4Oc0z98JF4fpw7D0FXJ0noJofUi3VjQ0G8ASKMguejGsY1GPSQBjhqZZZ+6onJJZbDKYo2S1cgilU8aPYt0RU2XaqYp6roGyz76RvePrj3VizTlvqh1/uqE4AYA0DUFOdotQYW1KotaIycZlaOKZBXmcqtS3Nx7qfUSQupF0pQETU0AgJDc/Nzu4KZMNVOAo0ampq4o8FAoX4YOCJWrKpOSoEblkspglcWMrOnMku98eyCEa1PXoEI2hR5lCXCSOpFCT9X5dP/o2mN0jT8ENwCAvqkSkozKUUVSBbpG5qhyqeBDgY4KfE21CnWIsP4u/X36WxVCJUPNQ+29XLL9u/HUBHMKAEHQlJTRp3aZs7Ap8FAorw4INaJDGEmqgCYpi9RIVnmk8lTlqsokgpr+qOwMhUIPfaYKQnTthdTplRYU6m9V6Kk6H/wrXYVPD68id+9wQavwjz76sLPPQg9/TW+oGg3FXfHKAWfvWxWvNVn+8v5o0aYNlW/s+f78xmZOleY9VWVQAUvRtDXnvJGRaMHqsWj+2Kr4Z4s2fTDE3tV1mqzTM3P4yGzlYzoOnK5OHCtVr5F6DFe+82bwwY3va60uz7e8+a4nuK735E2NZnPoXNnemywK7cs8bUfP2cG1t0VD69ZEAyPD75dP+lkvz96k7JErRydny5xj8fHlt96OG8LJ9zIrQ11InTSaqhTqe63rTm2chRvviK8912WaApprZ87MXp+zdaHJ2brQ7LVZxfZPFZ6tpfvjCW66R3DTG4KbciO4sQsluOlWEvT0omr38ujTu6LhH3w/+GuO4KYcCG6yEdz0Rg1kbYPM6JD6KEtdqGz1oKT+k4SI0tzRZZN0UCWaw8EqtnGyENwUgOCmewQ3vSG4KTeCG7uyBje4ThW4lX84WIrrjeCmHAhushHc9E69+QpvmFpRD2WqC2lqHOuz1EcVnq2scQMAQEloCPWyZ/eYMwAI29Dn1gS7RTjqTYtoA2VCcAMAQElowU81hMwpAARPW4QT3iA0Gp15047vmTMgfAQ3AACUwOJt98ZbmZpTACgNPbs0VQEIyfDOB6MF42PmDAgbwQ0AAIHTml7LnttDaAOgtLS+hAJoIBTaHewjv9gbT0MGQkdwAwBAwLQYsSqWAFB2CqCZnoKQaPqxpiEDoSO4AQAgUAptlv9mf9wraH4EAKW29EePs+YNgqKpfKNPE94gbAQ3AAAE6IbNXyO0AVBJaigrvGGKCkIx/IPvM5UPQSO4AQAgMKo8fvSX+wYIbQBUlcIbhdMsDotQMJUPISO4AQAgEOp9Vi80CxEDqAOtL7Lijd/GC7ADIWAqH0JFcAMAQAC0no0aMGz5DaBONLJwxSsHWGMEwVA5zG5TCA3BDQAABVLFUA2WlX84ODC4epzQBkAtaY2Rj73xO0bfIAg3bvl6PBpMnSpwR1MltaYf2iO4AQCgIFrLRhVDNVjMjwCgtuKpU2b0DaMdyqWKaxWpM0WdKsM7HzI/QV50vWhK2sf/+scBrenHwtDtEdwAAOCZepRX/uXNeC0bRtkAwFwKs1e+82bEQrFh02gUhRoaKaUGuPlx5Yw++jCjwXLSHNg0Tw1XfYjwJhvBDQDUzOJt98SVYYb/+qdKiQIb9SgT2ACAnda+0UKxembSoAuDRkFpWosa3vpcNBpFoYZGSpn/SWUlo8H02tkJrXsKvbRuUGtg04zwJhvBDQDUjAKDuDI8W+H6xIm/xRUwFZRURNzQ+6oeSUbYAED39MzUszMJcJhC5U8S1Gjqmkac3HLy7/G0FjW861qW6bUrfCDAaU/XjzoKkw4rrRtk/pMV4Y0dwQ0A1Jh6NFUJUUGpiogKV1VGGJHTH1VWVPFIepfUI0lgAwC9ez/AeefNOEig0Zw/vacqu1qDGk1dq8Oomm40BzjUl+ZS2Kf6j64fdRR2W/8hvElHcAMAeJ8KV1VGkhE5YzOnBpa/vD8eMaKCmIqynd4bBV5JZUUVj056lwAAnVOHg4IENZoVLjAKpzcqs1Suq3xXOa8RuHpPVXYR1HROdSbVl+p8LSYjsxRi6TpS2Ndv/Yfw5sMIbgAAmRZt2hCPGFFBrEqdCuUkzFGhWtfF+pKeSVVUNFJJ740CL8IaAPBD4YIaeArLVS4pPKeDYS41qlVO673RSJrmkEblusp3lfMKxMz/BT1ovhbVgVP1EEejjHRN6XpKRmYpxMrzOiK8mat0N+iJuzY3Lh16zZxVgxo/emia09xdPPhq4+TdW8xZdagQ0nxJc5q7Kl5rogesCmhzWlm+Pz+NTDGHtXX56ETj6sSx2WfOa1HjzHQ0c/hIpPMrE5Pmf1FeqqCoMTC49rbZ++fO+DuV3PamHnuiMb3rSXPmXl2eb3nzXU9wXe/J2+TQsoY5dK5s702oVB5dmi2LLv3+9Ujfq1AOZVH5NH98VbRg9ez3sVXR0GyZpdCA52HxZv50pHH+wEuR6qRlbleo3TW0bs3s9zviY591oFP3bW+c2/u8OetNFZ6tpfvjCW66R3DTG4KbciO4CUsS6lybOhPNHH47/lny+Vw7cya6bH5WFFVwFcaIni2igGbeyEjcixb/AF0juCkHgptsBDfld/X0VOPyW2/HHQtXJ49FV45OlqYRnZRJzeVUEsworGH9tHJRkHPx0KvR1Yl34w6u0K7DJARUSDO49rPx9xDqQf2GNwQ3BSC46R7BTW8Ibsrt9A8faahA9MXltVg3qtQozEk0hz39mDc6HFdAEoQy7r33s583zu17wZy5t/Tpx/lMe0Bwk031AXPo3OKt98RrZphTOJYEOs3lTBLsNOumPtgcsKRJRsU0S4KYBAF0vSTXoa67KxPH5lyDyfWZl7QgUB1V17+Hfd31E94Q3BSA4KZ7BDe9IbgBANRB0mjwhVECANCbZARzJ6rYQaV2rTnsShXKndL98QQ33SO46Q3BDQAAAACgaKVrvGnYtYaQVYmGp7lsSCuZPbfX31B1XxaMr3I6nLiK15os3nYPPZ0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABA6AbM9+BdPPhqwxzOsWjTBqevYeZPRxrXzpwxZ3O5/t1y9fRU4/Jbb5uzDwyuvS2av3TU2e+/fHSicXXimDnLl4/3rVe21z1/fFU0uHrc+d9d1HXeCd0LM4ePRFdm3x9dk9em0u+LZgs33hl/XzD7/i1YPebldbi8drsxb2QkGvrcmtxeb9azqB95/529CPm6t8n6PFw/n4tiK4/yUMZywbWQ35N2kmvl4sHXosaZ6UhlRzsqI+aPrYqPF226M4hnUze6LSNVPs4bHY6G1q0J8rN2eb9nyeu9CKUu0G/90fY68ipnbJ+zi/svraz3Vb/uRNY1H/LzyOW9GkJ9xlX9N0tI12WzIC/ANJNDy1Ir9mMzp5y+hhN3bW5cOvSaOZvr5md3R0u+822nv18PuZN3bzFnH1j+8n6nBf3UY080pnc9ac7yN290JK60LNx4R7Ro44ZgHoa21z2886Fo9NGHnf+NRV3nNu/97OeNCy/+OtI90ElQ04kF42PR4LrbnH32rq/dTun6XvHKgdxeW9azKA/6TBZvvSe6YfPXvBdWoV33nfjnpz/fuDIxac7mGn16VzT8g+8H+7f3ylYe5UXlgiqJundunL0OQy8XXAv5+k+jBuZ7u/8vunjo1ejy4fwaEboeFG4Mrv1stHDTnUE18i4ceCnKq4zUs/eGb3w1/h5C8Ov6frfJ67oPpS7Qb/3R9jryKmdO//CRxtndPzVnc33ixN9yuxZt19NHfrE3unHL1wu/3kV13v/ev8OczaXy6ZaTfw/i72zlo2zWc1jPJ9ft3jSu679pfLX7ujXPfEcPph7cGaeA5hRdUAVHFZ6pB3ZG/7r9S3EjaPrHP2moImT+JyiQKgrvLv9kXIDpc8ortBE1dps/e/0u859QIDW09Jkcv3V9dOq+7dyLGVS5s4U2osYruqfnjCpnaqQk5YKeD1yLYVNgo4q1nh1qAOYZ2oiuCf27Ko/0O4qm61HX5fHPrI//przKSP07+vf+seJT8TNY76v5T6gxjT5Lc21q2hz1R9edTdZ/65Zt1J06jUIxvespc/RhusdV9pvTWknabHo+qVw+v/9XPJsKQnDTB13Ip+7fHhfi5kfokRpBcaNxtiKkAMf8GJ4piDz+hU1x704eFVGU07m9z8f3IsF0unP7XjBH6fQ8o2LTP72PehbpWiTgDVMcYNy6Pg5X6kD1k7ie4riM1DP4xO1f5rpHPGUjTR73nMr4rE4IjSbLy9WJd83RXKGMoNOolaz3QtqV/XWg9+g/39oWh8vmR/CI4KZPcS/1gzvNGfqlipACHPXeEYj5pQL85Fe25N5binLSvajrgftwLvWCd1JhPrv7GXOEfulajAOcL2xqECaGQxV3fS51oOeg6iWqn/jq1Gi+7nkO15ct2Mhj/Z7zbUbUaJRFXiO/0kbcaPpNKDops1X2UwZdp3BZ0+zMKTwJcq5emhDXuGnmar0b27zFota40fokN269x5y1lyxKqAKmXZLdSr9Lc199rnNge91VX+NGlUL1IrarkOozieffj98Srzkgrdehrll91781c/jt968B232U93ur368FMbulvy/tb+z2mk9oQeY8nwm2Z9Hibfe+v6BnN/RvdXJf6vP+6C/3Ob3+yrTGjRqrqrB0YuVf3gxycbte2cqjbq/BZOFW2zMhi+baL//N/iDKhV6fDZ0KcX59wvaetFLD7PoaNbfFn13rgo9qFCYN0CtHJ2efR9cX9lUHgu3Z5Pu5oPKx004NXRPxOjxrP5taRqrRp0U29Vovv/XnuGHcSd2oiPqQ7X4vy3Wfd10guZa7palO/dbXbeV/v/eCQsF213Vea+mklfM37fhetPRHj3u7pm30HOp0GqbKu2XP7Sn8b26W9716dXK2bjj7jOqkjHbdHpW867+dyOO+dSG4P8gm9ODGVWXSdjMWFdyo0Op1wdW4p3q2ENVQw07eU9H7uvKdN70t1FfX4Obf39waL7Joo8b7yOx70O/1rUqrFq68dOj19+dOh7IAmItrPk+2Z1G/zwJ9JqcfeCTznvzYG79z2mAoS3DTacCZCLGC1w8X5ZGuP5UJ5/Y93/H76ju8Cf3Z4Js+M61BZKPPZ/SpXX0vsqv7Tc+lpLxIAg6fz4VOQxvd61rcvZf7QO/n2T3PxD3YWbQWiK57X/Uh2/1e9eu+6HpgGlsdrZ9nb6dhha67lX842Nfrtv0uH5u8dCJrgeY0eS7anAdX96qefyqbtfaPrXz20bnnqv5bRkyVyokuaNa7yaZeNj2g9RDRzaYHSjt6X1VpgjuqNNpCG1XA1cunh3IejST9G+q50b+ngk+Ftm3hPfihz0T3pBoeNszrvs4WLqjXMI3uK8qEbLr+1OOq3TrUs6tnTjtJucB7W4wzKY3ahCrx6mxRWd9vw0b/f+02o+vj43/944BGsOka8UlrOWSFNmrUKthWQNtrA0L3gP7/en1Z9SL9Hfp7UD/abS+NRkX0ylbva6XrTsGLOe2J7R5asHrMHBUnCSda6d623Y91mQqtZ7Dq7AqMbWUz9Ry/CG5ypAcT6910RhUcNRbVcG9XUY/f18dYoM8V9fTZuNymUQWCKvd1S8tDpR5yDatNY9sNom7SdovS82t454Nxg7WVAoa0CiHSqYKoRn/ae9lK7612uIBfqqDbGnxq5CiU7zewsVHnTx5TNjqlhYizRiIq7NZIhDw6NUSvT/Uijeyw0d/DBg71o6mGaTS1sFdpHTK2OkCnIY+Nps2nCaH+p9eW2iGz/bvxKLo052vWmaVnnOqINpreCj8IbnKmoa7sJtI5NdyV5CrZzvLenmf6TvyRTtPX0qhSSqhSH2ps2RrMWY2XutBzPW0tCr1neu9sFTy2Bu+O3ks1/jsZWaEKt4aIm1N4kNWAu/m53eao/BRQZW0N7HIapKbjZIU3+rvo4a4XW6DSa9ms+nTaKBh1QqTpd9RtWsO+Xb3fl7TOS3XIqGxXGyWtc1l1gbptDZ7VodLLWlLoDcFND/QAzRolol5AQobOKcltF94oDacB5IZtYUT1NqBeFm68wxyhlW1odHKfaGRaWuVa9xdhfvc0skIjMts587/2aTvIn62HX5X6Ki3Erfs9rRdeNLLI9dpVCm9sDSX9XexaVy+2UV1a6LoXaQGs2jUKKtKuu36nS6WFRMni3UVS8J/2ty3eem/ciaDjJZa6cN2mkOv96GSJC7hFcNMD7YqQVaFUoco85O7ogaBpOVmBGFMO8mfrrdbnkNfwb5RH1v1XZ6qwpvVsKmxuvk9suzfQyOqNGhHtRt7oc6GjxB9bD3/VQl+N8rXxNbIoayp51t+Hakrr3EwLHTqRFjokgc0N3/hq/L1VP52naR2ErnYD6oYtfFmy43/MkUbXpZfrehZqjUhzCnhBcNMj9a7aFqQUPUzZ37476q1TeGMTj7qp2dDEotgWwgPqyFZhbR2VdtOO9J45woXeaeRN1hBt6Xf9BfQvhN7zvKieYRttoylMvkYWqUPL1tuvv4+RfPViXYOuy/BAZVFa4JMENrbnba/PWVsHYdEbU+h9SNvJTaNKmu9xHdvek6w1IgEXCG76oJ0Osqb3aGs5CtbuaE2VrN1tLv3+dXMEIG+2ecpZz7mqs+04kQwrN6cxNbRszy+mevau3W5TdRuyDrey6hm23ndXbGGwXHjx1+YIdWDdWcoy3d3GNk0q2YhC5VhaUKHf08sIE9vmBkV3EJ7bm15upK1XZ1vDTsFPndabso24XDBe/OipuiC46VO76T2sd9M92+JoYltIF/m62sdOBSivCy+m96hVqTe9W6rkpvW+aw58GmsFb1+9Knh5Uo+nbeSB9DpdAPmp0s5ztpEFasz6Gm2TsDWihZFm9WLbWcq2Y5PNpUMfDiZbrzHbdKleQvKrE++aow9o9JCubXNaiLTphvq7WjtkxLaGndRlKnTWQISFBY+eqhOCmz6pEGe9m3zpPbX1Wivxp/GTn6weHALHelGhbGsA28KIOrDtLNM8B76ZRg2mjVBSWUBDq3dZIw+E3aX8sIW4l9/6szkqN40osE2TsjVmXbP9Xv2dlNP1YQsOutmKWfXntHKo9RrLMyxMC3WLHsVrmw5pW6dObGV+XbYGP7MrfSMAfZa+A+06I7jJAevd5C9rR6NuCilkU4+HbcSYbRgpqkeNFY0OTKP53nXdFl5hQNow9NY58K1sz6+s7YWRLWsamlRpxEfI5o/fYo7mUoOuCp0qWddRUSMPs3qzGW1WH9adpSxBY5q04KV5mlQia7pUtyF52vSaoqdJ2damyZoKaRtlq/ek6utvnrpvu7Vjb2TnQ+YIPhDc5IT1bvKlAsoWKFw52t18XmSzbe+nYaSsmF99+oxPfmWLtfK39OnHzVH9WLcAbzP6QxXetOdXL5VefCBrxMO1qWlzBJcWbdxgjubS82PqwZ3mrLxs251LUTstKiS21Ye6nSaDcksbdWNbdyRN2rpIttE1eUyXstUhbdO+fNDflBZCqGMgq0Mmq/OgyuusKbRJW8RZdO20hn5wi+AmR8ue3cN6NzmyBQpZFSt0L2sYthr0NDSrSb3jU4890fjX7V+yhjaaBlrXbeH1rE7rnVTFuV1FxdZbKWwN3jtbmSCMxPRDzwPblA1V7lXJL/PIG9t1lHXt+WAbodA4Q2BZJ/Mti8B20rbodJpUwlaGdTNdKm3EqhQ5Vco62qaDKeG20bRV3Bpcr+f4FzZZQxt9hllLhcANgpscqUIz+tQuc/Zhahyx3k3nih5KWRdaiM1WEY/Dm7u3RCfu2tyY/vFPGgpxqjAcvs5UwVNgc+L2L0fTljnLogI5bZG+urDtApU1B76ZbZF1VXoJ8HuTNbXTFj4if1kbCKiSf/wz6+Pp4RplXLbgP9TryD7ihimCdWILEDvZUMIWuNj+TVsHhO6RTmcQpI0I07Vc1Jooqr+mBRGqA3cyJVztPFvoVJWtwfXZ/vubW+NOPdv0KL0Hy3+zP75GzI/gCcFNztTQyZqHz3o3nZs3OmyO4Jq2282i3oSpB3bGIc4/Vnwqmhxa1ujk65+f/nxDoY+CAkbuFEfvvT4D9Z4cv3V9HNjYesJUqap7aCNpW4BLu2lSCVVMbRVitgbvXUiBvp6Lac+9fr/0zDS/Ikh6NmT1mKthp+nh6qhSmZH2Gm1feu0ataM1I0IKOEMdcVMEV9e9vsyvgIVt2+WLHey4apsmldX4to3G6XQr+rRpXEVey7YRr7aFh9PYRt0oECpjx6aes3re6rn77vJPNvTczhpVpWdhKKFNt+VLp18ht1cIbhzQqJusSo0qNDRi26vzFsS+tVtgu1cKB1RwKyjQA1aFggIERu34oaBGhZDee30G7RayVIG84o3f1j60se04oVC+m8oKW4Ojqj7yi72ZU8N7pfJCDSBNLVfIrCCH+hJw3YLV6aOjr05mj7hRedPNNKmE6gJp93mn06XSRgIVWbdP2wFKr8+28HAahV22Z5+twydEqueoTq7nrJ63eu5mjTjUa1Yn74pXDgww0qY4BDcO6IJut96NEk0q7giJFtgedrw6vAoFBQgaSs9i3e61C2oScQ/Ky/vjArmoIcwh6WcOfDNbpVf3QacVXyBEek6o1zWrkyoPCnIUPGvoPnUm1J1tOk+7TTts5Y1tHZtmtulS7XZS0v2aNrJ3cO1nzZFf+nvT/p52o45a6X9rC3rKNJpW64VmBTUJ1WHUNlj5zpvR8A++T2BTMIIbR1jvpn/M3fZv9NGHB9SAdz0sPLn+2xX8cEsjSJLApq5bfrdS735a4NXpHPhWS9gaHBWles7KPxyMA/+sjqo8qOGpxfIJb1B3aWsSpk1JatbLNKlEr9OlbAt9FzXixrbzk23qUxbb1CoFQ1XplNR1phE2CmzUNmCUTRgIbhxSb2vWejd60GraiDlFC7Z3LYYap2rIf+yN30WaPuWyR1XDMwlvirHyL29Gy57bQ2DTwla5y1qQNcvibemjdFTBYwpI9zpZhNMXhRUKufP+Kts0YVXqVbnX2lhZ0wj6pUCV8KZ4rq57faE9285SWfdFWrDTbppUQlPp0+5phalZv9PW+arA1xx6ox2S0t4D1W97+Xuy1rCrws6Rart+/K9/HNAIm5ADG31+rc+QPL7mjbjtiOhHaSrsWqfBHM4xNnPK6WvQ/OrWm10fqhq25jSTHmqqaGRNWVCPt63xpIq9hgm3yvr/5EGBUtqOM9289n7Z/gb17qmiaE5zVcTvbFbUdd6J5kZmJwvhie6dtMKymSoEqvQXXTiEcM1nSXsWSdazwPb/ETWwPvrLfYW/LgnlutcifZrv3arfa1TTPNKGqof0GXSiqPKome1aUUVTQaQ5zVXoz4YQ6V5KQjZN49Cw/Ha0Tsel2bIlbTpDM5flse2ZqU4MTSc2p95pUwutj9jK5TVou9+rft0XXQ9sx/b32Z7DGgGSNsL/Eyf+1nGZpoVr03ZjytrIIO3/o4a2RumZU296+fvbsb2voo4xn9POe7lXbf+fhDpviwjZ0vRS/60qRtw4poci6930xjbM0raqPtzSwzH5UuWlky8VGKocZA2l17SpKvRQhOjm53Zb33cFCdri3Zxi1rm96aNt0oaUa6SYKhOdfNmCe30GbA3euaxycv4Y5UJI1GhJygs1jNLKh9YvBW/q5VVlXA0Om/f2POO9zlT01G2mjiNh23HVdo30M00q0ct0qbR1d4oYTahnRVrHiepGraGNyuO0MjztK6veWoap0Ho2Z21KQts0TAQ3HrDeTW9svW62VfURJlUOVCnXQpa2ECFtpX/0T42nrGePtnjXEGJzWntqEKZJmwOvBYzVA9TJV9YIArYG75wtzBdbYwblowaFQn/bVHPVmVzt3mKrX1w7034RT5dsv5/dN+vH9plfnXjXHM2VOtqzw2lSiV6mS6nsa1XEwsR6VuiZ0SptgWG9ntbyO+vLJut9CYlGEdqWQ1C9RcsZICwEN56w3k33bL3Utvm9CFtWgKkCggDBDT171Ltmc+r+7fSqzNIImrTKnXr+W4cLq1cua/prN9gavHNZow5owFaPRuCkLcQqlw69bo7yZRu5ldf93ivb7x8YIbCsm8G16Q3ttOejpvOklWtZdQIb2/8nLUS11eeKeE7bOkfSFhi2rXHXLZfhct40K8RGARTrUIaF4MYjNVqzFnrVnNXmdUTqzLYquxJ/n/NGfarDlAmFCLaKOEPB3dE8btv7rgbB1IM7zVl92SpsaVuAp/Vg9koVvDz/vSrLaqzbGjMoN9ui4Fm93f0YyqijFVU/y/q9izaxoG/daBRz2uiXtBGJeUyTSthG6aSVnbZRpr6f02pLpP0teg9a2xJ5dshIWUbTxp2qT2eMzJ6tH9KxGg6CG4/0oMxKNoU5hdfZKuhFVc61aKJrIe2W4tJCS0Wzk8Ur0Rs9e7TejY0W7bOFpXVg23EibQ685NUrl2Br8PZULtoCLoWSvTREED5beZE2iiAPWZ1rnS7Kn7es30tgWU9pn7vuidb2Q9ozs9tpUgnbdCmFHa0djzMpAUgRz2nbOjSuO2REgVFZ6lXaPcq2rpiuK43MRhgIbjxrl2zqBmG9GzWM0ocY3rC5twKnU7Z1EtIWWcub7XdkLdJYRiwiWox2C9FpLnMdRn2l0Xo1aZakrG0jS59+PN7NoJevtIqvKniMtsyWVam2Ne5Rfr5H2Or32UYnXnixmJFxtt9LYFlftilHzaNubNOk+nle2qZLtT6f0zpCskJRF1SfSfs7dN8ohDKn79NrSyuzO/myvS9l2njjI7/Ym1o/EYVz2tnOnKJABDcFULJpu8ml7uvd2NaakEUbN5gjN2yFoath2c0uv/VncwS4kbUQXV1DY/VQpm0TKou3fbhXTpLdcnr5SlsQUfIexVM1We/Pwi/eYY6A/tnqZ2q8+A5Y9fts0zey6pGotvnjt5ijuZo7ANOmSan87ycM7XS6VNoIct+jw2xTlW5MGW0jel/SyuxOvkZ2PmT+lbnUdihLh1g8MvtZ+8jss7t/WuuR2aEguClI1poTUuf1bmzTBvR+tS4SmresgsX153Hx0KvmaK6qjbhBsTRdM6tXpW6hsa1HTI0iF739aQsiisKjuo54akeVRVt4rmuZBizylDWy98z/PmmO/Mj6fWnTPVAPtk7G5innaaMU+71mOpkupc6QtHVlfK7HFHfIWEbu37QjfSRtP9Q2sdXVyzQVWp9v1kY6GpndOh0PfhHcFETJpoalZfnvfTuczeMOlRqNtkXNbA2ePOlzsQVqLnvEtcaGrVetaosPZm3pC/dUwbAt+Cl1C41tW9G7ahQpDLIFDef2MuqmlSqJ2rbeRu8l00Wqq4hFMdWDbqsHKED01eus57AtsPTRkYVw2ToZk+tF901a+yGPkLtd+WWr4/ncEVahVdrrVyjhqryw1Rn0t5Qp7NBGOrbnX11HZoeE4KZA7da7UYCRVWGtGlWG1GhMo4TfNsUgb/ZCyV2P+JmM161KpDktPRVetopo1m4eyFfWQnRSl0XSNS0zLShWpSVtDnxebBW89yxr7dSZevhsYb5khZAov/OWtY1cr5eRdV356HXWv5/VQOK6rzdb+JBMUUrraOx3mlTCNl0q6QRJ2yFUdVkXI1htbKNcXI5Ss+2aqrCjLFuDS7uBBarD13k5j6IR3BSs3Xo3WRXWKlHPkipDNlok1FevataD3UWQpsDKtvBmHr0jIdG0FNsoMt8L19Vd1kJ0+oyy7seqsI2icz26T6GQrYKnMMmc1t6p+7Zbn42i3lOfjQH4pfDCFmbaporkxdYIE92nJ7+yxVl4o39X/76trNTflbbbHeolrfMlaTO4mCaVsE2X0u+OR4+nrNfoc30btSdsHTKuO0Jt6+eUZWvwxPWR2enr9og62YsYDQmCmyC0W++m6qZ//JPGybvtlRQ16EcffdhbJSVrrqoKQzUmzGnf9ODLaiDfZNnVpoz0Wm0jqvLqCULnFIRmLUSna133pjmtHNuOE+JjdJ8tHLLtcFUn+mxO3LXZumi0qOGgId2orqkHd1rrBb1uadyNm5+zPx81tVnhSt6NF137+ndtU6cl6+9CfSxYnd5uULmdFlzk2RFoHZm+74XUHVJ9rtVoW7fOxyg12/o5+jzKtrCv2l1ZHap1GZkdGoKbALQbllZVSsVVOc8axaLKuRZT9W3k/9mTZjUmFN70+8DSQzyrV029yb7msOuz+Pc3tzZU4LuYDpa8VpsqBVRlop6zrC3CdW9WtVfFOpTa4Rz4ZgqH0not1WDT/WhOa0XPVA3BPnH7l9vu5KfQ0dcoTHyYygqVgy4aI7oOVB7Zgjt1dLmcyphQ73xWr3MS3uiazaMBo/dU135WaKPndZWmT6N388fS14xxOU0qYQtO1eGT9uxe4Gl9G9Vf00Ybqaz1MYJdZZJtcd8ybQ2eyBqZrTCqDiOzQ0NwE4h2691UhRokp3/4SOOfn/58PMqmXeVcPaq+wotmqhhlNWhVoVQFq5dpDWoIq1KqtNoW2hTRm6zCTg3147euj/T5qFKu19dPw12VeoVzWa9VFQqGfRdHvVBZvSqn7t9euV4VvZ60yp24nAPfTBW8rF7LulBFW88ZPW+Of2Z9PATb9qxIqKz00XCH3bWp6bgc1LN9cmjZ9U6Yx55oqIzv9Xmha0H/hq4D2/0pPutK6nW2NcRE16quWf3Nqtt0W14mr1llrsrfrGtff8fSHz3OdY+YbeOKtOAv73Ita7pUGtdTGxO2KUkqa30F/baOSLV3XHSMuqSwL6stouc007v9Kk0BoIqBOZxjbOaU09egykhruKAhfyteOeDk96pBn1VhSSx/eb/TXhdVJNKmtehB3ctcVS2YZnug26hHtegG/fEvbLLu9pTQe6JrQu9LUpBq9Xw98JKecw0d1bxffbadvA8fe+N3XgMr/Z0K0rKocT9vZCQugAdGhs1P9fqH458n21A2zkzHi9O1C+VE793y3+wvJJxrZbvmXd7v3Uh7FkkezwI1Nv51+5fM2YepwbDsuT3O3gPfz3f1bKeN9NM1vvIPB7191lnv+8q/vBnc9EHbcyJ5NnSrk2dEKzXatTacOfUi7/KwU2pshRpq296TRPLepL1HWoh+pqlc1S40Kmc7KRtdP4tsFCxmTd1rlrzm5rKy9TXr2u+mXlTE67bd76GUia7Yrm2NvvI5bb8dhQDqaOuEi/Kkm3vCdVst8e7yT6bupuW7PLW1HdQh7CJ8dX2vZrVNfdTjbfXfXusenQrxORfcH2RTl+BGPVUaydGuMC8quPFBw6A1PC+Exrw+j3bzzfOkB6ACK9+9yZ0EN3nz8bDvRp2DG2l3z+uedHVd+n6+q3c77RlbRFhs+1xDayRIEc+JRFHPRimqPAzxGkgU8Z4UFdokbIGva0VdBwQ3c4V4P9rKzmauOiTadfgkfF0vGvmRNnWniOvV9reoHFv5zpu5j/5xfa+2a5vqGlN93tWoJls9yTVfgWM3mCoVGF30dV54Tmn0ijd+G0xjXp+HCrysaVN5SR58dZgCkLzWUD5nXJ8SoELeRpWQsg3zTaPpe2mVD1WofMyBb2Ubws7W4B9Qg13lQh2ejUinRnORoY1opJd67rOek3nS79Ho21DDOxSvk2vR1fRf1d862VjFtohy3mwL+/ua/txMHUCqU7TSaKBOZlWEpl3bVJ3btnUDkS+CmwCp91yVlLrQw03BiCpEGkLoKrHth/4ujWxwUWHT69fnrYCoqCBDQw197Gym36Fe8yJfK+xUMKdVNkQVDq1nUXa2BQK1WHARzx5V8NLuPb3fdZ47rutQgY3KBTXYQ5s2VndabNT2rMhTcg2EEl7oOlQPtuoDroJe1TP07+v3UE4iSyehyKKNG8xR/jq5BwbXftYcuaMRJ2kj4/WMKmq66RLLWjdlDTjUNs3qxD67+6el2zmrjAhuAtWu97vM1EjRa1NYocrJLSf/PqBgJPSKuR5aqkipB0wPr36DDhV4CjH0+ouulKpy+PG//nHgEyf+Fk+J0Wejv08jY/qlf0Pvl943/Y5Q12zA9UaJrkkbVYw0jNyclo5GDNmG29q25/bhRkuPYJ22BlcFOykX9AzSc5HAJlx6jusz0nNdzww94/X59Rvm6P+vskdrGak8CvUaUH3go7/cF5eZev0KmHqtEzS/ZoVUqmfkMf0V1WfbWSqha9Jl+NfJaBYfCxPbFvS3hSc+LN6W/t5oxK+CJnNaKnFbLaNdUJWR2SErTcFgu8hdF26aw3ntzNyFruIFWj30gmhOoRbtS6OF71z2DuvG08J5eUoW7DWnlaD3SY1ZLTp4dfJYvAixzfVK7XBciJWtUtZ8LWrhYe0okiVZpLlMr9N2zfu639tJexaJi2dBVqXCxfvh6/me9Uwt8loN9e9qlfV39qoM5YKL8rATZS4zk+eVRo41L8qbRqN3NHKgCnWE5B5p97qT1+y6LtcP2/0eSpnoiu1+D/H6bPds8vFZtQshfJRhPutH3bD9XXlfSz7v1XbXnIv7xPY+ulamNgwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACyRdH/B+1isCAwkS9qAAAAAElFTkSuQmCC',
-                                        width: 150,
-                                        height: 60,  // Ancho de la imagen en puntos (ajusta según tus necesidades)
-                                        alignment: 'left',
-                                        margin: [0, 0],
-                                    },
-                                ],
-                            },
-                            '\n',
-                            {
-                                text: [
-                                    {text: 'TICKET #: ', style: 'subheaderNegritaFecha', alignment: 'left'},
-                                    {text: ticket, alignment: 'left'},
-                                ]
-                            },
-                            {
-                                text: [
-                                    {
-                                        text: 'FECHA (DD/MM/AAA): ',
-                                        style: 'subheaderNegritaFecha',
-                                        alignment: 'left'
-                                    },
-                                    {text: fechaCreacionFormateada, alignment: 'left'},
-                                    {
-                                        text: '                        ' +
-                                            'FACTURAR: ',
-                                        style: 'subheaderNegritaFecha',
-                                        alignment: 'right'
-                                    },
-                                    {
-                                        text: detalleTicket.ticket[0].facturar ? 'SI' : 'NO',
-                                        style: 'subheaderNegritaFecha',
-                                        alignment: 'right'
-                                    },
-                                ]
-                            },
-                            {
-                                text: [
-                                    {text: 'EMPRESA: ', style: 'subheaderNegritaFecha', alignment: 'left'},
-                                    {text: empresa, alignment: 'left'},
-                                    {
-                                        text: '                                ' +
-                                            '                  ' +
-                                            'SOLICITANTE: ', style: 'subheaderNegritaFecha', alignment: 'right'
-                                    },
-                                    {
-                                        text: solicitante,
-                                        alignment: 'right'
-                                    },
-                                ]
-                            },
-                            '\n',
-                            {
-                                text: [
-                                    {text: 'MOTIVO SOPORTE: ', style: 'subheaderNegritaFecha', alignment: 'left'},
-                                    {text: motivosoporte, alignment: 'left'},
-                                ]
-                            },
-                            {
-                                text: [
-                                    {
-                                        text: 'HORA INICIO: ', style: 'subheaderNegritaFecha', alignment: 'left'
-                                    },
-                                    {
-                                        text: horaincio,
-                                        alignment: 'left'
-                                    },
-                                ],
-                            },
-                            {
-                                text: [
-                                    {
-                                        text: 'HORA FINALIZACION: ', style: 'subheaderNegritaFecha', alignment: 'left'
-                                    },
-                                    {
-                                        text: horafinal,
-                                        alignment: 'left'
-                                    }
-                                ],
-                            },
-                            '\n',
-                            // Contenido de la segunda página con todas las imágenes y descripciones
-                            {
-                                text: 'TRABAJOS REALIZADOS Y REGISTRO FOTOGRÁFICO',
-                                fontSize: 14,
-                                color: '#000000',
-                                bold: true,
-                                alignment: 'center',
-                                margin: [0, 7],
-                            },
-                        ];
-
-                        // Filtra las imágenes no nulas antes de construir columnasDeImagenes
-                        var imagenesFiltradas = imagenesBase64.filter(imagen => imagen !== null);
-
-                        // Agrupar las imágenes en columnas con margen derecho solo entre imágenes consecutivas
-                        var columnasDeImagenes = imagenesFiltradas.map((imagenBase64, index) => {
-                            var margenDerecho = (index < imagenesFiltradas.length - 1) ? [0, 10, 20, 0] : [0, 10, 0, 0];
-                            return {
-                                image: imagenBase64,
-                                width: 250,
-                                alignment: 'center',
-                                margin: margenDerecho,
-                            };
-                        });
-
-
-                        // Agrupar las descripciones con "y" entre ellas
-                        var descripciones = detalleTicket.actividades.map(actividad => actividad.descripcion).join(' , ');
-
-                        // Agregar las descripciones al contenidoPDF
-                        contenidoPDF.push({
-                            text: descripciones,
-                            fontSize: 12,
-                            color: '#000000',
-                            alignment: 'left',
-                            margin: [0, 10],
-                        });
-
-                        // Agrupar los nombres de agentes con "," entre ellos
-                        var nombresAgentes = detalleTicket.actividades.map(actividad => actividad.agente_actividad_nombre).join(', ');
-
-
-                        // Agregar las columnas al contenidoPDF
-                        contenidoPDF.push({
-                            columns: columnasDeImagenes,
-                        });
-
-                        var contenidoPDFSegundaHoja = [
-                            '\n',
-                            {
-                                text: [
-                                    {
-                                        text: 'ASISTIDO POR:',
-                                        fontSize: 11,
-                                        color: '#000000',
-                                        bold: true,
-                                        alignment: 'left',
-                                        margin: [0, 7]
-                                    },
-                                    '', // Agrega un espacio entre 'ASISTIDO POR:' y el nombre del agente
-                                    {
-                                        text: '                ' +
-                                            '                  ' +
-                                            '                  ' +
-                                            '                  ' +
-                                            '    ' +
-                                            '                  En caso de soporte presencial:'
-                                    }
-                                ],
-                            },
-                            '\n',
-                            {
-                                text: [
-                                    {
-                                        text: nombresAgentes,
-                                        fontSize: 11,
-                                        color: '#000000',
-                                        alignment: 'left',
-                                        margin: [0, 7],
-                                    },
-                                ]
-                            },
-                            '\n',
-                            '\n',
-                            {
-                                table: {
-                                    widths: [170, 160, 170],
-                                    body: [
-                                        [
-                                            {
-                                                canvas: [
-                                                    {
-                                                        type: 'line',
-                                                        x1: 0,
-                                                        y1: 0,
-                                                        x2: 170,
-                                                        y2: 0,
-                                                        lineWidth: 2,
-                                                        lineColor: '#E20613',
-                                                    },
-                                                ],
-                                                margin: [0, 0, 0, 0],
-                                                border: [0, 0, 0, 0], // Establece el borde de la celda como transparente
-                                            },
-                                            {
-                                                opacity: 0, // Hace invisible la celda
-                                                text: '', // Texto vacío o puedes omitir esta propiedad
-                                                margin: [0, 0, 0, 0],
-                                                border: [0, 0, 0, 0],
-                                            },
-                                            {
-                                                canvas: [
-                                                    {
-                                                        type: 'line',
-                                                        x1: 0,
-                                                        y1: 0,
-                                                        x2: 170,
-                                                        y2: 0,
-                                                        lineWidth: 2,
-                                                        lineColor: '#E20613',
-                                                    },
-                                                ],
-                                                margin: [0, 0, 0, 0],
-                                                border: [0, 0, 0, 0], // Establece el borde de la celda como transparente
-                                            },
-                                        ],
-                                        [
-                                            {
-                                                text: 'FIRMA ISHIDA',
-                                                alignment: 'center',
-                                                margin: [0, 5, 0, 0],
-                                                border: [0, 0, 0, 0],
-                                            },
-                                            {
-                                                opacity: 0, // Hace invisible la celda
-                                                text: '', // Texto vacío o puedes omitir esta propiedad
-                                                margin: [0, 0, 0, 0],
-                                                border: [0, 0, 0, 0],
-                                            },
-                                            {
-                                                text: 'FIRMA ISHIDA',
-                                                alignment: 'center',
-                                                margin: [0, 5, 0, 0],
-                                                border: [0, 0, 0, 0],
-                                            },
-                                        ],
-                                    ],
-                                },
-                            },
-
-                        ];
-
-                        var estilosPDF = {
-                            header: {
-                                fontSize: 18,
-                                bold: true,
-                                margin: [0, 0, 0, 10]
-                            },
-                            subheaderRojoNegrita: {
-                                fontSize: 14,
-                                bold: true,
-                                color: '#E20613',
-                                margin: [0, 0, 0, 5],
-                            },
-                            subheaderNegrita: {
-                                fontSize: 14,
-                                bold: true,
-                                margin: [0, 0, 0, 5],
-                            },
-                            subheaderNegritaFecha: {
-                                fontSize: 11,
-                                bold: true,
-                                margin: [0, 0, 0, 10],
-                            },
-                        };
-
-                        var docDefinition = {
-                            content: [
-                                // Contenido de la primera hoja
-                                contenidoPDF,
-                                // Agrega un salto de página entre las hojas
-                                {text: '\n', pageBreak: 'after'},
-                                // Contenido de la segunda hoja
-                                contenidoPDFSegundaHoja,
-                            ],
-                            footer: function () {
-                                return {
-                                    columns: [
-                                        {
-                                            text: [
-                                                'DESARROLLO DE SOFTWARE I VENTA ',
-                                                {text: '|', color: '#E20613'},
-                                                ' MANTENIMIENTO DE EQUIPOS I ASESORIA CONTABLE ',
-                                                {text: '&', color: '#E20613'},
-                                                ' ADMINISTRATIVA'
-                                            ],
-                                            alignment: 'left',
-                                            fontSize: 10,
-                                            color: '#000000',
-                                            margin: [20, 0],
-                                            bold: true,
-                                        },
-                                    ],
-                                    margin: [10, 10],
-                                    fontSize: 10
-                                };
-                            },
-                            styles: estilosPDF,
-                        };
-
-                        // Genera el PDF y abre una nueva ventana con el resultado
-                        pdfMake.createPdf(docDefinition).open();
-                    })
-                    .catch(error => {
-                        console.error('Error al convertir las imágenes a base64:', error);
-                    });
-            } else {
-                // Mostrar mensaje de toast indicando que no hay imágenes
-                mostrarToast('Necesitas subir imágenes de actividades para generar el PDF');
-            }
-        }
-
-        function mostrarToast(mensaje) {
-            try {
-                toastr.options = {
-                    closeButton: true,
-                    progressBar: true,
-                    timeOut: 5000 // Tiempo de duración del toast en milisegundos (5 segundos en este caso)
-                };
-
-                toastr.info(mensaje);
-            } catch (error) {
-                console.error('Error al mostrar el toast:', error);
-            }
-        }
-
-
-        $(document).ready(function () {
-            // Puedes cargar la tabla cuando se carga la página por primera vez si es necesario
-            cargarTablaTickets();
-
-            // Agregar un evento de clic a la pestaña "vertickets"
-            $('#vertickets-tab').on('click', function () {
-                // Cargar la tabla cuando se hace clic en la pestaña
-                cargarTablaTickets();
-            });
-        });
     </script>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Obtén referencia a los elementos
-            var imagenModal = document.getElementById("imagenModal");
-            var imagenInput = document.getElementById("imagenInput");
-            var verImagenLink = document.getElementById("verImagenLink");
-
-            // Maneja el clic en el enlace "Ver Imagen"
-            verImagenLink.addEventListener("click", function (event) {
-                event.preventDefault();
-
-                // Obtén el nombre de la imagen desde el input
-                var imageName = imagenInput.value;
-
-                // Construye la URL completa de la imagen
-                var imageUrl = obtenerDireccionIP() + imageName;
-
-                // Abre la imagen en una nueva ventana
-                window.open(imageUrl, "_blank");
-            });
-        });
-    </script>
-
     <script src="../static/dist/utils/soporte.js"></script>
 
 
