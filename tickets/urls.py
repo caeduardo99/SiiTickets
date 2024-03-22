@@ -45,7 +45,6 @@ urlpatterns = [
     path('ticketsoportescreados/', views.ticketsoportescreados, name='ticketsoportescreados'),
     path('ticketsoportescreadosid/<int:ticket_id>/', views.ticketsoportescreadosid, name='ticketsoportescreadosid'),
     path('crear_ticket_soporte/', views.crear_ticket_soporte, name='crear_ticket_soporte'),
-    path('get_tickets_cpanel/', views.get_tickets_cpanel, name='get_tickets_cpanel'),
     path('editar_ticket_soporte/<int:ticket_id>/', views.editar_ticket_soporte, name='editar_ticket_soporte'),
 
     path('ticketsActualizacionCreados/', views.ticketsActualizacionCreados, name='ticketsActualizacionCreados'),
@@ -54,6 +53,7 @@ urlpatterns = [
     path('editar_ticket_actualizar/', views.editar_ticket_actualizar, name='editar_ticket_actualizar'),
     path('ticketactualizacioncreadosid/', views.ticketactualizacioncreadosid, name='ticketactualizacioncreadosid'),
     path('generateReport/', views.generateReport, name='generateReport'),
+    path('info_panel_contro/', views.info_panel_contro, name='info_panel_contro'),
 
     path('ticketDesarrolloCreados/', views.ticketDesarrolloCreados, name='ticketDesarrolloCreados'),
     path('crear_ticket_desarrollo/', views.crear_ticket_desarrollo, name='crear_ticket_desarrollo'),

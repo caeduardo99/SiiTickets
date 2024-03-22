@@ -4,12 +4,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout as logout_django
 from django.shortcuts import render
 from django.db import connections
-from django.shortcuts import get_object_or_404
 import json
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
-from django.core.files.uploadedfile import InMemoryUploadedFile
+from dateutil import parser
 import os
 from .models import (
     TicketSoporte,
@@ -19,17 +18,15 @@ from .models import (
     ActividadPrincipalSoporte,
     ActividadPrincipalActualizacion
 )
+from datetime import datetime, date
 from django.contrib.auth.models import User, Group
 from .models import Solicitante, EstadosTicket
-from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from .models import TicketSoporte, TicketActualizacion, ModuloSii4, Empresa
 from django.contrib.auth.decorators import user_passes_test
 from django.core.mail import EmailMessage
 from collections import defaultdict
 from django.utils import timezone
-from django.core.files.base import ContentFile
-from io import BytesIO
 
 def login_user(request):
     # Verificar si el usuario ya está autenticado
@@ -297,361 +294,6 @@ def views_reports(request):
 
 
 @login_required
-def get_tickets_cpanel(request):
-    nombre_usuario = request.user.username if request.user.is_authenticated else None
-
-    # CONSULTA PARA LOS PROYECTOS POR ASIGNAR
-    consulta_proyectos_por_asignar = """
-    SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion, st.fechaAsignacion,
-	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
-	se.id as idEstado, se.descripcion as Estado
-	FROM soporte_ticketdesarrollo st 
-	INNER JOIN auth_user au ON au.id = st.idAgente_id
-	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
-	WHERE st.idestado_id = 1
-    """
-    consulta_proyectos_process = """
-    SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion,st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion, st.horasCompletasProyecto,
-	se.id as idEstado, se.descripcion as EstadoProject,
-	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
-	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante
-	FROM soporte_ticketdesarrollo st 
-	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
-	INNER JOIN auth_user au ON au.id = st.idAgente_id
-	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
-	WHERE se.id = 2
-    """
-    consulta_proyectos_just_success = """
-    SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion,st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion, st.horasCompletasProyecto,
-	se.id as idEstado, se.descripcion as EstadoProject,
-	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
-	ss.id as idSolicitante, ss.nombreApellido as fullName
-	FROM soporte_ticketdesarrollo st 
-	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
-	INNER JOIN auth_user au ON au.id = st.idAgente_id
-	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-	WHERE se.id = 4
-    """
-    consulta_proyectos_success = """
-    SELECT st.id as idProyecto, st.tituloProyecto, st.fechaCreacion,st.fechaAsignacion, st.fechaFinalizacionEstimada, st.fechaFinalizacion, st.horasCompletasProyecto,
-	se.id as idEstado, se.descripcion as EstadoProject,
-	au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
-	ss.id as idSolicitante, ss.nombreApellido as fullName
-	FROM soporte_ticketdesarrollo st 
-	INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
-	INNER JOIN auth_user au ON au.id = st.idAgente_id
-	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-	WHERE se.id = 5
-    """
-    consulta_tasks_process = """
-    SELECT st.id as idProyecto, st.tituloProyecto,
-	sa2.id as idActividadSecondary, sa2.descripcion as actividadSecondary, sa2.fechaDesarrollo, 
-	se.id as idEstado, se.descripcion as Estado,
-	au.id as idAgenteTask, au.first_name as NombreAgenteTask, au.last_name as ApellidoAgenteTask,
-	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante
-	FROM soporte_ticketdesarrollo st 
-	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id 
-	INNER JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id  = sa.id 
-	INNER JOIN soporte_estadosticket se ON se.id = sa2.idestado_id
-	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
-	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
-	WHERE se.id = 2
-    """
-    consulta_tasks_just_success = """
-    SELECT st.id as idProyecto, st.tituloProyecto,
-	sa2.id as idActividadSecondary, sa2.descripcion as actividadSecondary, sa2.fechaDesarrollo, 
-	se.id as idEstado, se.descripcion as Estado,
-	au.id as idAgenteTask, au.first_name as NombreAgenteTask, au.last_name as ApellidoAgenteTask,
-	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante
-	FROM soporte_ticketdesarrollo st 
-	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id 
-	INNER JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id  = sa.id 
-	INNER JOIN soporte_estadosticket se ON se.id = sa2.idestado_id
-	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
-	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
-	WHERE se.id = 4
-    """
-    consulta_tasks_succes = """
-    SELECT st.id as idProyecto, st.tituloProyecto,
-	sa2.id as idActividadSecondary, sa2.descripcion as actividadSecondary, sa2.fechaDesarrollo, 
-	se.id as idEstado, se.descripcion as Estado,
-	au.id as idAgenteTask, au.first_name as NombreAgenteTask, au.last_name as ApellidoAgenteTask,
-	ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante
-	FROM soporte_ticketdesarrollo st 
-	INNER JOIN soporte_actividadprincipal sa ON sa.idTicketDesarrollo_id = st.id 
-	INNER JOIN soporte_actividadsecundaria sa2 ON sa2.idActividadPrincipal_id  = sa.id 
-	INNER JOIN soporte_estadosticket se ON se.id = sa2.idestado_id
-	INNER JOIN auth_user au ON au.id = sa.idAgente_id 
-	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
-	WHERE se.id = 5
-    """
-    connection = connections['default']
-
-    if nombre_usuario != 'mafer' and nombre_usuario != 'superadmin':
-        consulta_proyectos_process += " AND au.username = %s"
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_proyectos_process, [nombre_usuario])
-            columns = [col[0] for col in cursor.description]
-            resultados_project_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        consulta_proyectos_just_success += " AND au.username = %s"
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_proyectos_just_success, [nombre_usuario])
-            columns = [col[0] for col in cursor.description]
-            resultados_project_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        consulta_proyectos_success += " AND au.username = %s"
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_proyectos_success, [nombre_usuario])
-            columns = [col[0] for col in cursor.description]
-            resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        consulta_tasks_process += " AND au.username = %s"
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_tasks_process, [nombre_usuario])
-            columns = [col[0] for col in cursor.description]
-            resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        consulta_tasks_just_success += " AND au.username = %s"
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_tasks_just_success, [nombre_usuario])
-            columns = [col[0] for col in cursor.description]
-            resultados_tasks_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        consulta_tasks_succes += " AND au.username = %s"
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_tasks_succes, [nombre_usuario])
-            columns = [col[0] for col in cursor.description]
-            resultados_tasks_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        # CONSULTA PARA VER LOS SOLICITANTES EN CASO DE QUE SEA NECESARIO
-        if len(resultados_project_process) == 0 and len(resultados_project_just_success) == 0 and len(
-                resultados_project_success) == 0 and len(resultados_tasks_process) == 0 and len(
-            resultados_tasks_just_success) == 0 and len(resultados_tasks_success) == 0:
-            consulta_projects_solicitante_process = """
-            SELECT * FROM auth_user au WHERE username = %s
-            """
-            with connection.cursor() as cursor:
-                cursor.execute(consulta_projects_solicitante_process, [nombre_usuario])
-                columns = [col[0] for col in cursor.description]
-                resultados_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-            emialSolicitante = resultados_solicitante[0]['email']
-            consulta_id_solicitante = """
-            SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
-            """
-            with connection.cursor() as cursor:
-                cursor.execute(consulta_id_solicitante, [emialSolicitante])
-                columns = [col[0] for col in cursor.description]
-                resultados_id_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-            if len(resultados_id_solicitante) == 0:
-                id_solicitante = 1
-                consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s",
-                                                                                " AND st.idSolicitante_id = %s")
-                consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s",
-                                                                                          " AND st.idSolicitante_id = %s")
-                consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s",
-                                                                                " AND st.idSolicitante_id = %s")
-                consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s",
-                                                                        " AND st.idSolicitante_id = %s")
-                consulta_tasks_just_success = consulta_tasks_just_success.replace(" AND au.username = %s",
-                                                                                  " AND st.idSolicitante_id = %s")
-                consulta_tasks_succes = consulta_tasks_succes.replace(" AND au.username = %s",
-                                                                      " AND st.idSolicitante_id = %s")
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_proyectos_process, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_project_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_proyectos_just_success, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_project_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_proyectos_success, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_tasks_process, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_tasks_just_success, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_tasks_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_tasks_succes, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_tasks_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-            else:
-                id_solicitante = resultados_id_solicitante[0]['id']
-                consulta_proyectos_process = consulta_proyectos_process.replace(" AND au.username = %s",
-                                                                                " AND st.idSolicitante_id = %s")
-                consulta_proyectos_just_success = consulta_proyectos_just_success.replace(" AND au.username = %s",
-                                                                                          " AND st.idSolicitante_id = %s")
-                consulta_proyectos_success = consulta_proyectos_success.replace(" AND au.username = %s",
-                                                                                " AND st.idSolicitante_id = %s")
-                consulta_tasks_process = consulta_tasks_process.replace(" AND au.username = %s",
-                                                                        " AND st.idSolicitante_id = %s")
-                consulta_tasks_just_success = consulta_tasks_just_success.replace(" AND au.username = %s",
-                                                                                  " AND st.idSolicitante_id = %s")
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_proyectos_process, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_project_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_proyectos_just_success, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_project_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_proyectos_success, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_tasks_process, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-                with connection.cursor() as cursor:
-                    cursor.execute(consulta_tasks_just_success, [id_solicitante])
-                    columns = [col[0] for col in cursor.description]
-                    resultados_tasks_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-    else:
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_proyectos_process)
-            columns = [col[0] for col in cursor.description]
-            resultados_project_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_proyectos_just_success)
-            columns = [col[0] for col in cursor.description]
-            resultados_project_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_proyectos_success)
-            columns = [col[0] for col in cursor.description]
-            resultados_project_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_tasks_process)
-            columns = [col[0] for col in cursor.description]
-            resultados_tasks_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_tasks_just_success)
-            columns = [col[0] for col in cursor.description]
-            resultados_tasks_just_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_tasks_succes)
-            columns = [col[0] for col in cursor.description]
-            resultados_tasks_success = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-    with connection.cursor() as cursor:
-        cursor.execute(consulta_proyectos_por_asignar)
-        columns = [col[0] for col in cursor.description]
-        resultados_project_por_asignar = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-    # PROCESOS PARA OBTENCION DE OBJETOS EN CASO DE QUE LA FECHA ACTUAL SUPERE POR DOS DIAS LA FECHA DE CREACIÓN SE DEBE CONSIDERAR EL PROYECTO COMO ATRASADO DE ASIGNAR
-    current_date = datetime.now()
-    projects_venci_no_asign = []
-    projects_process_venci = []
-    projects_just_success_venci = []
-    projects_success_venci = []
-    tasks_process_venci = []
-    taks_just_success_venci = []
-    tasks_success_venci = []
-
-    if len(resultados_project_por_asignar) != 0:
-        for project in resultados_project_por_asignar.copy():
-            fecha_creacion = project['fechaCreacion']
-            diff_days = (current_date - fecha_creacion).days
-            if diff_days >= 1:
-                projects_venci_no_asign.append(project)
-                resultados_project_por_asignar.remove(project)
-
-    if len(resultados_project_process) != 0:
-        for project in resultados_project_process.copy():
-            fecha_finalizacion = project['fechaFinalizacionEstimada']
-            diff_days_process = (current_date - fecha_finalizacion).days
-            if diff_days_process >= 1:
-                projects_process_venci.append(project)
-                resultados_project_process.remove(project)
-
-    if len(resultados_project_just_success) != 0:
-        for project in resultados_project_just_success.copy():
-            fecha_finalizacion_estimada = project['fechaFinalizacionEstimada']
-            diff_days_success = (current_date - fecha_finalizacion_estimada).days
-            if diff_days_success >= 1:
-                projects_just_success_venci.append(project)
-                resultados_project_just_success.remove(project)
-
-    if len(resultados_project_success) != 0:
-        for project in resultados_project_success.copy():
-            fecha_finalizacion_estimada = project['fechaFinalizacionEstimada']
-            fecha_finalizacion = project['fechaFinalizacion']
-            diff_days_success = (fecha_finalizacion - fecha_finalizacion_estimada).days
-            if diff_days_success >= 1:
-                projects_success_venci.append(project)
-                resultados_project_success.remove(project)
-
-    if len(resultados_tasks_process) != 0:
-        for project in resultados_tasks_process.copy():
-            fecha_finalizacion = project['fechaDesarrollo']
-            diff_days_process = (current_date - fecha_finalizacion).days
-            if diff_days_process >= 1:
-                tasks_process_venci.append(project)
-                resultados_tasks_process.remove(project)
-
-    if len(resultados_tasks_just_success) != 0:
-        for project in resultados_tasks_just_success.copy():
-            fecha_finalizacion = project['fechaDesarrollo']
-            diff_days_process = (current_date - fecha_finalizacion).days
-            if diff_days_process >= 1:
-                taks_just_success_venci.append(project)
-                resultados_tasks_just_success.remove(project)
-
-    if len(resultados_tasks_success) != 0:
-        for project in resultados_tasks_success.copy():
-            fecha_finalizacion = project['fechaDesarrollo']
-            diff_days_process = (current_date - fecha_finalizacion).days
-            if diff_days_process >= 1:
-                tasks_success_venci.append(project)
-                resultados_tasks_success.remove(project)
-
-    context = {
-        'resultados_project_por_asignar': resultados_project_por_asignar,
-        'projects_venci_no_asign': projects_venci_no_asign,
-        'resultados_project_process': resultados_project_process,
-        'projects_process_venci': projects_process_venci,
-        'resultados_project_just_success': resultados_project_just_success,
-        'projects_just_success_venci': projects_just_success_venci,
-        'resultados_project_success': resultados_project_success,
-        'projects_success_venci': projects_success_venci,
-        'resultados_tasks_process': resultados_tasks_process,
-        'tasks_process_venci': tasks_process_venci,
-        'resultados_tasks_just_success': resultados_tasks_just_success,
-        'taks_just_success_venci': taks_just_success_venci,
-        'resultados_tasks_success': resultados_tasks_success,
-        'tasks_success_venci': tasks_success_venci,
-    }
-
-    return JsonResponse(context, safe=False)
-
-
-@login_required
 def consultatareas_view(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
     connection = connections['default']
@@ -662,10 +304,13 @@ def consultatareas_view(request):
                 SELECT DISTINCT st.id, aps.descripcion as descripciontareas,
                 (au.first_name || ' ' || au.last_name) AS agentetareas,
                 aps.idestado_id as estado,
-                aps.fechainicio, aps.fechafinal
+                aps.fechainicio, aps.fechafinal,
+                se.id as idEstadoTicket, se.descripcion as estadoTicket,
+               	st.fechaFinalizacion as fechaEstimadaTicket, st.fechaFinalizacionReal as fechaFinalizacionTicket
                 FROM soporte_ticketsoporte st
                 LEFT JOIN soporte_actividadprincipalsoporte aps ON st.id = aps.idTicketSoporte_id
                 LEFT JOIN auth_user au ON aps.idAgente_id = au.id
+                INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
             """)
         else:
             # Consulta para otros usuarios
@@ -673,10 +318,13 @@ def consultatareas_view(request):
                 SELECT DISTINCT st.id, aps.descripcion as descripciontareas,
                 (au.first_name || ' ' || au.last_name) AS agentetareas,
                 aps.idestado_id as estado,
-                aps.fechainicio, aps.fechafinal
+                aps.fechainicio, aps.fechafinal,
+                se.id as idEstadoTicket, se.descripcion as estadoTicket,
+               	st.fechaFinalizacion as fechaEstimadaTicket, st.fechaFinalizacionReal as fechaFinalizacionTicket
                 FROM soporte_ticketsoporte st
                 LEFT JOIN soporte_actividadprincipalsoporte aps ON st.id = aps.idTicketSoporte_id
                 LEFT JOIN auth_user au ON aps.idAgente_id = au.id
+                INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
                 WHERE au.username = %s
             """, [nombre_usuario])
 
@@ -888,7 +536,7 @@ def ticketsoportescreados(request):
         LEFT JOIN soporte_empresa se3 ON se3.id = ss.idEmpresa_id 
         LEFT JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
         LEFT JOIN soporte_estadosticket se2 ON se2.id = sa.idestado_id
-        where au.username = %s OR se.id = 2 OR se.id = 4 OR se.id = 5
+        where au.username = %s OR se.id <> 1
         """
     else:
         consulta_sql += """
@@ -906,11 +554,11 @@ def ticketsoportescreados(request):
         INNER JOIN soporte_empresa se3 ON se3.id = ss.idEmpresa_id 
         LEFT JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
         LEFT JOIN soporte_estadosticket se2 ON se2.id = sa.idestado_id  
-        WHERE (sa.idAgente_id = %s OR au.username = %s) AND se.id = 2
+        WHERE (sa.idAgente_id = %s OR au.username = %s)
         """
 
-    consulta_info_solicitantes = """
-    SELECT * FROM soporte_solicitante ss WHERE ss.correo = %s
+    consulta_info_empresa = """
+    SELECT * FROM soporte_empresa se WHERE se.email = %s
     """
 
     consulta_get_projects = """
@@ -942,33 +590,26 @@ select st.id as NumTicket, st.comentario, st.chat, st.facturar, st.causaerror, s
 
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
+        
     if len(resultados) != 0:
             return JsonResponse(resultados, safe=False)
     else:
         with connection.cursor() as cursor:
-            cursor.execute(consulta_info_solicitantes, [email_usuario])
+            cursor.execute(consulta_info_empresa, [email_usuario])
             columns = [col[0] for col in cursor.description]
-            info_solicitante = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            info_empresa = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-        if len(info_solicitante) != 0:
-            idSolicitante = info_solicitante[0]['id']
-            with connection.cursor() as cursor:
-                cursor.execute(consulta_get_projects, [idSolicitante])
-                columns = [col[0] for col in cursor.description]
-                resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        nombre_empresa = info_empresa[0]['nombreEmpresa']
+        # En el caso de que sea una empresa
+        consulta_get_projects = consulta_get_projects.replace("WHERE ss.id = %s", "WHERE se3.nombreEmpresa = %s")
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_get_projects, [nombre_empresa])
+            columns = [col[0] for col in cursor.description]
+            resultados_empresa_tickets = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
+        return JsonResponse(resultados_empresa_tickets, safe=False)
 
-            return JsonResponse(resultados, safe=False)
-        else:
-            # En el caso de que sea una empresa
-            consulta_get_projects = consulta_get_projects.replace("WHERE ss.id = %s", "WHERE se3.nombreEmpresa = %s")
-            with connection.cursor() as cursor:
-                cursor.execute(consulta_get_projects, [nombre_usuario])
-                columns = [col[0] for col in cursor.description]
-                resultados_empresa_tickets = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-            return JsonResponse(resultados_empresa_tickets, safe=False)
-    
 def generateReport(request):
     consulta = ""
     tipo_ticket = request.GET.get('tipo_ticket')
@@ -1562,6 +1203,141 @@ def infoAgenteSolicitado(request, id_agente):
     return JsonResponse(context, safe=False)
 
 
+def info_panel_contro(request):
+    id_usuario = request.user.id if request.user.is_authenticated else None
+    if id_usuario == 2 or id_usuario == 1:
+        fecha_actual = date.today()
+        fecha_actual_time = datetime.now()
+        fecha_actual_con_hora = datetime.combine(fecha_actual_time.date(), fecha_actual_time.time())
+
+        consulta_admin_complete = """
+        SELECT st.*, au.last_name as ApellidoAgente, au.first_name as NombreAgente
+        FROM soporte_ticketsoporte st 
+        INNER JOIN auth_user au ON au.id = st.idAgente_id
+        WHERE st.idestado_id = 5
+        """
+        consulta_admin_process_venci = """
+        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 2
+        """
+        consulta_admin_await = """
+        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 1 OR st.idestado_id = 4
+        """
+        consulta_admin_all = """
+        SELECT * FROM soporte_ticketsoporte st 
+        """
+        consult_admin_all_update = """
+        SELECT * FROM soporte_ticketactualizacion st
+        """
+        consult_admin_all_dev = """
+        SELECT * FROM soporte_ticketdesarrollo st 
+        """
+        connection = connections["default"]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_admin_complete)
+            columns = [col[0] for col in cursor.description]
+            resultados_admin = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_admin_await)
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_await = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_admin_process_venci)
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_admin_all)
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_all = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
+        with connection.cursor() as cursor:
+            cursor.execute(consult_admin_all_update)
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_update = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consult_admin_all_dev)
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_dev = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        numTicketsComplete = len(resultados_admin)
+        resultados_hoy = [ticket for ticket in resultados_admin if ticket.get('fechaFinalizacion').date() == fecha_actual]
+        result_await_to_day = [ticket for ticket in resultados_admin_await if ticket.get('fechaCreacion').date() == fecha_actual]
+        result_proccess_venci = [obj for obj in resultados_admin_process if obj['fechaFinalizacion'] < fecha_actual_con_hora]
+
+        objeto_mas_cercano = min(resultados_admin_all, key=lambda x: abs(fecha_actual_time - x['fechaCreacion']))
+        obj_more_update = min(resultados_admin_update, key=lambda x: abs(fecha_actual_time - x['fechaCreacion']))
+        obj_more_dev = min(resultados_admin_dev, key=lambda x: abs(fecha_actual_time - x['fechaCreacion']))
+
+        diferencia_tiempo = abs(fecha_actual_time - objeto_mas_cercano['fechaCreacion'])
+        dif_time_update = abs(fecha_actual_time - obj_more_update['fechaCreacion'])
+        dif_time_dev = abs(fecha_actual_time - obj_more_dev['fechaCreacion'])
+
+        dias_totales = diferencia_tiempo.days
+        meses_totales = dias_totales // 30
+        dias = dias_totales % 30
+        horas, segundos_restantes = divmod(diferencia_tiempo.seconds, 3600)
+        minutos, segundos = divmod(segundos_restantes, 60)
+
+        dias_update = dif_time_update.days
+        meses_update = dias_update // 30
+        dias_update = dias_update % 30
+        horas_update, sec_update_rest = divmod(dif_time_update.seconds, 3600)
+        min_update, sec_update = divmod(sec_update_rest, 60)
+
+        dias_totales_dev = dif_time_dev.days
+        meses_totales_dev = dias_totales_dev // 30
+        dias_dev = dias_totales_dev % 30
+        horas_dev, segundos_restantes_dev = divmod(dif_time_dev.seconds, 3600)
+        minutos_dev, segundos_dev = divmod(segundos_restantes_dev, 60)
+
+        tiempo = f"{meses_totales} meses, {dias} días, {horas} horas, {minutos} minutos, {segundos} segundos";
+        time_update = f"{meses_update} meses, {dias_update} días, {horas_update} horas, {min_update} minutos, {sec_update} segundos"
+        time_dev = f"{meses_totales_dev} meses, {dias_dev} días, {horas_dev} horas, {minutos_dev} minutos, {segundos_dev} segundos"
+
+    else:
+        fecha_actual = date.today()
+        fecha_actual_time = datetime.now()
+        fecha_actual_con_hora = datetime.combine(fecha_actual_time.date(), fecha_actual_time.time())
+
+        consulta_admin_complete = """
+        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 5 AND st.idAgente_id = %s
+        """
+        consulta_admin_process_venci = """
+        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 2 AND st.idAgente_id = %s
+        """
+        consulta_admin_await = """
+        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 1 OR st.idestado_id = 4 AND st.idAgente_id = %s
+        """
+        consulta_admin_all = """
+        SELECT * FROM soporte_ticketsoporte st WHERE s
+        """
+        consult_admin_all_update = """
+        SELECT * FROM soporte_ticketactualizacion st
+        """
+        consult_admin_all_dev = """
+        SELECT * FROM soporte_ticketdesarrollo st 
+        """
+
+    context = {
+        'numTicketsComplete' : numTicketsComplete,
+        'numDayliTicketComplete' : len(resultados_hoy),
+        'numTicketAwait': len(resultados_admin_await),
+        'numTicketAwaitToDay': len(result_await_to_day),
+        'numTicketProcess': len(resultados_admin_process),
+        'numTicketProcessVenci': len(result_proccess_venci),
+        'tiempoDiferenciaSoporte': tiempo,
+        'timeDifUpdate': time_update,
+        'timeDifDev':time_dev,
+        'infoTicketComplete': resultados_hoy,
+    }
+
+    return JsonResponse(context, safe=False)
+
+
 @require_POST
 def crear_ticket_soporte(request):
     try:
@@ -1612,6 +1388,7 @@ def crear_ticket_soporte(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
 
+
 def asign_admin_ticket_support(request,id_agente,id_ticket):
     try:
         fecha_actual = datetime.now()
@@ -1620,7 +1397,7 @@ def asign_admin_ticket_support(request,id_agente,id_ticket):
         # Cambio de agente administrador
         ticket.idAgente_id = id_agente
         # Cambio de estado a en proceso
-        ticket.idestado_id = 2
+        ticket.idestado_id = 3
         ticket.fechaInicio = fechaAsignacion
         ticket.save()
         # Devolver la respuesta JSON
@@ -1768,7 +1545,6 @@ def editar_tareas_soporte(request):
         actividades = ActividadPrincipalSoporte.objects.filter(id__in=task_ids)
 
         for actividad, task in zip(actividades, tasks):
-            actividad.descripcion = task.get('descripcion')
             actividad.idestado = EstadosTicket.objects.get(id=4)
             actividad.fechafinal = task.get('fechaFinalizacion')
             actividad.imagen_actividades = task.get('imagen')
@@ -1847,20 +1623,26 @@ def crear_solicitante(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
 
-
 @csrf_exempt
 def editar_ticket_soporte(request, ticket_id):
     try:
         data = json.loads(request.body)
         causa_error = data.get('causaError')
         fecha_finalizacion = data.get('fechaFinalizacion')
+        facturacion = data.get('facturacion')
 
         # Buscar el ticket por su ID
         ticket = TicketSoporte.objects.get(id=ticket_id)
 
         # Actualizar las propiedades
         ticket.causaerror = causa_error
+        ticket.idestado_id = 2
         ticket.fechaFinalizacion = fecha_finalizacion
+
+        if facturacion == 'true':
+            ticket.facturar = True
+        else:
+            ticket.facturar = False
 
         # Guardar los cambios
         ticket.save()
@@ -1868,7 +1650,6 @@ def editar_ticket_soporte(request, ticket_id):
         return JsonResponse({'status': 'success', 'message': 'El ticket ha sido cerrado'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al cerrar el ticket: {str(e)}'}, status=400)
-
 
 @require_POST
 def crear_ticket_desarrollo(request):
@@ -2550,6 +2331,7 @@ def asgin_admin_project(request, id_agente, id_ticket):
         return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'})
     except:
         return JsonResponse({'error': 'No se pudo realizar el cambio de Agente administrador del proyecto'}, status=405)
+
 
 def asgin_agent_actualizacion(request, id_agente, id_ticket):
     try:

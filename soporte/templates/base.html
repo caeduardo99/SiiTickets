@@ -346,39 +346,6 @@
         })
     });
 
-    // CONSULTA PARA LA SUMA DE LOS NUMERO DE ACTIVIDADES ATRASADAS
-    const numberAlertTotalVenci = document.getElementById('numberAlertTotalVenci');
-    const notificacionesTotalesDiv = document.getElementById('notificacionesTotales');
-    const noficicacionDesarrollo = document.getElementById('noficicacionDesarrollo');
-    const nameUser = document.getElementById('nameUser')
-    $.ajax({
-        url: "get_tickets_cpanel/",
-        method: "GET",
-        success: function (data) {
-            let totalNotificationDesarrollo = '', notificacionesTotales = '';
-            
-            projectsJustSuccessVenci = data.projects_just_success_venci.length;
-            projectsProcessVenci = data.projects_process_venci.length;
-            projectsSuccessVenci = data.projects_success_venci.length;
-
-            if(nameUser.textContent == 'mafer'){
-                projectsNoAsignVenci = data.projects_venci_no_asign.length;
-            }else{
-                projectsNoAsignVenci = 0
-            }
-
-            totalNotificationDesarrollo = parseInt(projectsJustSuccessVenci) + parseInt(projectsProcessVenci) + parseInt(projectsSuccessVenci) + parseInt(projectsNoAsignVenci)
-
-            notificacionesTotales = parseInt(projectsJustSuccessVenci) + parseInt(projectsProcessVenci) + parseInt(projectsSuccessVenci) + parseInt(projectsNoAsignVenci)
-
-            numberAlertTotalVenci.textContent = notificacionesTotales;
-            notificacionesTotalesDiv.textContent = `${notificacionesTotales} Notificaciones`;
-            noficicacionDesarrollo.textContent = `${totalNotificationDesarrollo} Desarrollo - Vencidos`
-        },
-        error: function (error) {
-            console.error("Error al obtener los datos:", error);
-        },
-    })
 
 </script>
 

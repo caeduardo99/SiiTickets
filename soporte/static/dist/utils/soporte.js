@@ -55,6 +55,7 @@ const btnFinisTasks = document.getElementById("btnFinisTasks");
 const rowTableTaskEdit = document.getElementById("rowTableTaskEdit");
 const btnNewTask = document.getElementById("btnNewTask");
 const btnGenerarReporte = document.getElementById("btnGenerarReporte");
+const selectFacturacion = document.getElementById('selectFacturacion');
 
 // Funcionalidad en caso de que sea cliente o agente
 if (mostrarCampo == "True") {
@@ -116,6 +117,10 @@ fetch("ticketsoportescreados/")
         } else if (proyecto.idEstado === 5) {
           svg = createSVG(
             "M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
+          );
+        } else if(proyecto.idEstado === 3){
+          svg = createSVG(
+            "M32 0C14.3 0 0 14.3 0 32S14.3 64 32 64V75c0 42.4 16.9 83.1 46.9 113.1L146.7 256 78.9 323.9C48.9 353.9 32 394.6 32 437v11c-17.7 0-32 14.3-32 32s14.3 32 32 32H64 320h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V437c0-42.4-16.9-83.1-46.9-113.1L237.3 256l67.9-67.9c30-30 46.9-70.7 46.9-113.1V64c17.7 0 32-14.3 32-32s-14.3-32-32-32H320 64 32zM288 437v11H96V437c0-25.5 10.1-49.9 28.1-67.9L192 301.3l67.9 67.9c18 18 28.1 42.4 28.1 67.9z"
           );
         }
 
@@ -188,6 +193,16 @@ fetch("ticketsoportescreados/")
               fechaCreacionEdit.innerHTML = "";
               fechaCreacionEdit.value = infoGeneraTicket[0].fechaCreacion;
 
+              var facturar = infoGeneraTicket[0].facturar;
+              console.log(facturar, typeof(facturar))
+              if(facturar){
+                var option = document.createElement('option');
+                option.value = 'true';
+                option.textContent = 'Si';
+
+                selectFacturacion.appendChild(option);
+              }
+
               fechaFinalizacionEdit.innerHTML = "";
               fechaFinalizacionEdit.value =
                 infoGeneraTicket[0].fechaFinalizacion;
@@ -217,9 +232,11 @@ fetch("ticketsoportescreados/")
                 ) {
                   textAreaCausaError.disabled = false;
                   fechaFinalizacionEdit.disabled = false;
+                  selectFacturacion.disabled = false;
                 } else {
                   textAreaCausaError.disabled = true;
                   fechaFinalizacionEdit.disabled = true;
+                  selectFacturacion.disabled = true;
                 }
               }
 
@@ -299,7 +316,6 @@ fetch("ticketsoportescreados/")
                         if (event.target.checked) {
                           arrayTasks.push({
                             id: checkboxId,
-                            descripcion: inputDescripcion.value,
                             fechaFinalizacion: inputFecha.value,
                             imagen: base64Image,
                           });
@@ -355,7 +371,7 @@ fetch("ticketsoportescreados/")
                         };
                         reader.readAsDataURL(file);
                         if (
-                          inputDescripcion.value != "" &&
+                          tarea.descripcion != "" &&
                           inputFecha.value != ""
                         ) {
                           toastr.info(
@@ -623,7 +639,11 @@ btnNewTask.addEventListener("click", function () {
 
   // Crea las celdas con la información deseada
   var descripcionCell = document.createElement("td");
-  descripcionCell.textContent = "Tarea determinada por el agente";
+  var textActividad = document.createElement("input");
+  textActividad.placeholder = 'Agregar actividad';
+  textActividad.type = 'text'
+  textActividad.className = 'form-control form-control-sm'
+  descripcionCell.appendChild(textActividad);
 
   var cellEstado = document.createElement("td");
   cellEstado.textContent = "En proceso";
@@ -665,7 +685,7 @@ btnNewTask.addEventListener("click", function () {
   // Funcionalidad del boton para agregar tareas
   btnSendTask.addEventListener("click", function () {
     var nuevaTarea = {
-      descripcion: "",
+      descripcion: textActividad.value,
       idAgente: selectAgente.value,
       fechaFinalizacion: null,
       imagen: "",
@@ -945,12 +965,14 @@ function makePdf(comentario, solicitante, agente, fechaCreacion, fechaEstimada, 
 btnEditarDatos.addEventListener("click", function () {
   var causaError = textAreaCausaError.value;
   var fechaFinal = fechaFinalizacionEdit.value;
+  var facturacion = selectFacturacion.value;
 
   fetch(`/editar_ticket_soporte/${numTicketSoporte}/`, {
     method: "POST",
     body: JSON.stringify({
       causaError: causaError,
       fechaFinalizacion: fechaFinal,
+      facturacion: facturacion,
     }),
     headers: {
       "Content-Type": "application/json",
