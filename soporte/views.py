@@ -1271,10 +1271,13 @@ def info_panel_contro(request):
         fecha_actual_con_hora = datetime.combine(fecha_actual_time.date(), fecha_actual_time.time())
 
         consulta_admin_complete = """
-        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 5 AND st.idAgente_id = %s
+        SELECT st.*, au.first_name as NombreAgente, au.last_name as ApellidoAgente
+        FROM soporte_ticketsoporte st 
+        INNER JOIN auth_user au ON au.id = st.idAgente_id
+        WHERE st.idestado_id = 5 AND st.idAgente_id = %s
         """
         consulta_admin_process_venci = """
-        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 2 AND st.idAgente_id = %s
+        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 2 AND st.idestado_id = 3 AND st.idAgente_id = %s
         """
         consulta_admin_await = """
         SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 1 OR st.idestado_id = 4 AND st.idAgente_id = %s
@@ -1311,7 +1314,7 @@ def info_panel_contro(request):
             resultados_admin_all = [dict(zip(columns, row)) for row in cursor.fetchall()]
             
         with connection.cursor() as cursor:
-            cursor.execute(consult_admin_all_update, [id_usuario])
+            cursor.execute(consult_admin_all_update, [id_usuario])  
             columns = [col[0] for col in cursor.description]
             resultados_admin_update = [dict(zip(columns, row)) for row in cursor.fetchall()]
 
@@ -1323,10 +1326,11 @@ def info_panel_contro(request):
         # EN CASO DE QUE SEA CLIENTE EL USUARIO LOGEADO
         if len(resultados_admin) == 0 and len(resultados_admin_await) == 0 and len(resultados_admin_process) == 0 and len(resultados_admin_all) == 0 and len(resultados_admin_update) == 0 and len(resultados_admin_dev) == 0:
             consulta_admin_complete = """
-            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
+            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa, au.first_name as NombreAgente, au.last_name as ApellidoAgente
             FROM soporte_ticketsoporte st 
             INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
             INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+            INNER JOIN auth_user au ON au.id = st.idAgente_id
             WHERE st.idestado_id = 5 AND se.email = %s
             """
             consulta_admin_process_venci = """
@@ -2133,7 +2137,10 @@ def crear_empresa(request):
 
         # Crear el usuario asociado a la empresa
         
-        username = nombreEmpresa
+        username = nombreEmpresa.split()
+        primera_palabra = username[0]
+        username = ''.join([palabra[:2] for palabra in username[1:]])
+        username = primera_palabra + username
         password = '8soptativa'  # Contraseña por defecto
         user = User.objects.create_user(username=username, password=password, email=email)
 
