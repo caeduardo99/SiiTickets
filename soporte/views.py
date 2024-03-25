@@ -1205,6 +1205,8 @@ def infoAgenteSolicitado(request, id_agente):
 
 def info_panel_contro(request):
     id_usuario = request.user.id if request.user.is_authenticated else None
+    email_usuario = request.user.email if request.user.is_authenticated else None
+
     if id_usuario == 2 or id_usuario == 1:
         fecha_actual = date.today()
         fecha_actual_time = datetime.now()
@@ -1262,42 +1264,7 @@ def info_panel_contro(request):
             cursor.execute(consult_admin_all_dev)
             columns = [col[0] for col in cursor.description]
             resultados_admin_dev = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        numTicketsComplete = len(resultados_admin)
-        resultados_hoy = [ticket for ticket in resultados_admin if ticket.get('fechaFinalizacion').date() == fecha_actual]
-        result_await_to_day = [ticket for ticket in resultados_admin_await if ticket.get('fechaCreacion').date() == fecha_actual]
-        result_proccess_venci = [obj for obj in resultados_admin_process if obj['fechaFinalizacion'] < fecha_actual_con_hora]
-
-        objeto_mas_cercano = min(resultados_admin_all, key=lambda x: abs(fecha_actual_time - x['fechaCreacion']))
-        obj_more_update = min(resultados_admin_update, key=lambda x: abs(fecha_actual_time - x['fechaCreacion']))
-        obj_more_dev = min(resultados_admin_dev, key=lambda x: abs(fecha_actual_time - x['fechaCreacion']))
-
-        diferencia_tiempo = abs(fecha_actual_time - objeto_mas_cercano['fechaCreacion'])
-        dif_time_update = abs(fecha_actual_time - obj_more_update['fechaCreacion'])
-        dif_time_dev = abs(fecha_actual_time - obj_more_dev['fechaCreacion'])
-
-        dias_totales = diferencia_tiempo.days
-        meses_totales = dias_totales // 30
-        dias = dias_totales % 30
-        horas, segundos_restantes = divmod(diferencia_tiempo.seconds, 3600)
-        minutos, segundos = divmod(segundos_restantes, 60)
-
-        dias_update = dif_time_update.days
-        meses_update = dias_update // 30
-        dias_update = dias_update % 30
-        horas_update, sec_update_rest = divmod(dif_time_update.seconds, 3600)
-        min_update, sec_update = divmod(sec_update_rest, 60)
-
-        dias_totales_dev = dif_time_dev.days
-        meses_totales_dev = dias_totales_dev // 30
-        dias_dev = dias_totales_dev % 30
-        horas_dev, segundos_restantes_dev = divmod(dif_time_dev.seconds, 3600)
-        minutos_dev, segundos_dev = divmod(segundos_restantes_dev, 60)
-
-        tiempo = f"{meses_totales} meses, {dias} días, {horas} horas, {minutos} minutos, {segundos} segundos";
-        time_update = f"{meses_update} meses, {dias_update} días, {horas_update} horas, {min_update} minutos, {sec_update} segundos"
-        time_dev = f"{meses_totales_dev} meses, {dias_dev} días, {horas_dev} horas, {minutos_dev} minutos, {segundos_dev} segundos"
-
+       
     else:
         fecha_actual = date.today()
         fecha_actual_time = datetime.now()
@@ -1313,15 +1280,202 @@ def info_panel_contro(request):
         SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 1 OR st.idestado_id = 4 AND st.idAgente_id = %s
         """
         consulta_admin_all = """
-        SELECT * FROM soporte_ticketsoporte st WHERE s
+        SELECT * FROM soporte_ticketsoporte st WHERE st.idAgente_id = %s
         """
         consult_admin_all_update = """
-        SELECT * FROM soporte_ticketactualizacion st
+        SELECT * FROM soporte_ticketactualizacion st WHERE st.idAgente_id = %s
         """
         consult_admin_all_dev = """
-        SELECT * FROM soporte_ticketdesarrollo st 
+        SELECT * FROM soporte_ticketdesarrollo st WHERE st.idAgente_id = %s
         """
+        connection = connections["default"]
 
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_admin_complete, [id_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_admin = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_admin_await, [id_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_await = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_admin_process_venci, [id_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consulta_admin_all, [id_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_all = [dict(zip(columns, row)) for row in cursor.fetchall()]
+            
+        with connection.cursor() as cursor:
+            cursor.execute(consult_admin_all_update, [id_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_update = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consult_admin_all_dev, [id_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_admin_dev = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        # EN CASO DE QUE SEA CLIENTE EL USUARIO LOGEADO
+        if len(resultados_admin) == 0 and len(resultados_admin_await) == 0 and len(resultados_admin_process) == 0 and len(resultados_admin_all) == 0 and len(resultados_admin_update) == 0 and len(resultados_admin_dev) == 0:
+            consulta_admin_complete = """
+            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
+            FROM soporte_ticketsoporte st 
+            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+            WHERE st.idestado_id = 5 AND se.email = %s
+            """
+            consulta_admin_process_venci = """
+            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
+            FROM soporte_ticketsoporte st
+            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+            WHERE st.idestado_id = 2 AND se.email = %s
+            """
+            consulta_admin_await = """
+            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
+            FROM soporte_ticketsoporte st
+            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+            WHERE st.idestado_id = 1 OR st.idestado_id = 4 AND se.email = %s
+            """
+            consulta_admin_all = """
+            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
+            FROM soporte_ticketsoporte st
+            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+            WHERE se.email = %s
+            """
+            consult_admin_all_update = """
+            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
+            FROM soporte_ticketactualizacion st
+            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+            WHERE se.email = %s
+            """
+            consult_admin_all_dev = """
+            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
+            FROM soporte_ticketdesarrollo st
+            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+            WHERE se.email = %s
+            """
+            connection = connections["default"]
+            
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_admin_complete, [email_usuario])
+                columns = [col[0] for col in cursor.description]
+                resultados_admin = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_admin_process_venci, [email_usuario])
+                columns = [col[0] for col in cursor.description]
+                resultados_admin_process = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_admin_await, [email_usuario])
+                columns = [col[0] for col in cursor.description]
+                resultados_admin_await = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            with connection.cursor() as cursor:
+                cursor.execute(consulta_admin_all, [email_usuario])
+                columns = [col[0] for col in cursor.description]
+                resultados_admin_all = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            with connection.cursor() as cursor:
+                cursor.execute(consult_admin_all_update, [email_usuario])
+                columns = [col[0] for col in cursor.description]
+                resultados_admin_update = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+            with connection.cursor() as cursor:
+                cursor.execute(consult_admin_all_dev, [email_usuario])
+                columns = [col[0] for col in cursor.description]
+                resultados_admin_dev = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    numTicketsComplete = len(resultados_admin)
+    
+    if len(resultados_admin) != 0:
+        resultados_hoy = [ticket for ticket in resultados_admin if ticket.get('fechaFinalizacion').date() == fecha_actual]
+    else:
+        resultados_hoy = []
+    
+    if len(resultados_admin_await) != 0:
+        result_await_to_day = [ticket for ticket in resultados_admin_await if ticket.get('fechaCreacion').date() == fecha_actual]
+    else:
+        result_await_to_day = []
+
+    if len(resultados_admin_process) != 0:
+        result_proccess_venci = [obj for obj in resultados_admin_process if obj['fechaFinalizacion'] < fecha_actual_con_hora]
+    else:
+        result_proccess_venci = []
+    
+    if len(resultados_admin_all) != 0:
+        objeto_mas_cercano = min(resultados_admin_all, key=lambda x: abs(fecha_actual_time - x['fechaCreacion']))
+        diferencia_tiempo = abs(fecha_actual_time - objeto_mas_cercano['fechaCreacion'])
+        dias_totales = diferencia_tiempo.days
+        meses_totales = dias_totales // 30
+        dias = dias_totales % 30
+        horas, segundos_restantes = divmod(diferencia_tiempo.seconds, 3600)
+        minutos, segundos = divmod(segundos_restantes, 60)
+        tiempo = f"{meses_totales} meses, {dias} días, {horas} horas, {minutos} minutos, {segundos} segundos";
+    else:
+        objeto_mas_cercano = []
+        diferencia_tiempo = ''
+        dias_totales = 0
+        meses_totales = 0
+        dias = 0
+        horas = 0
+        segundos_restantes = 0
+        minutos = 0
+        segundos = 0
+        tiempo = ''
+        
+    if len(resultados_admin_update) != 0:
+        obj_more_update = min(resultados_admin_update, key=lambda x: abs(fecha_actual_time - x['fechaCreacion']))
+        dif_time_update = abs(fecha_actual_time - obj_more_update['fechaCreacion'])
+        dias_update = dif_time_update.days
+        meses_update = dias_update // 30
+        dias_update = dias_update % 30
+        horas_update, sec_update_rest = divmod(dif_time_update.seconds, 3600)
+        min_update, sec_update = divmod(sec_update_rest, 60)
+        time_update = f"{meses_update} meses, {dias_update} días, {horas_update} horas, {min_update} minutos, {sec_update} segundos"
+    else:
+        obj_more_update = []
+        dif_time_update = ''
+        dias_update = 0
+        meses_update = 0
+        horas_update = 0
+        sec_update_rest = 0
+        min_update = 0
+        sec_update = 0
+        time_update = ''
+
+    if len(resultados_admin_dev) != 0:
+        obj_more_dev = min(resultados_admin_dev, key=lambda x: abs(fecha_actual_time - x['fechaCreacion']))
+        dif_time_dev = abs(fecha_actual_time - obj_more_dev['fechaCreacion'])
+        dias_totales_dev = dif_time_dev.days
+        meses_totales_dev = dias_totales_dev // 30
+        dias_dev = dias_totales_dev % 30
+        horas_dev, segundos_restantes_dev = divmod(dif_time_dev.seconds, 3600)
+        minutos_dev, segundos_dev = divmod(segundos_restantes_dev, 60)
+        time_dev = f"{meses_totales_dev} meses, {dias_dev} días, {horas_dev} horas, {minutos_dev} minutos, {segundos_dev} segundos"
+    else:
+        obj_more_dev = []
+        dif_time_dev = ''
+        dias_totales_dev = 0
+        meses_totales_dev = 0
+        dias_dev = 0
+        horas_dev = 0
+        segundos_restantes_dev = 0
+        minutos_dev = 0
+        segundos_dev = 0
+        time_dev = ''
+
+    
     context = {
         'numTicketsComplete' : numTicketsComplete,
         'numDayliTicketComplete' : len(resultados_hoy),
