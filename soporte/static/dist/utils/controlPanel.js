@@ -29,9 +29,9 @@ $(document).ready(function () {
         numTicketProcess.textContent = `${data.numTicketProcess} Tickets en proceso`;
         numTicketProcessVenci.textContent = `${data.numTicketProcessVenci} Tickets en proceso con fecha atrasada`;
 
-        tdTimeLastTicket.textContent = `Utimo ticket creado hace ${data.tiempoDiferenciaSoporte}`;
-        tdTimeLastUpdate.textContent = `Ultimo ticket creado hace ${data.timeDifUpdate}`;
-        tdTimeDevelop.textContent =  `Ultimo ticket creado hace ${data.timeDifDev}`;
+        tdTimeLastTicket.textContent = data.tiempoDiferenciaSoporte == "" ? 'No hay tickets creados para este usuario' : `Utimo ticket creado hace ${data.tiempoDiferenciaSoporte}`;
+        tdTimeLastUpdate.textContent = data.timeDifUpdate == "" ? 'No hay actualizaciones creadas para este usuario': `Ultimo ticket creado hace ${data.timeDifUpdate}`;
+        tdTimeDevelop.textContent =  data.timeDifDev == "" ? 'No hay desarrollos creados para este usuario' : `Ultimo ticket creado hace ${data.timeDifDev}`;
 
         // Graficar la informacion en el mapa
         let agentCount = {};
