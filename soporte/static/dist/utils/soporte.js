@@ -214,6 +214,18 @@ fetch("ticketsoportescreados/")
               imageError.src = "";
               const urlImage = infoGeneraTicket[0].imagenes;
               imageError.src = "/media/" + urlImage;
+              imageError.addEventListener('mouseover', function(){
+                this.style.cursor = 'pointer';
+                this.style.filter = 'brightness(50%)';
+              })
+              imageError.addEventListener('click', function(){
+                console.log('se debe abrir ')
+                const imageUrl = this.src;
+                window.open(imageUrl, '_blank');
+              })
+              imageError.addEventListener('mouseout', function() {
+                this.style.filter = '';
+              });
 
               // Condiciones en caso de que el estado del ticket esta hecho o no
               if (
