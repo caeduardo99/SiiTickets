@@ -87,7 +87,7 @@
                             alt="User Image">
                     </div>
                     <div class="info">
-                        <a href="/#" id="usuario" class="d-block">{{ nombre_usuario }}</a>
+                        <a href="/#" id="usuario" class="d-block">{{ fullName }}</a>
                     </div>
                 </div>
                 <div class="hidden" id="nameUser" style="display: none;">{{ nombre_usuario }}</div>
@@ -193,12 +193,12 @@
                                         <p>Solicitantes</p>
                                     </a>
                                 </li>
-                                <li class="nav-item">
+                                <!-- <li class="nav-item">
                                     <a href="{% url 'usuariosEmpresas' %}" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Usuarios Franquiciados</p>
                                     </a>
-                                </li>
+                                </li> -->
                             </ul>
                         </li>
                         {% endif %}

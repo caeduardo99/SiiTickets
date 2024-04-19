@@ -219,7 +219,6 @@ fetch("ticketsoportescreados/")
                 this.style.filter = 'brightness(50%)';
               })
               imageError.addEventListener('click', function(){
-                console.log('se debe abrir ')
                 const imageUrl = this.src;
                 window.open(imageUrl, '_blank');
               })

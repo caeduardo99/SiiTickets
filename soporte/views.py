@@ -65,15 +65,21 @@ def signout(request):
 @login_required
 def contact(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
 
-    context = {"nombre_usuario": nombre_usuario}
+    context = {"nombre_usuario": nombre_usuario, "fullName": full_name}
     return render(request, "contact.html", context)
 
 
 @login_required
 def soporte(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
-
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
+    
     usuarios_grupo_1 = User.objects.filter(groups__id=1).values_list('username', flat=True)
 
     if nombre_usuario in usuarios_grupo_1:
@@ -102,7 +108,8 @@ def soporte(request):
         'mostrar_campo': mostrar_campo,
         'resultados_solicitantes_data': resultados_solicitantes_data,
         'resultados_agentes_data': resultados_agentes_data,
-        'resultados_estados_data': resultados_estados_data
+        'resultados_estados_data': resultados_estados_data,
+        'fullName': full_name,
     }
     return render(request, 'soporte.html', context)
 
@@ -112,7 +119,9 @@ def desarrollo(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
 
     usuarios_grupo_1 = User.objects.filter(groups__id=1).values_list('username', flat=True)
-
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
 
     consultGroupUser = """
     SELECT au.id AS idUser, au.first_name, aug.group_id 
@@ -140,6 +149,7 @@ def desarrollo(request):
         "resultados_solicitantes_data": resultados_solicitantes_data,
         "resultados_agentes_data": resultados_agentes_data,
         "resultados": resultados,
+        "fullName": full_name,
     }
     return render(request, "desarrollo.html", context)
 
@@ -147,7 +157,9 @@ def desarrollo(request):
 @login_required
 def desarrolloact(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
-
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
 
     consultGroupUser = """
         SELECT au.id AS idUser, au.first_name, aug.group_id 
@@ -189,7 +201,8 @@ def desarrolloact(request):
         'resultados_agentes_data': resultados_agentes_data,
         'resultados_estados_data': resultados_estados_data,
         'resultados_modulos_data': resultados_modulos_data,
-        'resultados': resultados
+        'resultados': resultados,
+        'fullName': full_name
     }
     return render(request, 'desarrollo_actualizacion.html', context)
 
@@ -198,6 +211,9 @@ def desarrolloact(request):
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def empresas(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
 
     resultados_empresas = empresasjson(request)
 
@@ -206,6 +222,7 @@ def empresas(request):
     context = {
         'nombre_usuario': nombre_usuario,
         'resultados_solicitantes_data': resultados_empresas_data,
+        'fullName': full_name,
     }
     return render(request, 'empresas.html', context)
 
@@ -214,6 +231,9 @@ def empresas(request):
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def modulos(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
 
     resultados_modulos = modulojson(request)
 
@@ -222,6 +242,7 @@ def modulos(request):
     context = {
         'nombre_usuario': nombre_usuario,
         'resultados_modulos_data': resultados_modulos_data,
+        'fullName': full_name,
     }
     return render(request, 'modulos.html', context)
 
@@ -230,11 +251,16 @@ def modulos(request):
 def usuariosSolicitantes(request):
     resultados_empresas = empresasjson(request)
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
+
     resultados_empresas_data = json.loads(resultados_empresas.content)
 
     context = {
         'nombre_usuario': nombre_usuario,
         'resultados_empresas_data': resultados_empresas_data,
+        'fullName': full_name,
     }
     return render(request, 'usuarios.html', context)
 
@@ -245,11 +271,15 @@ def usuariosEmpresas(request):
     users = User.objects.all()
     resultados_empresas = empresasjson(request)
     resultados_empresas_data = json.loads(resultados_empresas.content)
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
 
     context = {
         'users': users,
         'nombre_usuario': nombre_usuario,
         'resultados_empresas_data': resultados_empresas_data,
+        'fullName': full_name
     }
 
     return render(request, 'usuariosEmpresa.html', context)
@@ -259,6 +289,9 @@ def usuariosEmpresas(request):
 @user_passes_test(lambda u: u.is_superuser or u.groups.filter(name='agentes').exists())
 def views_reports(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
 
     # Llamar a la función solicitantes para obtener los resultados
     resultados_solicitantes = solicitantesjson(request)
@@ -288,7 +321,8 @@ def views_reports(request):
         'resultados_solicitantes_data': resultados_solicitantes_data,
         'resultados_agentes_data': resultados_agentes_data,
         'resultados_estados_data': resultados_estados_data,
-        'estados_tickets': resultados
+        'estados_tickets': resultados,
+        'fullName': full_name
     }
     return render(request, 'reportes.html', context)
 
@@ -339,6 +373,9 @@ def consultatareas_view(request):
 @login_required
 def view_control_panel(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre +' '+ apellido
 
     consulta_info_agente = """
     SELECT au.id as idUsuario, au.username, au.first_name as Nombre, au.last_name as Apellido
@@ -356,6 +393,7 @@ def view_control_panel(request):
     context = {
         'nombre_usuario': nombre_usuario,
         'info_user': resultados_info_user[0],
+        'fullName': full_name
     }
 
     return render(request, 'panelControl.html', context)
@@ -366,6 +404,7 @@ def view_control_panel(request):
 def solicitantesjson(request):
     # Obtener el nombre de usuario logeado
     nombre_usuario = request.user.username if request.user.is_authenticated else None
+    nombre = request.user.first_name if request.user.is_authenticated else None
 
     # Construir la primera consulta SQL
     consulta_sql = """
@@ -378,18 +417,18 @@ def solicitantesjson(request):
 
     # Agregar condición de filtro si hay un nombre de usuario logeado
     if nombre_usuario:
-        consulta_sql += " WHERE se.nombreEmpresa = %s;"
+        consulta_sql += " WHERE se.nombreEmpresa LIKE %s;"
 
         connection = connections["default"]
-
+        
         # Ejecutar la primera consulta SQL y obtener los resultados
         with connection.cursor() as cursor:
-            cursor.execute(consulta_sql, [nombre_usuario])
+            cursor.execute(consulta_sql, ['%' + nombre + '%'])
             columns = [col[0] for col in cursor.description]
             resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
+            
     # Si la primera consulta devuelve un conjunto vacío, ejecutar la segunda consulta sin la condición WHERE
-    if not resultados:
+    if len(resultados) == []:
         connection = connections["default"]
         with connection.cursor() as cursor:
             cursor.execute(consulta_sql.replace("WHERE se.nombreEmpresa = %s", ""))
@@ -517,8 +556,8 @@ def solicitantescreados(request):
 def ticketsoportescreados(request):
     nombre_usuario = request.user.username if request.user.is_authenticated else None
     id_usuario = request.user.id if request.user.is_authenticated else None
-    email_usuario = request.user.email if request.user.is_authenticated else None
-
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    
     consulta_sql = """"""
     if id_usuario == 2 or id_usuario == 1:
         consulta_sql += """
@@ -594,14 +633,11 @@ select st.id as NumTicket, st.comentario, st.chat, st.facturar, st.causaerror, s
     if len(resultados) != 0:
             return JsonResponse(resultados, safe=False)
     else:
-        with connection.cursor() as cursor:
-            cursor.execute(consulta_info_empresa, [email_usuario])
-            columns = [col[0] for col in cursor.description]
-            info_empresa = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-        nombre_empresa = info_empresa[0]['nombreEmpresa']
+        nombre_empresa = nombre
         # En el caso de que sea una empresa
         consulta_get_projects = consulta_get_projects.replace("WHERE ss.id = %s", "WHERE se3.nombreEmpresa = %s")
+        print(consulta_get_projects)
+        print(nombre_empresa)
         with connection.cursor() as cursor:
             cursor.execute(consulta_get_projects, [nombre_empresa])
             columns = [col[0] for col in cursor.description]
@@ -2142,7 +2178,7 @@ def crear_empresa(request):
         username = ''.join([palabra[:2] for palabra in username[1:]])
         username = primera_palabra + username
         password = '8soptativa'  # Contraseña por defecto
-        user = User.objects.create_user(username=username, password=password, email=email)
+        user = User.objects.create_user(username=username, first_name =nombreEmpresa ,password=password, email=email)
 
         # Asignar el usuario al grupo correspondiente (group_id=1)
         group = Group.objects.get(pk=1)  # Suponiendo que el grupo Administradores tiene pk=1
