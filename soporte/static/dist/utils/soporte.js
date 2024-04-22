@@ -191,13 +191,7 @@ fetch("ticketsoportescreados/")
               fechaCreacionEdit.value = infoGeneraTicket[0].fechaCreacion;
 
               var facturar = infoGeneraTicket[0].facturar;
-              if(facturar){
-                var option = document.createElement('option');
-                option.value = 'true';
-                option.textContent = 'Si';
-
-                selectFacturacion.appendChild(option);
-              }
+              $("#selectFacturacion").val(String(facturar)).trigger("change");
 
               fechaFinalizacionEdit.innerHTML = "";
               fechaFinalizacionEdit.value =
