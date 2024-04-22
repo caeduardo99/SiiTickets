@@ -91,9 +91,10 @@ def soporte(request):
 
     # Llamar a la función solicitantes para obtener los resultados
     resultados_solicitantes = solicitantesjson(request)
+    resultados_allSolicitantes = allSolicitnates(request)
 
     resultados_solicitantes_data = json.loads(resultados_solicitantes.content)
-
+    resultados_allSolicitantes = json.loads(resultados_allSolicitantes.content)
     # Llamar a la función agentes para obtener los resultados
     resultados_agentes = agentesjson(request)
 
@@ -107,6 +108,7 @@ def soporte(request):
         'nombre_usuario': nombre_usuario,
         'mostrar_campo': mostrar_campo,
         'resultados_solicitantes_data': resultados_solicitantes_data,
+        'all_solicitantes': resultados_allSolicitantes,
         'resultados_agentes_data': resultados_agentes_data,
         'resultados_estados_data': resultados_estados_data,
         'fullName': full_name,
@@ -132,8 +134,9 @@ def desarrollo(request):
     connection = connections['default']
 
     resultados_solicitantes = solicitantesjson(request)
-
+    resultados_allSolicitantes = allSolicitnates(request)
     resultados_solicitantes_data = json.loads(resultados_solicitantes.content)
+    resultados_allSolicitantes = json.loads(resultados_allSolicitantes.content)
     resultados_agentes = agentesjson(request)
 
     resultados_agentes_data = json.loads(resultados_agentes.content)
@@ -148,6 +151,7 @@ def desarrollo(request):
         "nombre_usuario": nombre_usuario,
         "resultados_solicitantes_data": resultados_solicitantes_data,
         "resultados_agentes_data": resultados_agentes_data,
+        'all_solicitantes': resultados_allSolicitantes,
         "resultados": resultados,
         "fullName": full_name,
     }
@@ -171,12 +175,12 @@ def desarrolloact(request):
 
     # Llamar a la función solicitantes para obtener los resultados
     resultados_solicitantes = solicitantesjson(request)
-
+    resultados_allSolicitantes = allSolicitnates(request)
     resultados_solicitantes_data = json.loads(resultados_solicitantes.content)
 
     # Llamar a la función agentes para obtener los resultados
     resultados_agentes = agentesjson(request)
-
+    resultados_allSolicitantes = json.loads(resultados_allSolicitantes.content)
     resultados_agentes_data = json.loads(resultados_agentes.content)
 
     # Llamar a la función estados para obtener los resultados
@@ -201,6 +205,7 @@ def desarrolloact(request):
         'resultados_agentes_data': resultados_agentes_data,
         'resultados_estados_data': resultados_estados_data,
         'resultados_modulos_data': resultados_modulos_data,
+        'all_solicitantes': resultados_allSolicitantes,
         'resultados': resultados,
         'fullName': full_name
     }
@@ -438,6 +443,25 @@ def solicitantesjson(request):
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
+def allSolicitnates(request):
+    # Construir la primera consulta SQL
+    consulta_sql = """
+        SELECT ss.id, ss.nombreApellido, se.nombreEmpresa 
+        FROM soporte_solicitante ss
+        INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
+    """
+
+    resultados = []  # Inicializar la variable de resultados
+    connection = connections["default"]
+        
+        # Ejecutar la primera consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql)
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    print(resultados)
+    # Devolver la respuesta JSON
+    return JsonResponse(resultados, safe=False)
 
 def agentesjson(request):
     # Construir la consulta SQL

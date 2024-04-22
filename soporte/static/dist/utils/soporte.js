@@ -183,18 +183,14 @@ fetch("ticketsoportescreados/")
                 .val(idAgenteSeleccionado)
                 .trigger("change");
               valAgenteAsignadoDefault = $("#selectEditAgenteSolicitado").val();
-
-              const idSolicitanteSeleccionado =
-                infoGeneraTicket[0].idSolicitante_id;
-              $("#selectSolicitante")
-                .val(idSolicitanteSeleccionado)
-                .trigger("change");
+              
+              const idSolicitanteSeleccionado = infoGeneraTicket[0].idSolicitante_id;
+              $("#selectSolicitante").val(idSolicitanteSeleccionado).trigger("change");
 
               fechaCreacionEdit.innerHTML = "";
               fechaCreacionEdit.value = infoGeneraTicket[0].fechaCreacion;
 
               var facturar = infoGeneraTicket[0].facturar;
-              console.log(facturar, typeof(facturar))
               if(facturar){
                 var option = document.createElement('option');
                 option.value = 'true';

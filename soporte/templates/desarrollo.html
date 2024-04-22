@@ -61,7 +61,7 @@
                             <label for="solicitante">Solicitante:</label>
                             <select class="select2" id="solicitante" style="width: 100%;" name="solicitante">
                                 <option value="">Seleccione Solicitante</option>
-                                {% for solicitante in resultados_solicitantes_data %}
+                                {% for solicitante in all_solicitantes %}
                                 <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
                                     {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
                                 </option>
@@ -226,7 +226,7 @@
                         <label for="solicitante">Solicitante:</label>
                         <select class="select2" id="editSolicitante" style="width: 100%;" name="editSolicitante" disabled>
                             <option value="">Seleccione Solicitante</option>
-                            {% for solicitante in resultados_solicitantes_data %}
+                            {% for solicitante in all_solicitantes %}
                             <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
                                 {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
                             </option>
