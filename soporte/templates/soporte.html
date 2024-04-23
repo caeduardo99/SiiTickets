@@ -49,7 +49,7 @@
                                             <label class="form-label">Imagen</label>
                                             <div class="input-group mb-3">
                                                 <div class="custom-file">
-                                                  <input type="file" class="custom-file-input" id="inputGroupFile03" aria-describedby="inputGroupFileAddon03" name="inputGroupFile03" onchange="mostrarNombreArchivo()">
+                                                  <input type="file" class="custom-file-input" id="inputGroupFile03" aria-describedby="inputGroupFileAddon03" name="inputGroupFile03" onchange="mostrarNombreArchivo(1,0)">
                                                   <label class="custom-file-label" for="inputGroupFile03">Sube una imagen del problema que presentas</label>
                                                 </div>
                                               </div>                                       
@@ -87,7 +87,57 @@
                                 </form>
                             </div>
                             <div id="formularioAgente" style="display: none;">
-                                <p>Formulario del agente</p>
+                                <form class="form-group" method="post" action="{% url 'crear_ticket_soporte_agente' %}" enctype="multipart/form-data">
+                                    <!-- Resto del formulario aquí -->
+                                    <div class="row g-1">
+                                        <div class="col-md-12">
+                                            <div class="mb-3">
+                                                <label for="textAreaProblemaAgent" class="form-label">Detalle el problema del Cliente</label>
+                                                <textarea class="form-control" name="textAreaProblemaAgent" id="textAreaProblemaAgent" rows="3"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-1">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Imagen del problema</label>
+                                            <div class="input-group mb-3">
+                                                <div class="custom-file">
+                                                  <input type="file" class="custom-file-input" id="inputFileAgent" aria-describedby="inputGroupFileAddon03" name="inputFileAgent" onchange="mostrarNombreArchivo(0,1)">
+                                                  <label class="custom-file-label" for="inputFileAgent">Sube una imagen del problema que presentas</label>
+                                                </div>
+                                              </div>                                       
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-group">
+                                                <label for="solicitanteAgent">Solicitante:</label>
+                                                <select class="select2" id="solicitanteAgent" style="width: 100%;" name="solicitanteAgent">
+                                                    <option value="">Seleccione Solicitante</option>
+                                                    {% for solicitante in all_solicitantes %}
+                                                    <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
+                                                        {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Prioridad del requerimiento</label>
+                                            <select class="custom-select" id="prioridadSelectAgent" name="prioridadSelectAgent">
+                                                <option selected>Seleccionar la prioridad</option>
+                                                <option value="Alta">Alta</option>
+                                                <option value="Media">Media</option>
+                                                <option value="Baja">Baja</option>
+                                              </select>
+                                        </div>
+                                    </div>
+                                    <div class="row g-1">
+                                        <div class="col-md-12">
+                                            <button type="submit" id="btnCreateTicketAgent" class="btn btn-success btn-block"
+                                                disabled>Crear Ticket de Soporte
+                                        </button>
+                                        </div>
+                                    </div>
+                                </form>                                
                             </div>
                     </div>
                 </div>

@@ -57,6 +57,7 @@ urlpatterns = [
 
     path('ticketDesarrolloCreados/', views.ticketDesarrolloCreados, name='ticketDesarrolloCreados'),
     path('crear_ticket_desarrollo/', views.crear_ticket_desarrollo, name='crear_ticket_desarrollo'),
+    path('crear_ticket_soporte_agente/', views.crear_ticket_soporte_agente, name='crear_ticket_soporte_agente'),
     path('detalleTicketDesarrollo/<int:ticket_id>/', views.detalleTicketDesarrollo, name='detalleTicketDesarrollo'),
     path('detalleTicketActualizacion/<int:ticket_id>/', views.detalleTicketActualizacion, name='detalleTicketActualizacion'),
     path('getInfoReport/<int:id_ticket>/', views.getInfoReport, name='getInfoReport'),

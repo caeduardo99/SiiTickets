@@ -459,7 +459,7 @@ def allSolicitnates(request):
         cursor.execute(consulta_sql)
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-    print(resultados)
+        
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
@@ -1605,6 +1605,56 @@ def crear_ticket_soporte(request):
         return JsonResponse({'status': 'success', 'message': 'Ticket creado exitosamente'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al crear el Usuario: {str(e)}'}, status=400)
+
+@require_POST
+def crear_ticket_soporte_agente(request):
+    if request.method == 'POST':
+        detalle_problema = request.POST.get('textAreaProblemaAgent')
+        solicitante = request.POST.get('solicitanteAgent')
+        prioridad = request.POST.get('prioridadSelectAgent')
+        files = request.FILES.get('file')
+        fecha_creacion = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+        fecha_inicio = None
+        fecha_finalizacion = None
+        fecha_finalizacion_real = None
+        causa_error = ' '
+        factura = None
+        chat = None
+        trabajo_realizado = None
+        idAgente = 2
+        idEstado = 1
+
+        # Guardar la imagen en el directorio /media/ticket_images/
+        if files:
+            image_name = str(files)
+            path = os.path.join(settings.MEDIA_ROOT, 'ticket_images', image_name)
+            with open(path, 'wb') as f:
+                f.write(files.read())
+            url_imagen = 'ticket_images/' + image_name
+
+        
+        nuevo_ticket = TicketSoporte(
+            idAgente = User.objects.get(id=idAgente),
+            idSolicitante = Solicitante.objects.get(id=solicitante),
+            fechaCreacion = fecha_creacion,
+            fechaInicio = fecha_inicio,
+            fechaFinalizacion = fecha_finalizacion,
+            fechaFinalizacionReal = fecha_finalizacion_real,
+            comentario = detalle_problema,
+            prioridad = prioridad,
+            causaerror = causa_error,
+            idestado = EstadosTicket.objects.get(id=idEstado),
+            facturar = factura,
+            chat = chat,
+            trabajoRealizado = trabajo_realizado,
+            imagenes = url_imagen
+        )
+
+        nuevo_ticket.save()
+
+        return JsonResponse({'status': 'success', 'message': 'Datos recibidos correctamente'})
+    else:
+        return JsonResponse({'status': 'error', 'message': 'No se pudo crear el ticket, revise los datos'})
 
 
 def asign_admin_ticket_support(request,id_agente,id_ticket):
