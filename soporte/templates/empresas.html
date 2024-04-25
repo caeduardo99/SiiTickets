@@ -1,69 +1,69 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    <!-- Contenido específico de la página de dashboard -->
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h3>Empresas</h3>
+<!-- Contenido específico de la página de dashboard -->
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h3>Empresas</h3>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+<!-- Sección de crear empresas -->
+<div class="content">
+    <ul class="nav nav-tabs" id="myTabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="nuevoticket-tab" data-toggle="tab" href="#nuevoticket">Nueva Empresa</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Empresas</a>
+        </li>
+    </ul>
+    <div class="tab-content mt-2">
+        <!-- Contenido de la pestaña Nuevo Ticket -->
+        <div class="tab-pane fade show active" id="nuevoticket">
+            <div class="card mb-3">
+                <div class="card-header bg-danger text-white">Detalles de la Nueva Empresa</div>
+                <div class="card-body">
+                    <form class="form-row" method="post" action="{% url 'crear_empresa' %}">
+                        {% csrf_token %}
+                        <div class="form-group col-md-6">
+                            <label for="nombreEmpresa">Nombre Empresa:</label>
+                            <input class="form-control" id="nombreEmpresa" name="nombreEmpresa"
+                                placeholder="Ingrese la Empresa"></input>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="direccion">Dirección Empresa:</label>
+                            <input class="form-control" id="direccion" name="direccion"
+                                placeholder="Ingrese la Dirección de la Empresa"></input>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="telefono">Teléfono Empresa:</label>
+                            <input class="form-control" id="telefono" name="telefono"
+                                placeholder="Ingrese el Teléfono de la Empresa"></input>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="email">Correo Empresa:</label>
+                            <input class="form-control" id="email" name="email"
+                                placeholder="Ingrese el Correo de la Empresa"></input>
+                        </div>
+                        <div class="form-group col-12">
+                            <button type="submit" class="btn btn-dark">Crear Empresa</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </div><!-- /.container-fluid -->
-    </section>
-    <!-- Sección de crear empresas -->
-    <div class="content">
-        <ul class="nav nav-tabs" id="myTabs">
-            <li class="nav-item">
-                <a class="nav-link active" id="nuevoticket-tab" data-toggle="tab" href="#nuevoticket">Nueva Empresa</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Empresas</a>
-            </li>
-        </ul>
-        <div class="tab-content mt-2">
-            <!-- Contenido de la pestaña Nuevo Ticket -->
-            <div class="tab-pane fade show active" id="nuevoticket">
-                <div class="card mb-3">
-                    <div class="card-header bg-danger text-white">Detalles de la Nueva Empresa</div>
-                    <div class="card-body">
-                        <form class="form-row" method="post" action="{% url 'crear_empresa' %}">
-                            {% csrf_token %}
-                            <div class="form-group col-md-6">
-                                <label for="nombreEmpresa">Nombre Empresa:</label>
-                                <input class="form-control" id="nombreEmpresa" name="nombreEmpresa"
-                                       placeholder="Ingrese la Empresa"></input>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="direccion">Dirección Empresa:</label>
-                                <input class="form-control" id="direccion" name="direccion"
-                                       placeholder="Ingrese la Dirección de la Empresa"></input>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="telefono">Teléfono Empresa:</label>
-                                <input class="form-control" id="telefono" name="telefono"
-                                       placeholder="Ingrese el Teléfono de la Empresa"></input>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="email">Correo Empresa:</label>
-                                <input class="form-control" id="email" name="email"
-                                       placeholder="Ingrese el Correo de la Empresa"></input>
-                            </div>
-                            <div class="form-group col-12">
-                                <button type="submit" class="btn btn-dark">Crear Empresa</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <!-- Sección de listado de empresas -->
-            <div class="tab-pane fade" id="vertickets">
-                <div class="card mb-3">
-                    <div class="card-header bg-danger text-white">Detalles de la Empresa</div>
-                    <div class="card-body">
-                        <div class="table-responsive" style="overflow-y: auto; max-height: 400px;">
-                            <table class="table" id="tickets-table">
-                                <thead>
+        </div>
+        <!-- Sección de listado de empresas -->
+        <div class="tab-pane fade" id="vertickets">
+            <div class="card mb-3">
+                <div class="card-header bg-danger text-white">Detalles de la Empresa</div>
+                <div class="card-body">
+                    <div class="table-responsive" style="overflow-y: auto; max-height: 400px;">
+                        <table class="table table-hover table-sm" id="tickets-table">
+                            <thead>
                                 <tr>
                                     <th>NumEmpresa</th>
                                     <th>Empresa</th>
@@ -73,211 +73,304 @@
                                     <th>Acciones</th>
                                     <!-- Otros encabezados según tus campos -->
                                 </tr>
-                                </thead>
-                                <tbody>
+                            </thead>
+                            <tbody>
                                 <!-- Aquí se llenarán las filas de la tabla -->
-                                </tbody>
-                            </table>
-                        </div>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Modal para Detalles de la Empresa -->
-    <div class="modal fade" id="detalleEmpresaModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Detalles de la Empresa</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="editarEmpresaForm">
-                        <div class="form-group">
-                            <label for="modalNumEmpresa">Número de Empresa:</label>
-                            <input type="number" class="form-control" id="modalNumEmpresa" readonly></input>
+</div>
+<!-- Modal para Detalles de la Empresa -->
+<div class="modal fade" id="detalleEmpresaModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Detalles de la Empresa</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editarEmpresaForm">
+                    <div class="form-group">
+                        <label for="modalNumEmpresa">Número de Empresa:</label>
+                        <input type="number" class="form-control" id="modalNumEmpresa" readonly></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombreEmpresa">Nombre Empresa:</label>
+                        <input type="text" class="form-control" id="editNombreEmpresa" name="editNombreEmpresa">
+                    </div>
+                    <div class="form-group">
+                        <label for="direccion">Dirección Empresa:</label>
+                        <input type="text" class="form-control" id="editDireccion" name="editDireccion">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono Empresa:</label>
+                        <input type="text" class="form-control" id="editTelefono" name="editTelefono">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Correo Empresa:</label>
+                        <input type="text" class="form-control" id="editEmail" name="editEmail">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4" style="margin-top: 5px;">
+                            <button type="button" class="btn btn-dark btn-sm btn-block" onclick="guardarCambiosEmpresa()">Guardar
+                                Cambios
+                            </button>
                         </div>
-                        <div class="form-group">
-                            <label for="nombreEmpresa">Nombre Empresa:</label>
-                            <input type="text" class="form-control" id="editNombreEmpresa" name="editNombreEmpresa">
+                        <div class="col-md-4" style="margin-top: 5px;">
+                            <button type="button" id="btnSendAccess" class="btn btn-dark btn-sm btn-block">Enviar
+                                credenciales</button>
                         </div>
-                        <div class="form-group">
-                            <label for="direccion">Dirección Empresa:</label>
-                            <input type="text" class="form-control" id="editDireccion" name="editDireccion">
+                        <div class="col-md-4" style="margin-top: 5px;">
+                            <button class="btn btn-sm btn-dark btn-block" id="btnEnviarManual" type="button">Enviar
+                                Manual</button>
                         </div>
-                        <div class="form-group">
-                            <label for="telefono">Teléfono Empresa:</label>
-                            <input type="text" class="form-control" id="editTelefono" name="editTelefono">
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Correo Empresa:</label>
-                            <input type="text" class="form-control" id="editEmail" name="editEmail">
-                        </div>
-                        <button type="button" class="btn btn-primary" onclick="guardarCambiosEmpresa()">Guardar
-                            Cambios
-                        </button>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
-    <script src="../static/dist/utils/soporte.js"></script>
-    <script>
-        function cargarTablaTickets() {
-            $.ajax({
-                url: '{% url "empresascreados" %}',
-                method: 'GET',
-                dataType: 'json',
-                success: function (data) {
-                    // Limpiar el cuerpo de la tabla
-                    $('#tickets-table tbody').empty();
-                    // Iterar sobre los datos y agregar filas a la tabla
-                    $.each(data, function (index, empresa) {
-                        var newRow = '<tr>' +
-                            '<td>' + empresa.NumEmpresa + '</td>' +
-                            '<td>' + empresa.nombreEmpresa + '</td>' +
-                            '<td>' + empresa.direccion + '</td>' +
-                            '<td>' + empresa.telefono + '</td>' +
-                            '<td>' + empresa.email + '</td>' +
-                            '<td>' +
-                            '<button class="btn btn-info btn-sm" onclick="verEmpresa(' + empresa.NumEmpresa + ')">Ver</button>' +
-                            '</td>' +
-                            '</tr>';
-                        $('#tickets-table tbody').append(newRow);
-                    });
-                },
-                error: function (error) {
-                    console.log('Error en la solicitud AJAX:', error);
-                }
-            });
-        }
+</div>
+<script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
+<script src="../static/dist/utils/soporte.js"></script>
+<script>
+    let btnSendAccess = document.getElementById('btnSendAccess');
+    let emailEmpresa = document.getElementById('editEmail');
+    let phoneEmpresa = document.getElementById('editTelefono');
+    let editNombreEmpresa = document.getElementById('editNombreEmpresa');
+    let editarEmpresaForm = document.getElementById('editarEmpresaForm');
+    let btnEnviarManual = document.getElementById('btnEnviarManual');
 
-        function verEmpresa(numEmpresa) {
-            // Realizar la solicitud AJAX para obtener los detalles de la empresa
-            $.ajax({
-                url: '{% url "detalles_empresa" %}',
-                method: 'GET',
-                data: {numEmpresa: numEmpresa},
-                dataType: 'json',
-                success: function (empresa) {
-                    // Llenar los campos del modal con los detalles de la empresa
-                    $('#modalNumEmpresa').val(empresa[0].NumEmpresa);
-                    $('#editNombreEmpresa').val(empresa[0].nombreEmpresa);
-                    $('#editDireccion').val(empresa[0].direccion);
-                    $('#editTelefono').val(empresa[0].telefono);
-                    $('#editEmail').val(empresa[0].email);
-                    // Mostrar el modal
-                    $('#detalleEmpresaModal').modal('show');
-                },
-                error: function (error) {
-                    console.log('Error al obtener detalles de la empresa:', error);
-                }
-            });
-        }
-
-        function guardarCambiosEmpresa() {
-            var numEmpresa = $('#modalNumEmpresa').val();
-            var nombreEmpresa = $('#editNombreEmpresa').val();
-            var direccion = $('#editDireccion').val();
-            var telefono = $('#editTelefono').val();
-            var email = $('#editEmail').val();
-
-            $.ajax({
-                url: '{% url "actualizar_empresa" %}',
-                method: 'POST',
-                data: {
-                    numEmpresa: numEmpresa,
-                    nombreEmpresa: nombreEmpresa,
-                    direccion: direccion,
-                    telefono: telefono,
-                    email: email,
-                    csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
-                },
-                success: function (response) {
-                    if (response.success) {
-                        mostrarMensaje('success', 'Empresa actualizada con éxito');
-                        $('#detalleEmpresaModal').modal('hide');
-                        cargarTablaTickets();
-                    } else {
-                        mostrarMensaje('error', 'Error al actualizar la empresa: ' + response.error);
-                    }
-                },
-                error: function (error) {
-                    mostrarMensaje('error', 'Error al actualizar la empresa: ' + error.statusText);
-                }
-            });
-        }
-
-        function mostrarMensaje(tipo, mensaje) {
-            var alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
-            $('#mensajeAlerta').removeClass('alert-success alert-danger').addClass(alertClass);
-            $('#mensajeAlerta').text(mensaje);
-            $('#mensajeAlerta').show();
-
-            // Ocultar el mensaje después de unos segundos (opcional)
-            setTimeout(function () {
-                $('#mensajeAlerta').hide();
-            }, 5000);  // Ocultar después de 5 segundos (puedes ajustar esto según tus necesidades)
-        }
-
-        $(document).ready(function () {
-            $('form').submit(function (event) {
-                event.preventDefault(); 
-
-                var form = $(this);
-                var formData = new FormData(form[0]);  // Crear un objeto FormData para manejar archivos
-
-                $.ajax({
-                    url: form.attr('action'),
-                    type: 'POST',
-                    data: formData,
-                    contentType: false,  // No establecer el tipo de contenido, permitir que jQuery lo configure automáticamente
-                    processData: false,  // No procesar los datos, permitir que jQuery lo configure automáticamente
-                    success: function (data) {
-                        // Verificar si la respuesta es exitosa
-                        if (data.status === 'success') {
-                            // Mostrar un toast o alerta con el mensaje
-                            toastr.success(data.message, 'Éxito');
-
-                            //Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
-                            setTimeout(function () {
-                                window.location.reload();
-                            }, 1000);
-                        } else {
-                            // Manejar otros casos o mostrar mensajes de error
-                            toastr.error('Error al crear el ticket: ' + data.message, 'Error');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        // Manejar errores de la solicitud AJAX
-                        toastr.error('Error en la solicitud AJAX: ' + error, 'Error');
-                    }
+    function cargarTablaTickets() {
+        $.ajax({
+            url: '{% url "empresascreados" %}',
+            method: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                // Limpiar el cuerpo de la tabla
+                $('#tickets-table tbody').empty();
+                // Iterar sobre los datos y agregar filas a la tabla
+                $.each(data, function (index, empresa) {
+                    var newRow = '<tr>' +
+                        '<td>' + empresa.NumEmpresa + '</td>' +
+                        '<td>' + empresa.nombreEmpresa + '</td>' +
+                        '<td>' + empresa.direccion + '</td>' +
+                        '<td>' + empresa.telefono + '</td>' +
+                        '<td>' + empresa.email + '</td>' +
+                        '<td>' +
+                        '<button class="btn btn-info btn-sm" onclick="verEmpresa(' + empresa.NumEmpresa + ')">Ver</button>' +
+                        '</td>' +
+                        '</tr>';
+                    $('#tickets-table tbody').append(newRow);
                 });
-            });
-            // Puedes cargar la tabla cuando se carga la página por primera vez si es necesario
-            cargarTablaTickets();
-            // Agregar un evento de clic a la pestaña "vertickets"
-            $('#vertickets-tab').on('click', function () {
-                // Cargar la tabla cuando se hace clic en la pestaña
-                cargarTablaTickets();
+            },
+            error: function (error) {
+                console.log('Error en la solicitud AJAX:', error);
+            }
+        });
+    }
+
+    function verEmpresa(numEmpresa) {
+        // Realizar la solicitud AJAX para obtener los detalles de la empresa
+        $.ajax({
+            url: '{% url "detalles_empresa" %}',
+            method: 'GET',
+            data: { numEmpresa: numEmpresa },
+            dataType: 'json',
+            success: function (empresa) {
+                // Llenar los campos del modal con los detalles de la empresa
+                $('#modalNumEmpresa').val(empresa[0].NumEmpresa);
+                $('#editNombreEmpresa').val(empresa[0].nombreEmpresa);
+                $('#editDireccion').val(empresa[0].direccion);
+                $('#editTelefono').val(empresa[0].telefono);
+                $('#editEmail').val(empresa[0].email);
+                // Mostrar el modal
+                $('#detalleEmpresaModal').modal('show');
+            },
+            error: function (error) {
+                console.log('Error al obtener detalles de la empresa:', error);
+            }
+        });
+    }
+
+    function guardarCambiosEmpresa() {
+        var numEmpresa = $('#modalNumEmpresa').val();
+        var nombreEmpresa = $('#editNombreEmpresa').val();
+        var direccion = $('#editDireccion').val();
+        var telefono = $('#editTelefono').val();
+        var email = $('#editEmail').val();
+
+        $.ajax({
+            url: '{% url "actualizar_empresa" %}',
+            method: 'POST',
+            data: {
+                numEmpresa: numEmpresa,
+                nombreEmpresa: nombreEmpresa,
+                direccion: direccion,
+                telefono: telefono,
+                email: email,
+                csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+            },
+            success: function (response) {
+                if (response.success) {
+                    toastr.success('Los cambios han sido guardados correctamente', 'Cambios guardados');
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    toastr.success('Los cambios han sido guardados correctamente', 'Cambios guardados');
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 3000);
+                }
+            },
+            error: function (error) {
+                mostrarMensaje('error', 'Error al actualizar la empresa: ' + error.statusText);
+            }
+        });
+    }
+
+    function mostrarMensaje(tipo, mensaje) {
+        var alertClass = tipo === 'success' ? 'alert-success' : 'alert-danger';
+        $('#mensajeAlerta').removeClass('alert-success alert-danger').addClass(alertClass);
+        $('#mensajeAlerta').text(mensaje);
+        $('#mensajeAlerta').show();
+
+        // Ocultar el mensaje después de unos segundos (opcional)
+        setTimeout(function () {
+            $('#mensajeAlerta').hide();
+        }, 5000);  // Ocultar después de 5 segundos (puedes ajustar esto según tus necesidades)
+    }
+
+    $(document).ready(function () {
+        $('form').submit(function (event) {
+            event.preventDefault();
+
+            var form = $(this);
+            var formData = new FormData(form[0]);  // Crear un objeto FormData para manejar archivos
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: formData,
+                contentType: false,  // No establecer el tipo de contenido, permitir que jQuery lo configure automáticamente
+                processData: false,  // No procesar los datos, permitir que jQuery lo configure automáticamente
+                success: function (data) {
+                    // Verificar si la respuesta es exitosa
+                    if (data.status === 'success') {
+                        // Mostrar un toast o alerta con el mensaje
+                        toastr.success(data.message, 'Éxito');
+
+                        //Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        // Manejar otros casos o mostrar mensajes de error
+                        toastr.error('Error al crear el ticket: ' + data.message, 'Error');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Manejar errores de la solicitud AJAX
+                    toastr.error('Error en la solicitud AJAX: ' + error, 'Error');
+                }
             });
         });
-    </script>
+        // Puedes cargar la tabla cuando se carga la página por primera vez si es necesario
+        cargarTablaTickets();
+        // Agregar un evento de clic a la pestaña "vertickets"
+        $('#vertickets-tab').on('click', function () {
+            // Cargar la tabla cuando se hace clic en la pestaña
+            cargarTablaTickets();
+        });
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Buscar el token CSRF en las cookies
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Funcionalidad del boton
+    btnSendAccess.addEventListener('click', function () {
+        btnSendAccess.disabled = true;
+        const data = {
+            email: emailEmpresa.value,
+            telefono: phoneEmpresa.value,
+            nombreEmpresa: editNombreEmpresa.value,
+        }
+        toastr.info('Enviando credenciales', "Enviando...");
+        // Enviar los datos a la vista de Django
+        fetch('enviar_credenciales/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al enviar la información de la empresa');
+                }
+                toastr.success(data.message, "Credenciales enviadas exitosamente.");
+                btnSendAccess.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error(data.message, "Error al enviar las credenciales.");
+                btnSendAccess.disabled = false;
+            });
+    })
+
+    // Funcionalidad del envio de Manual de Uso
+    btnEnviarManual.addEventListener('click', function () {
+        btnEnviarManual.disabled = true;
+        var data = {
+            email: emailEmpresa.value
+        }
+        toastr.info('Enviando manual', "Enviando...");
+        fetch('send_manual/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al enviar el archivo');
+                }
+                toastr.success('El manual fue enviado correctamente', "Envio exitoso");
+                btnEnviarManual.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error('El manual no fue enviado correctamente', "Error");
+                btnEnviarManual.disabled = false;
+            });
+    })
+
+</script>
 {% endblock %}
-
-
-
-
-
-
-
-

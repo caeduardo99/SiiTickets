@@ -54,7 +54,8 @@ urlpatterns = [
     path('ticketactualizacioncreadosid/', views.ticketactualizacioncreadosid, name='ticketactualizacioncreadosid'),
     path('generateReport/', views.generateReport, name='generateReport'),
     path('info_panel_contro/', views.info_panel_contro, name='info_panel_contro'),
-
+    path('enviar_credenciales/', views.enviar_credenciales, name='enviar_correo'),
+    path('send_manual/', views.send_manual, name='send_manual'),
     path('ticketDesarrolloCreados/', views.ticketDesarrolloCreados, name='ticketDesarrolloCreados'),
     path('crear_ticket_desarrollo/', views.crear_ticket_desarrollo, name='crear_ticket_desarrollo'),
     path('crear_ticket_soporte_agente/', views.crear_ticket_soporte_agente, name='crear_ticket_soporte_agente'),

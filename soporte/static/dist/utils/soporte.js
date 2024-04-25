@@ -8,14 +8,17 @@ let resultadosProyectos,
   nombreArchivoAgente,
   arrayTasks = [],
   valAgenteAsignadoDefault,
+  facturacionText,
   infoGeneraTicket = [],
   infoTareas = [],
   arrayFinishTasks = [],
+  idEstadoGeneralTicket,
   base64Image;
 var resultadosAgentesData = window.resultados_agentes_data;
 var resultadosSolicitantesData = window.resultados_solicitantes_data;
 var nombreUsuario = document.getElementById("nombreUsuario").value;
 var idUsuario = document.getElementById("idUsuario").value;
+var razonSocial = document.getElementById("razonSocial").value;
 var selectSolicitante = document.getElementById("selectSolicitante");
 var solicitante = document.getElementById("solicitante");
 const solicitanteAgent = document.getElementById("solicitanteAgent");
@@ -162,11 +165,10 @@ fetch("ticketsoportescreados/")
             .then(async (data) => {
               infoGeneraTicket = data.ticket;
               infoTareas = data.actividades;
-
               textAreaComentarioEdit.innerHTML = "";
               textAreaComentarioEdit.textContent =
                 infoGeneraTicket[0].comentario;
-
+              idEstadoGeneralTicket = infoGeneraTicket[0].idestado_id;
               // Si el estado del ticket es 4 se debe aparecer el boton
               if (infoGeneraTicket[0].idestado_id == 4 && idUsuario == 2) {
                 btnFinishTicket.style.display = "";
@@ -199,6 +201,7 @@ fetch("ticketsoportescreados/")
               fechaCreacionEdit.value = infoGeneraTicket[0].fechaCreacion;
 
               var facturar = infoGeneraTicket[0].facturar;
+              facturacionText = infoGeneraTicket[0].facturar
               $("#selectFacturacion").val(String(facturar)).trigger("change");
 
               fechaFinalizacionEdit.innerHTML = "";
@@ -252,11 +255,9 @@ fetch("ticketsoportescreados/")
                   selectFacturacion.disabled = true;
                 }
               }
-
               // Iteracion para la tabulacion de las tareas en  caso de que hayan tareas en los tickets
               if (infoTareas.length != 0) {
                 rowTableTaskEdit.style.display = "";
-
                 infoTareas.forEach((tarea) => {
                   const rowTask = document.createElement("tr");
 
@@ -332,7 +333,6 @@ fetch("ticketsoportescreados/")
                             fechaFinalizacion: inputFecha.value,
                             imagen: base64Image,
                           });
-                          console.log(arrayTasks);
                           if (arrayTasks.length != 0) {
                             btnTerminarTareas.style.display = "";
                           } else {
@@ -402,7 +402,6 @@ fetch("ticketsoportescreados/")
                       cellImage.textContent = "No hay imagen de la solución";
                     }
                   }
-
                   // En caso de que el que abra este ticket sea administrador del mismo
                   if (idUsuario == infoGeneraTicket[0].idAgente_id) {
                     btnNewTask.style.display = "";
@@ -938,7 +937,7 @@ function makePdf(
         margin: [0, 15, 0, 0],
       },
       {
-        text: "Error notificado",
+        text: "Requerimiento solicitado ",
         fontSize: 15,
         bold: true,
         margin: [0, 15, 0, 0],
@@ -963,6 +962,7 @@ function makePdf(
           `Fecha de solicitud: ${fechaCreacion}`,
           `Fecha estimada de finalización: ${fechaEstimada}`,
           `Fecha de finalización del ticket: ${fechaFinalizacion}`,
+          `Este requerimiento necesita facturación: ${facturacionText == true ? 'Si' : 'No'}`
         ],
         margin: [0, 5, 0, 0], // Ajusta el margen superior según tus necesidades,
         fontSize: 11,
@@ -1001,7 +1001,7 @@ function makePdf(
     footer: function (currentPage, pageCount) {
       return [
         {
-          text: `Reporte generado por el usuario ${nombreUsuario} el día ${fechaFormateadaActualReport}`,
+          text: `Reporte generado por ${razonSocial} el día ${fechaFormateadaActualReport}`,
           fontSize: 9,
           italics: true,
           margin: [35, 5, 0, 0],
@@ -1094,6 +1094,7 @@ btnCreateTicketAgent.addEventListener("click", function () {
         }, 1000);
       } else {
         console.error("Error al crear el Ticket:", data.message);
+        toastr.error(data.message, "Error en el ticket");
       }
     })
     .catch((error) => {

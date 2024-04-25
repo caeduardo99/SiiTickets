@@ -9,6 +9,7 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from dateutil import parser
+from django.core.mail import send_mail
 import os
 from .models import (
     TicketSoporte,
@@ -1657,6 +1658,80 @@ def crear_ticket_soporte_agente(request):
         return JsonResponse({'status': 'error', 'message': 'No se pudo crear el ticket, revise los datos'})
 
 
+def enviar_credenciales(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email_destino = data.get('email')
+        telefono = data.get('telefono')
+        nombre_empresa = data.get('nombreEmpresa')
+        
+        # Dividir el nombre de la empresa en palabras
+        palabras = nombre_empresa.split()
+
+        # Verificar si el nombre de la empresa tiene más de una palabra
+        if len(palabras) > 1:
+            # Formatear la primera palabra completa y las tres primeras sílabas de las otras palabras
+            primera_palabra = palabras[0].upper()
+            siguientes_palabras = [palabra[:2].upper() for palabra in palabras[1:]]
+            nombre_formateado = ''.join([primera_palabra] + siguientes_palabras)
+        else:
+            # Si solo tiene una palabra, usarla directamente en mayúsculas
+            nombre_formateado = nombre_empresa.upper()
+
+        asunto = 'Credenciales para el ingreso a al sistema de Tickets de Ishida'
+        mensaje = f"""
+<html>
+<body>
+<p>Reciba un coordial saludo desde el departamente de Desarrollo de Ishida Software, el presente correo es para indicarle las credenciales que han sido enviadas para su acceso como empresa <b>{nombre_empresa}</b>, a nuestro nuevo portal de soporte "SiiTickets" en (http://186.3.160.137:120/), que tiene como finalidad principal optimizar y obtener una atencion mas personalizada.
+</p>
+<p>El nombre de usuario es: <b>{nombre_formateado}</b></p>
+<p>La contraseña es: <b>8soptativa</b></p>
+<p><i>En caso de no acceder o tener algun requerimiento adicional sobre estas credenciales, por favor contactarse con cualquiera de nuestros canales oficiales de Ishida Software</i></p>
+</body>
+</html>
+"""
+        try:
+            send_mail(
+                asunto,
+                '',
+                settings.EMAIL_HOST_USER,
+                [email_destino],
+                html_message=mensaje
+            )
+            return JsonResponse({'mensaje': 'Correo enviado correctamente'})
+        except Exception as e:
+            return JsonResponse({'mensaje': f'Error al enviar el correo: {e}'}, status=500)
+    else:
+        return JsonResponse({'mensaje': 'Método no permitido'}, status=405)
+
+def send_manual(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email_destino = data.get('email')
+        ruta_archivo = os.path.join(settings.BASE_DIR, 'soporte\static\documents', 'MANUAL DE USUARIO PARA EMPRESAS.pdf')
+        print(ruta_archivo)
+        # Verificar si el archivo existe
+        if os.path.exists(ruta_archivo):
+            with open(ruta_archivo, 'rb') as archivo:
+                contenido = archivo.read()
+                nombre_archivo = os.path.basename(ruta_archivo)
+
+                email = EmailMessage(
+                    'Manual de uso para Clientes',
+                    'Reciba un cordial saludo desde el departamento de desarrollo de Ishida Software, el objetivo de este correo es adjuntar el manual de uso del sistema de gestión de tickets (SiiTickets).',
+                    settings.EMAIL_HOST_USER,
+                    [email_destino]
+                )
+                email.attach(nombre_archivo, contenido, 'application/pdf')
+                email.send()
+
+                return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'message': 'El archivo no existe'}, status=404)
+    else:
+        return JsonResponse({'status': 'error'}, status=405)
+
+
 def asign_admin_ticket_support(request,id_agente,id_ticket):
     try:
         fecha_actual = datetime.now()
@@ -2351,7 +2426,7 @@ def actualizar_empresa(request):
             user = User.objects.create_user(username=nombre_empresa, password='8soptativa', email=email)
             user.save()
 
-            return JsonResponse({'success': True})
+            return JsonResponse({'status': 'success','success': True})
         except Exception as e:
             return JsonResponse({'error': 'Error al actualizar la empresa'})
     else:
