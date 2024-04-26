@@ -74,6 +74,7 @@ urlpatterns = [
     path('editar_tareas_soporte/', views.editar_tareas_soporte, name='editar_tareas_soporte'),
     path('finalizar_tareas_soporte/', views.finalizar_tareas_soporte, name='finalizar_tareas_soporte'),
     path('cerrar_ticket/<int:id_ticket>',views.cerrar_ticket, name='cerrar_ticket'),
+    path('regresar_estado_proceso/<int:id_ticket>',views.regresar_estado_proceso, name='regresar_estado_proceso'),
 
     path('empresascreados/', views.empresascreados, name='empresascreados'),
     path('moduloscreados/', views.moduloscreados, name='moduloscreados'),

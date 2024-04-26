@@ -1058,7 +1058,8 @@ def ticketsoportescreadosid(request, ticket_id):
         ss.telefonoSolicitante,
         st.imagenes,
         st.trabajoRealizado,
-        se.nombreEmpresa
+        se.nombreEmpresa,
+        se2.descripcion as estadoTicket
     FROM 
         soporte_ticketsoporte st
     LEFT JOIN 
@@ -1067,6 +1068,8 @@ def ticketsoportescreadosid(request, ticket_id):
         soporte_solicitante ss ON ss.id = st.idSolicitante_id
     LEFT JOIN 
         soporte_empresa se ON se.id = ss.idEmpresa_id 
+    LEFT JOIN 
+    	soporte_estadosticket se2 ON se2.id = st.idestado_id 
     """
 
     # Agregar un filtro por ID si se proporciona el parámetro "id"
@@ -1991,6 +1994,17 @@ def cerrar_ticket(request, id_ticket):
         return JsonResponse({'status': 'success', 'message': 'El ticket ha sido cerrado'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': f'Error al cerrar el ticket: {str(e)}'}, status=400)
+
+@csrf_exempt
+def regresar_estado_proceso(request, id_ticket):
+    try:
+        ticket = TicketSoporte.objects.get(id=id_ticket)
+        ticket.idestado_id = 2
+        ticket.save()
+        
+        return JsonResponse({'status': 'success', 'message': 'El ticket ha sido modificado'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': f'Error al modificar el ticket: {str(e)}'}, status=400)
 
 @require_POST
 def crear_solicitante(request):
