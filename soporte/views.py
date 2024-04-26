@@ -851,6 +851,68 @@ def getInfoReport(request, id_ticket):
 
     return JsonResponse(context, safe=False)
 
+def getInfoReportSoport(request, id_ticket):
+    consulta_general = """
+    SELECT st.id as idTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.comentario as comentarioTicket,
+	st.prioridad, st.facturar, st.causaerror, st.imagenes as imagenProblema, st.fechaFinalizacion as fechaFinalizacionTicket,
+	st.fechaFinalizacionReal as fechaFinalizacionRealTicket, 
+	au.id as idAgenteAdministrador, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
+	ss.id as idSolicitante, ss.ruc as Ruc, ss.nombreApellido as NombreCompletoSolicitante, ss.correo as mailSolicitante,
+	se.id as idEmpresaSolicitante, se.nombreEmpresa as NombreEmpresaSolicitante,
+	se2.id as estadoTicket, se2.descripcion as estadoTicket
+	FROM soporte_ticketsoporte st
+	INNER JOIN auth_user au ON au.id = st.idAgente_id 
+	INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+	INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+	INNER JOIN soporte_estadosticket se2 ON se2.id = st.idestado_id
+	WHERE st.id = %s
+    """
+    consulta_actividades = """
+    SELECT st.id as idTicket, sa.id as idActividad, sa.descripcion as descripcionActividad, sa.imagen_actividades, sa.fechainicio,
+	sa.fechafinal, 
+	sa.idAgente_id as idAgenteActividad, au.first_name as NombreAgenteActividad, au.last_name as ApellidoAgenteActividad,
+	se.id as idEstadoActividad, se.descripcion as estadoActividad
+	FROM soporte_ticketsoporte st 
+	INNER JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
+	INNER JOIN auth_user au ON au.id = sa.idAgente_id
+	INNER JOIN soporte_estadosticket se ON se.id = sa.idestado_id 
+    WHERE st.id = %s
+    """
+    connection = connections["default"]
+    # Ejecutar la consulta SQL y obtener los resultados
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_general, [id_ticket])
+        columns = [col[0] for col in cursor.description]
+        resultados_info_general = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_actividades, [id_ticket])
+        columns = [col[0] for col in cursor.description]
+        resultados_info_actividades = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    # Extraer las propiedades del objeto y adjuntar las horas para determinar el trabajo realizado por AGENTE
+    agrupado_por_agente = defaultdict(
+        lambda: {"idAgenteActividad": None, "idEstadoActividad": None, "NombreAgenteActividad": None,
+                 "estadoActividad": None})
+
+    for obj in resultados_info_actividades:
+        if obj["idEstadoActividad"] == 5:
+            id_agente = obj["idAgenteActividad"]
+            agrupado_por_agente[id_agente]["idAgenteActividad"] = id_agente
+            agrupado_por_agente[id_agente]["idEstadoActividad"] = obj["idEstadoActividad"]
+            agrupado_por_agente[id_agente]["NombreAgenteActividad"] = obj["NombreAgenteActividad"]
+            agrupado_por_agente[id_agente]["ApellidoAgenteActividad"] = obj["ApellidoAgenteActividad"]
+            agrupado_por_agente[id_agente]["estadoActividad"] = obj["estadoActividad"]
+
+    horas_agente = list(agrupado_por_agente.values())
+
+    context = {
+        'infoGeneralProject': resultados_info_general[0],
+        'tasksMain': resultados_info_actividades[0],
+        'hourWorkAgent': horas_agente,
+    }
+    return JsonResponse(context, safe=False)
+
 
 def getInfoActualizacionReport(request, id_ticket):
     consulta_general = """
@@ -995,6 +1057,7 @@ def ticketsoportescreadosid(request, ticket_id):
         st.chat,
         st.prioridad,
         ss.nombreApellido,
+        ss.telefonoSolicitante,
         st.imagenes,
         st.trabajoRealizado,
         se.nombreEmpresa

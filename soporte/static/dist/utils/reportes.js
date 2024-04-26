@@ -21,7 +21,6 @@ $(document).ready(function () {
     const inputDateEnd = document.getElementById("inputDateEnd");
     const inputDateStar = document.getElementById("inputDateStar");
     const colFechaInicio = document.getElementById("colFechaInicio");
-    const colFechaFinal = document.getElementById("colFechaFinal");
     const tableBodyFilterProjects = document.getElementById(
         "tableBodyFilterProjects"
     );
@@ -518,13 +517,11 @@ $(document).ready(function () {
     }
 
     function generateTablaReport(arrayDb, table) {
-        console.log(arrayDb)
         table.innerHTML = '';
         arrayDb.forEach(function (item) {
             var row = table.insertRow();
             var cellId = row.insertCell(0);
             cellId.innerHTML = `000-0${item.id}`;
-
             var cellNombreProyecto = row.insertCell(1);
 
             // Condicion para ver la informacion de la primera columna
@@ -657,6 +654,7 @@ $(document).ready(function () {
         rowTableTicketsActualizacion.style.display = "none";
 
         // FUNCIONAMIENTO DE LA CONSULTA DE LOS RESPORTES
+        console.log(`generateReport/?tipo_ticket=${selectTypeTicket.value}&estado_ticket=${selectStateTicket.value}&recientes=${masNuevos}&antiguos=${masAntiguos}&agente=${agentesolicitado.value}&fechaInicio=${inputDateStar.value}&fechaFin=${inputDateEnd.value}`)
         $.ajax({
             type: "GET",
             url: `generateReport/?tipo_ticket=${selectTypeTicket.value}&estado_ticket=${selectStateTicket.value}&recientes=${masNuevos}&antiguos=${masAntiguos}&agente=${agentesolicitado.value}&fechaInicio=${inputDateStar.value}&fechaFin=${inputDateEnd.value}`,

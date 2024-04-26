@@ -12,7 +12,11 @@ let resultadosProyectos,
   infoGeneraTicket = [],
   infoTareas = [],
   arrayFinishTasks = [],
+  numeroSolicitante,
+  nombreCompletoSolicitante,
+  nombreEmpresaSolicitante,
   idEstadoGeneralTicket,
+  auntoTicket,
   base64Image;
 var resultadosAgentesData = window.resultados_agentes_data;
 var resultadosSolicitantesData = window.resultados_solicitantes_data;
@@ -23,7 +27,9 @@ var selectSolicitante = document.getElementById("selectSolicitante");
 var solicitante = document.getElementById("solicitante");
 const solicitanteAgent = document.getElementById("solicitanteAgent");
 const textAreaCausaError = document.getElementById("textAreaCausaError");
-
+const btnNotificarSolicitante = document.getElementById(
+  "btnNotificarSolicitante"
+);
 const tBodyTicketSoporte = document.getElementById("tbodyTicketTable");
 const modalInfoTicketLabel = document.getElementById("modalInfoTicketLabel");
 const inputEditSoporte = document.getElementById("inputEditSoporte");
@@ -169,6 +175,7 @@ fetch("ticketsoportescreados/")
               textAreaComentarioEdit.textContent =
                 infoGeneraTicket[0].comentario;
               idEstadoGeneralTicket = infoGeneraTicket[0].idestado_id;
+
               // Si el estado del ticket es 4 se debe aparecer el boton
               if (infoGeneraTicket[0].idestado_id == 4 && idUsuario == 2) {
                 btnFinishTicket.style.display = "";
@@ -185,11 +192,18 @@ fetch("ticketsoportescreados/")
               textAreaCausaError.value = infoGeneraTicket[0].causaerror;
 
               // Llenar el select con los datos de resultados_agentes_data
+
               const idAgenteSeleccionado = infoGeneraTicket[0].idAgente_id;
               $("#selectEditAgenteSolicitado")
                 .val(idAgenteSeleccionado)
                 .trigger("change");
               valAgenteAsignadoDefault = $("#selectEditAgenteSolicitado").val();
+
+              // Datos para el envio  de Whatsapp
+              numeroSolicitante = infoGeneraTicket[0].telefonoSolicitante;
+              nombreCompletoSolicitante = infoGeneraTicket[0].nombreApellido;
+              nombreEmpresaSolicitante = infoGeneraTicket[0].nombreEmpresa;
+              auntoTicket = infoGeneraTicket[0].comentario;
 
               const idSolicitanteSeleccionado =
                 infoGeneraTicket[0].idSolicitante_id;
@@ -201,7 +215,7 @@ fetch("ticketsoportescreados/")
               fechaCreacionEdit.value = infoGeneraTicket[0].fechaCreacion;
 
               var facturar = infoGeneraTicket[0].facturar;
-              facturacionText = infoGeneraTicket[0].facturar
+              facturacionText = infoGeneraTicket[0].facturar;
               $("#selectFacturacion").val(String(facturar)).trigger("change");
 
               fechaFinalizacionEdit.innerHTML = "";
@@ -236,6 +250,17 @@ fetch("ticketsoportescreados/")
                 btnAsignarAgente.style.display = "";
               }
 
+              // Condicion en caso de que sea mafer  y su estado sea 5 para el boton de notificacion del agente para el cliente
+              if (
+                (nombreUsuario == "mafer" &&
+                  infoGeneraTicket[0].idestado_id == 5) ||
+                infoGeneraTicket[0].idAgente_id == idUsuario
+              ) {
+                // Enviar el mensaje al solicitante
+                btnNotificarSolicitante.style.display = "";
+              } else {
+                btnNotificarSolicitante.style.display = "none";
+              }
               // Si el usuario ingresado es admin
               if (
                 infoGeneraTicket[0].idAgente_id == idUsuario &&
@@ -539,7 +564,7 @@ function mostrarNombreArchivo(client, agent) {
 
     if (input.files && input.files.length > 0) {
       const nombreArchivo = input.files[0].name;
-      nombreArchivoAgente = nombreArchivo
+      nombreArchivoAgente = nombreArchivo;
       label.innerHTML = nombreArchivo;
       input.setAttribute("value", nombreArchivo);
       btnCreateTicketAgent.disabled = false;
@@ -600,7 +625,6 @@ document
   .querySelector(".form-group")
   .addEventListener("submit", function (event) {
     creacionVer = false;
-    enviarMensajeWhatsApp(creacionVer);
     event.preventDefault();
     var formData = new FormData(this);
     fetch("crear_ticket_soporte/", {
@@ -611,6 +635,7 @@ document
       .then((data) => {
         if (data.status === "success") {
           toastr.success(data.message, "Su ticket a sido enviado");
+          enviarMensajeWhatsApp(creacionVer);
 
           setTimeout(function () {
             window.location.reload();
@@ -624,7 +649,6 @@ document
         console.error("Error al realizar la solicitud:", error);
       });
   });
-
 
 // Funcionamiento del boton para asignar el nuevo agente
 btnAsignarAgente.addEventListener("click", function () {
@@ -962,7 +986,9 @@ function makePdf(
           `Fecha de solicitud: ${fechaCreacion}`,
           `Fecha estimada de finalización: ${fechaEstimada}`,
           `Fecha de finalización del ticket: ${fechaFinalizacion}`,
-          `Este requerimiento necesita facturación: ${facturacionText == true ? 'Si' : 'No'}`
+          `Este requerimiento necesita facturación: ${
+            facturacionText == true ? "Si" : "No"
+          }`,
         ],
         margin: [0, 5, 0, 0], // Ajusta el margen superior según tus necesidades,
         fontSize: 11,
@@ -974,12 +1000,18 @@ function makePdf(
         margin: [0, 15, 0, 0],
       },
       {
+        text: "El valor a facturar será por hora técnica o fracción de hora ",
+        fontSize: 10,
+        bold: true,
+        margin: [0, 2, 0, 0],
+      },
+      {
         ul: arrayActivities.map((activity) => [
-          `- Actividad: ${activity.descripcion}, hecho por: ${activity.agente_actividad_nombre}, inicio el: ${activity.fechainicio}, terminó: ${activity.fechafinal}`,
+          `- Actividad: ${activity.descripcion}, hecho por: ${activity.agente_actividad_nombre}, inicio el: ${activity.fechainicio}`,
           {
             image: activity.imagen_actividades,
             width: 430,
-            fit: [430, 400],
+            fit: [400, 370],
             alignment: "center",
           },
         ]),
@@ -1063,7 +1095,7 @@ btnCreateTicketAgent.addEventListener("click", function () {
   var problema = textAreaProblemaAgent.value;
   var solicitante = solicitanteAgent.value;
   var prioridad = prioridadSelectAgent.value;
-  var file = document.getElementById("inputFileAgent").files[0]; 
+  var file = document.getElementById("inputFileAgent").files[0];
 
   var data = new FormData();
   data.append("textAreaProblemaAgent", problema);
@@ -1119,3 +1151,21 @@ btnCreateTicketAgent.addEventListener("click", function () {
   }
 });
 
+btnNotificarSolicitante.addEventListener("click", function () {
+  console.log(
+    numeroSolicitante,
+    nombreCompletoSolicitante,
+    nombreEmpresaSolicitante,
+  );
+  const phoneNumber = String(numeroSolicitante);
+  const message = `Muy buenas, le saluda ${razonSocial} del departamento de soporte de Ishida Software, le escribo con respecto al ticket número *${numTicketSoporte}* con asunto de *${auntoTicket}* que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}.
+  Por lo tanto solicito los siguientes requerimiento para completar su solicitud:`;
+
+  // Crear la URL para enviar el mensaje a WhatsApp
+  const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+    message
+  )}`;
+
+  // Abrir la ventana del navegador para enviar el mensaje
+  window.open(url);
+});
