@@ -261,6 +261,14 @@ fetch("ticketsoportescreados/")
               } else {
                 btnNotificarSolicitante.style.display = "none";
               }
+
+              // En caso de que el usuario logeado sea el solicitante
+              if(razonSocial != infoGeneraTicket[0].nombreEmpresa){
+                btnNotificar.style.display = 'none'
+              }else{
+                btnNotificar.style.display = ''
+              }
+
               // Si el usuario ingresado es admin
               if (
                 infoGeneraTicket[0].idAgente_id == idUsuario &&
@@ -473,7 +481,6 @@ fetch("ticketsoportescreados/")
                   (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
                 ) {
                   if (idUsuario == infoGeneraTicket[0].idAgente_id) {
-                    btnNotificar.style.display = "none";
                     btnNewTask.style.display = "";
                     btnNewTask.disabled = false;
                   }

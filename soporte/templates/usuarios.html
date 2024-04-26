@@ -77,15 +77,13 @@
                     <div class="card-header bg-info text-white">Detalles del Solicitante</div>
                     <div class="card-body">
                         <div class="table-responsive" style="overflow-y: auto; max-height: 400px;">
-                            <table class="table" id="solicitantes-table">
+                            <table class="table table-sm table-hover" id="solicitantes-table">
                                 <thead>
                                 <tr>
-                                    <th>NumSolicitante</th>
                                     <th>Ruc</th>
                                     <th>Nombre</th>
                                     <th>Teléfono</th>
                                     <th>Dirección</th>
-                                    <th>Correo</th>
                                     <th>Empresa</th>
                                     <th>Acción</th>
                                 </tr>
@@ -154,12 +152,10 @@
                     // Iterar sobre los datos y agregar filas a la tabla
                     $.each(data, function (index, solicitante) {
                         var newRow = '<tr>' +
-                            '<td>' + `000-${solicitante.NumSolicitante}` + '</td>' +
                             '<td>' + solicitante.Ruc + '</td>' +
                             '<td>' + solicitante.Nombre + '</td>' +
                             '<td>' + solicitante.Telefono + '</td>' +
                             '<td>' + solicitante.Direccion + '</td>' +
-                            '<td>' + solicitante.Correo + '</td>' +
                             '<td>' + solicitante.Empresa + '</td>' +
                             '<td><button class="btn btn-info btn-sm ver-button" data-ticket-id="' + solicitante.NumSolicitante + '">Ver</button></td>' +
                             '</tr>';

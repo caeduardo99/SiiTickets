@@ -661,8 +661,6 @@ select st.id as NumTicket, st.comentario, st.chat, st.facturar, st.causaerror, s
         nombre_empresa = nombre
         # En el caso de que sea una empresa
         consulta_get_projects = consulta_get_projects.replace("WHERE ss.id = %s", "WHERE se3.nombreEmpresa = %s")
-        print(consulta_get_projects)
-        print(nombre_empresa)
         with connection.cursor() as cursor:
             cursor.execute(consulta_get_projects, [nombre_empresa])
             columns = [col[0] for col in cursor.description]
@@ -1772,7 +1770,6 @@ def send_manual(request):
         data = json.loads(request.body)
         email_destino = data.get('email')
         ruta_archivo = os.path.join(settings.BASE_DIR, 'soporte\static\documents', 'MANUAL DE USUARIO PARA EMPRESAS.pdf')
-        print(ruta_archivo)
         # Verificar si el archivo existe
         if os.path.exists(ruta_archivo):
             with open(ruta_archivo, 'rb') as archivo:
@@ -1928,9 +1925,7 @@ def eliminar_tarea(request, id_ticket):
     try:
         data = json.loads(request.body)
         descripcion = data.get('descripcion')
-        print(id_ticket, descripcion)
         actividad = ActividadPrincipalSoporte.objects.filter(idTicketSoporte_id=id_ticket, descripcion=descripcion).first()
-        print(actividad)
         if actividad:
             actividad.delete()
             return JsonResponse({'status': 'success', 'message': 'Tarea eliminada correctamente'})
