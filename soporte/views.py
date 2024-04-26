@@ -2001,6 +2001,11 @@ def regresar_estado_proceso(request, id_ticket):
         ticket = TicketSoporte.objects.get(id=id_ticket)
         ticket.idestado_id = 2
         ticket.save()
+
+        actividades = ActividadPrincipalSoporte.objects.filter(idTicketSoporte=id_ticket)
+        for actividad in actividades:
+            actividad.idestado_id = 4
+            actividad.save()
         
         return JsonResponse({'status': 'success', 'message': 'El ticket ha sido modificado'})
     except Exception as e:
