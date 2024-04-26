@@ -16,6 +16,7 @@ let resultadosProyectos,
   nombreCompletoSolicitante,
   nombreEmpresaSolicitante,
   idEstadoGeneralTicket,
+  estadoGeneraTicket,
   auntoTicket,
   base64Image;
 var resultadosAgentesData = window.resultados_agentes_data;
@@ -30,6 +31,7 @@ const textAreaCausaError = document.getElementById("textAreaCausaError");
 const btnNotificarSolicitante = document.getElementById(
   "btnNotificarSolicitante"
 );
+const btnRegresarEstado = document.getElementById("btnRegresarEstado");
 const tBodyTicketSoporte = document.getElementById("tbodyTicketTable");
 const modalInfoTicketLabel = document.getElementById("modalInfoTicketLabel");
 const inputEditSoporte = document.getElementById("inputEditSoporte");
@@ -179,8 +181,10 @@ fetch("ticketsoportescreados/")
               // Si el estado del ticket es 4 se debe aparecer el boton
               if (infoGeneraTicket[0].idestado_id == 4 && idUsuario == 2) {
                 btnFinishTicket.style.display = "";
+                btnRegresarEstado.style.display = "";
               } else {
                 btnFinishTicket.style.display = "none";
+                btnRegresarEstado.style.display = "none";
               }
 
               if (infoGeneraTicket[0].idestado_id == 5) {
@@ -213,7 +217,7 @@ fetch("ticketsoportescreados/")
 
               fechaCreacionEdit.innerHTML = "";
               fechaCreacionEdit.value = infoGeneraTicket[0].fechaCreacion;
-
+              estadoGeneraTicket = infoGeneraTicket[0].estadoTicket;
               var facturar = infoGeneraTicket[0].facturar;
               facturacionText = infoGeneraTicket[0].facturar;
               $("#selectFacturacion").val(String(facturar)).trigger("change");
@@ -253,10 +257,9 @@ fetch("ticketsoportescreados/")
               // Condicion en caso de que sea mafer  y su estado sea 5 para el boton de notificacion del agente para el cliente
               if (
                 (nombreUsuario == "mafer" &&
-                  infoGeneraTicket[0].idestado_id == 5) ||
+                  (infoGeneraTicket[0].idestado_id == 5 || infoGeneraTicket[0].idestado_id == 4)) ||
                 infoGeneraTicket[0].idAgente_id == idUsuario
               ) {
-                // Enviar el mensaje al solicitante
                 btnNotificarSolicitante.style.display = "";
               } else {
                 btnNotificarSolicitante.style.display = "none";
@@ -1159,14 +1162,14 @@ btnCreateTicketAgent.addEventListener("click", function () {
 });
 
 btnNotificarSolicitante.addEventListener("click", function () {
-  console.log(
-    numeroSolicitante,
-    nombreCompletoSolicitante,
-    nombreEmpresaSolicitante,
-  );
   const phoneNumber = String(numeroSolicitante);
-  const message = `Muy buenas, le saluda ${razonSocial} del departamento de soporte de Ishida Software, le escribo con respecto al ticket número *${numTicketSoporte}* con asunto de *${auntoTicket}* que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}.
-  Por lo tanto solicito los siguientes requerimiento para completar su solicitud:`;
+  var message
+  if(idEstadoGeneralTicket == 4){
+    message = `Muy buenas tardes ${nombreCompletoSolicitante}, le informamos que su requerimiento paso a estado de ${estadoGeneraTicket}, por favor contactese con el administrador para verificar si su solicitud fue resuelta`;
+  }else{
+    message = `Muy buenas, le saluda ${razonSocial} del departamento de soporte de Ishida Software, le escribo con respecto al ticket número *${numTicketSoporte}* con asunto de *${auntoTicket}* que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}.
+    Por lo tanto solicito los siguientes requerimiento para completar su solicitud:`;
+  }
 
   // Crear la URL para enviar el mensaje a WhatsApp
   const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
@@ -1176,3 +1179,28 @@ btnNotificarSolicitante.addEventListener("click", function () {
   // Abrir la ventana del navegador para enviar el mensaje
   window.open(url);
 });
+
+btnRegresarEstado.addEventListener("click", function(){
+  fetch(`regresar_estado_proceso/${numTicketSoporte}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status == "success") {
+        toastr.success("Ticket modificado", data.message);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        toastr.error("Error al modificar el ticket", data.message);
+      }
+    })
+    .catch((error) => {
+      console.error("Error al modificar el ticket:", error);
+      toastr.error("Error al modificar el ticket", data.message);
+    });
+})
