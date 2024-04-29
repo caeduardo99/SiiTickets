@@ -1,84 +1,85 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h3>Solicitantes</h3>
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h3>Solicitantes</h3>
+            </div>
+        </div>
+    </div><!-- /.container-fluid -->
+</section>
+<div class="content">
+    <ul class="nav nav-tabs" id="myTabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="nuevousuario-tab" data-toggle="tab" href="#nuevousuario">Nuevo
+                Solicitante</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="verusuario-tab" data-toggle="tab" href="#verusuario">Solicitante</a>
+        </li>
+    </ul>
+    <div class="tab-content mt-2">
+        <!-- Contenido de la pestaña Nuevo Ticket -->
+        <div class="tab-pane fade show active" id="nuevousuario">
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">Datos del Solicitante</div>
+                <div class="card-body">
+                    <form class="form-row" method="post" action="{% url 'crear_solicitante' %}">
+                        {% csrf_token %}
+                        <div class="form-group col-md-6">
+                            <label for="rucUsuario">Ruc:</label>
+                            <input class="form-control" id="rucUsuario" name="rucUsuario"
+                                placeholder="Ingrese el RUC"></input>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="nombreUsuario">Nombres:</label>
+                            <input class="form-control" id="nombreUsuario" name="nombreUsuario"
+                                placeholder="Ingrese los Nombres"></input>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="direccionUsuario">Dirección:</label>
+                            <input class="form-control" id="direccionUsuario" name="direccionUsuario"
+                                placeholder="Ingrese la Dirección"></input>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="telefonoUsuario">Teléfono:</label>
+                            <input class="form-control" id="telefonoUsuario" name="telefonoUsuario"
+                                placeholder="Ingrese la Dirección"></input>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="correoUsuario">Email:</label>
+                            <input class="form-control" id="correoUsuario" name="correoUsuario"
+                                placeholder="Ingrese la Dirección"></input>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="empresaSolicitante">Empresa:</label>
+                            <select class="select2" id="empresaSolicitante" style="width: 100%;"
+                                name="empresaSolicitante">
+                                <option value="">Seleccione Empresa</option>
+                                {% for empresa in resultados_empresas_data %}
+                                <option value="{{ empresa.id }}">
+                                    {{ empresa.nombreEmpresa }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group col-12">
+                            <button type="submit" class="btn bg-info">Crear Solicitante</button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </div><!-- /.container-fluid -->
-    </section>
-    <div class="content">
-        <ul class="nav nav-tabs" id="myTabs">
-            <li class="nav-item">
-                <a class="nav-link active" id="nuevousuario-tab" data-toggle="tab" href="#nuevousuario">Nuevo
-                    Solicitante</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" id="verusuario-tab" data-toggle="tab" href="#verusuario">Solicitante</a>
-            </li>
-        </ul>
-        <div class="tab-content mt-2">
-            <!-- Contenido de la pestaña Nuevo Ticket -->
-            <div class="tab-pane fade show active" id="nuevousuario">
-                <div class="card mb-3">
-                    <div class="card-header bg-info text-white">Datos del Solicitante</div>
-                    <div class="card-body">
-                        <form class="form-row" method="post" action="{% url 'crear_solicitante' %}">
-                            {% csrf_token %}
-                            <div class="form-group col-md-6">
-                                <label for="rucUsuario">Ruc:</label>
-                                <input class="form-control" id="rucUsuario" name="rucUsuario"
-                                       placeholder="Ingrese el RUC"></input>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="nombreUsuario">Nombres:</label>
-                                <input class="form-control" id="nombreUsuario" name="nombreUsuario"
-                                       placeholder="Ingrese los Nombres"></input>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="direccionUsuario">Dirección:</label>
-                                <input class="form-control" id="direccionUsuario" name="direccionUsuario"
-                                       placeholder="Ingrese la Dirección"></input>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="telefonoUsuario">Teléfono:</label>
-                                <input class="form-control" id="telefonoUsuario" name="telefonoUsuario"
-                                       placeholder="Ingrese la Dirección"></input>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="correoUsuario">Email:</label>
-                                <input class="form-control" id="correoUsuario" name="correoUsuario"
-                                       placeholder="Ingrese la Dirección"></input>
-                            </div>
-                            <div class="form-group col-md-6">
-                                <label for="empresaSolicitante">Empresa:</label>
-                                <select class="select2" id="empresaSolicitante" style="width: 100%;"
-                                        name="empresaSolicitante">
-                                    <option value="">Seleccione Empresa</option>
-                                    {% for empresa in resultados_empresas_data %}
-                                        <option value="{{ empresa.id }}">
-                                            {{ empresa.nombreEmpresa }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="form-group col-12">
-                                <button type="submit" class="btn bg-info">Crear Solicitante</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane fade" id="verusuario">
-                <div class="card mb-3">
-                    <div class="card-header bg-info text-white">Detalles del Solicitante</div>
-                    <div class="card-body">
-                        <div class="table-responsive" style="overflow-y: auto; max-height: 400px;">
-                            <table class="table table-sm table-hover" id="solicitantes-table">
-                                <thead>
+        </div>
+
+        <div class="tab-pane fade" id="verusuario">
+            <div class="card mb-3">
+                <div class="card-header bg-info text-white">Detalles del Solicitante</div>
+                <div class="card-body">
+                    <div class="table-responsive" style="overflow-y: auto; max-height: 400px;">
+                        <table class="table table-sm table-hover" id="solicitantes-table">
+                            <thead>
                                 <tr>
                                     <th>Ruc</th>
                                     <th>Nombre</th>
@@ -87,140 +88,273 @@
                                     <th>Empresa</th>
                                     <th>Acción</th>
                                 </tr>
-                                </thead>
-                                <tbody>
-    
-                                </tbody>
-                            </table>
-                        </div>
+                            </thead>
+                            <tbody id="tbodySolicitante">
+
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
-    <script src="../static/dist/utils/soporte.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+<!-- Modal -->
+<div class="modal fade" id="detallesSolicitante" tabindex="-1" aria-labelledby="detallesSolicitanteLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detallesSolicitanteLabel">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editarSolicitante">
+                    <div class="form-group">
+                        <label for="modalNumSolicitante">Número del Solicitante:</label>
+                        <input type="number" class="form-control" id="modalNumSolicitante" readonly></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalRucSolicitante">Ruc:</label>
+                        <input type="text" class="form-control" id="modalRucSolicitante" readonly></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalNombreSolicitante">Nombre:</label>
+                        <input type="text" class="form-control" id="modalNombreSolicitante"></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="modaDireccionSolicitante">Dirección:</label>
+                        <input type="text" class="form-control" id="modaDireccionSolicitante"></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalCorreoSolicitante">Correo:</label>
+                        <input type="text" class="form-control" id="modalCorreoSolicitante"></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="modaTelefonoSolicitante">Teléfono:</label>
+                        <input type="text" class="form-control" id="modaTelefonoSolicitante"></input>
+                    </div>
+                    <div class="form-group">
+                        <label for="modalEmpresaSolicitante">Empresa:</label>
+                        <select class="custom-select" id="modalEmpresaSolicitante" style="width: 100%;"
+                            name="modalEmpresaSolicitante">
+                            <option value="">Seleccione Empresa</option>
+                            {% for empresa in resultados_empresas_data %}
+                            <option value="{{ empresa.id }}">{{ empresa.nombreEmpresa }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning btn-sm" id="btnSaveChange">Guardar cambios</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            $('form').submit(function (event) {
-                event.preventDefault();  // Evitar que el formulario se envíe normalmente
+<script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
+<script src="../static/dist/utils/soporte.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const btnSaveChange = document.getElementById("btnSaveChange");
+        $('.select2').select2();
+        $('form').submit(function (event) {
+            event.preventDefault();  // Evitar que el formulario se envíe normalmente
 
-                var form = $(this);
-                var formData = new FormData(form[0]);  // Crear un objeto FormData para manejar archivos
+            var form = $(this);
+            var formData = new FormData(form[0]);  // Crear un objeto FormData para manejar archivos
 
-                $.ajax({
-                    url: form.attr('action'),
-                    type: 'POST',
-                    data: formData,
-                    contentType: false,  // No establecer el tipo de contenido, permitir que jQuery lo configure automáticamente
-                    processData: false,  // No procesar los datos, permitir que jQuery lo configure automáticamente
-                    success: function (data) {
-                        // Verificar si la respuesta es exitosa
-                        if (data.status === 'success') {
-                            // Mostrar un toast o alerta con el mensaje
-                            toastr.success(data.message, 'Éxito');
-
-                            //Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
-                            setTimeout(function () {
-                                window.location.reload();
-                            }, 1000);
-                        } else {
-                            // Manejar otros casos o mostrar mensajes de error
-                            toastr.error('Error al crear el ticket: ' + data.message, 'Error');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        // Manejar errores de la solicitud AJAX
-                        toastr.error('Error en la solicitud AJAX: ' + error, 'Error');
-                    }
-                });
-            });
-        });
-
-
-        function cargarTablaTickets() {
             $.ajax({
-                url: '{% url "solicitantescreados" %}',
-                method: 'GET',
-                dataType: 'json',
+                url: form.attr('action'),
+                type: 'POST',
+                data: formData,
+                contentType: false,  // No establecer el tipo de contenido, permitir que jQuery lo configure automáticamente
+                processData: false,  // No procesar los datos, permitir que jQuery lo configure automáticamente
                 success: function (data) {
-                    // Limpiar el cuerpo de la tabla
-                    $('#solicitantes-table tbody').empty();
-                    // Iterar sobre los datos y agregar filas a la tabla
-                    $.each(data, function (index, solicitante) {
-                        var newRow = '<tr>' +
-                            '<td>' + solicitante.Ruc + '</td>' +
-                            '<td>' + solicitante.Nombre + '</td>' +
-                            '<td>' + solicitante.Telefono + '</td>' +
-                            '<td>' + solicitante.Direccion + '</td>' +
-                            '<td>' + solicitante.Empresa + '</td>' +
-                            '<td><button class="btn btn-info btn-sm ver-button" data-ticket-id="' + solicitante.NumSolicitante + '">Ver</button></td>' +
-                            '</tr>';
-                        $('#solicitantes-table tbody').append(newRow);
-                    });
+                    // Verificar si la respuesta es exitosa
+                    if (data.status === 'success') {
+                        // Mostrar un toast o alerta con el mensaje
+                        toastr.success(data.message, 'Éxito');
+
+                        //Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        // Manejar otros casos o mostrar mensajes de error
+                        toastr.error('Error al crear el ticket: ' + data.message, 'Error');
+                    }
                 },
-                error: function (error) {
-                    console.log('Error en la solicitud AJAX:', error);
+                error: function (xhr, status, error) {
+                    // Manejar errores de la solicitud AJAX
+                    toastr.error('Error en la solicitud AJAX: ' + error, 'Error');
                 }
             });
-        }
+        });
+    });
 
-        // consulta_ruc.js
-        document.getElementById('rucUsuario').addEventListener('keydown', function (event) {
-            // Verificar si la tecla presionada es "Enter"
-            if (event.key === 'Enter') {
-                // Evitar el comportamiento predeterminado del "Enter" en un formulario
-                event.preventDefault();
+    let numSolicitante
+    const tbodySolicitante = document.getElementById("tbodySolicitante");
+    const modalNumSolicitante = document.getElementById("modalNumSolicitante");
+    const modalRucSolicitante = document.getElementById("modalRucSolicitante");
+    const modalNombreSolicitante = document.getElementById("modalNombreSolicitante");
+    const modalCorreoSolicitante = document.getElementById("modalCorreoSolicitante");
+    const modaDireccionSolicitante = document.getElementById("modaDireccionSolicitante");
+    const modaTelefonoSolicitante = document.getElementById("modaTelefonoSolicitante");
+    const modalEmpresaSolicitante = document.getElementById("modalEmpresaSolicitante");
+    function cargarTablaTickets() {
+        $.ajax({
+            url: '{% url "solicitantescreados" %}',
+            method: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                data.forEach((solicitante) => {
+                    var row = document.createElement("tr");
 
-                // Llamar a la función para consultar el RUC
-                consultarRUC();
+                    var cellRuc = document.createElement("td");
+                    cellRuc.textContent = solicitante.Ruc;
+
+                    var cellNombre = document.createElement("td");
+                    cellNombre.textContent = solicitante.Nombre;
+
+                    var cellTelefono = document.createElement("td");
+                    cellTelefono.textContent = solicitante.Telefono;
+
+                    var cellDireccion = document.createElement("td");
+                    cellDireccion.textContent = solicitante.Direccion;
+
+                    var cellEmpresa = document.createElement("td");
+                    cellEmpresa.textContent = solicitante.Empresa;
+
+                    var cellAccion = document.createElement("td");
+                    var buttonVer = document.createElement("button")
+                    buttonVer.className = 'btn btn-sm btn-info'
+                    buttonVer.textContent = 'Ver'
+                    buttonVer.dataset.toggle = "modal";
+                    buttonVer.dataset.target = "#detallesSolicitante";
+                    cellAccion.appendChild(buttonVer)
+
+                    // Funcionalidad del boton
+                    buttonVer.addEventListener('click', function () {
+                        numSolicitante = solicitante.NumSolicitante
+                        modalNumSolicitante.value = solicitante.NumSolicitante;
+                        modalRucSolicitante.value = solicitante.Ruc;
+                        modalNombreSolicitante.value = solicitante.Nombre;
+                        modalCorreoSolicitante.value = solicitante.Correo;
+                        modaTelefonoSolicitante.value = solicitante.Telefono;
+                        modaDireccionSolicitante.value = solicitante.Direccion;
+                        const idEmpresaSeleccionada = solicitante.idEmpresa;
+                        modalEmpresaSolicitante.value = idEmpresaSeleccionada;
+                    })
+
+                    row.appendChild(cellRuc);
+                    row.appendChild(cellNombre);
+                    row.appendChild(cellTelefono);
+                    row.appendChild(cellDireccion);
+                    row.appendChild(cellEmpresa);
+                    row.appendChild(cellAccion);
+
+                    tbodySolicitante.appendChild(row);
+                })
+            },
+            error: function (error) {
+                console.log('Error en la solicitud AJAX:', error);
             }
         });
+    }
 
-        function consultarRUC() {
-            // Obtener el valor del input
-            var ruc = document.getElementById('rucUsuario').value;
-            // Construir la URL de la vista Django
-            var url = '{% url "clienteconsultajson" %}?ruc=' + ruc;
-            // Hacer la solicitud GET con AJAX
-            $.ajax({
-                url: url,
-                type: 'GET',
-                dataType: 'json',
-                success: function (data) {
-                    // Manejar la respuesta del servidor aquí
-                    if (data.length > 0) {
-                        // Llenar los demás campos con la información del JSON
-                        document.getElementById('nombreUsuario').value = data[0].nombre;
-                        document.getElementById('direccionUsuario').value = data[0].direccion1;
-                        document.getElementById('telefonoUsuario').value = data[0].telefono1;
-                        document.getElementById('correoUsuario').value = data[0].email;
-                    } else {
-                        // Limpiar los campos si no se encuentra información
-                        document.getElementById('nombreUsuario').value = '';
-                        document.getElementById('direccionUsuario').value = '';
-                        document.getElementById('telefonoUsuario').value = '';
-                        document.getElementById('correoUsuario').value = '';
-                        toastr.error("No se ha podido encontrar información del Ruc proporcionado");
-                    }
-                },
-                error: function (error) {
-                    // Manejar errores aquí
-                    console.error('Error en la solicitud:', error);
-                }
-            });
+    // consulta_ruc.js
+    document.getElementById('rucUsuario').addEventListener('keydown', function (event) {
+        // Verificar si la tecla presionada es "Enter"
+        if (event.key === 'Enter') {
+            // Evitar el comportamiento predeterminado del "Enter" en un formulario
+            event.preventDefault();
+
+            // Llamar a la función para consultar el RUC
+            consultarRUC();
         }
+    });
 
-        $(document).ready(function () {
-            cargarTablaTickets();
-            $('#vertickets-tab').on('click', function () {
-                cargarTablaTickets();
-            });
+    function consultarRUC() {
+        // Obtener el valor del input
+        var ruc = document.getElementById('rucUsuario').value;
+        // Construir la URL de la vista Django
+        var url = '{% url "clienteconsultajson" %}?ruc=' + ruc;
+        // Hacer la solicitud GET con AJAX
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                // Manejar la respuesta del servidor aquí
+                if (data.length > 0) {
+                    // Llenar los demás campos con la información del JSON
+                    document.getElementById('nombreUsuario').value = data[0].nombre;
+                    document.getElementById('direccionUsuario').value = data[0].direccion1;
+                    document.getElementById('telefonoUsuario').value = data[0].telefono1;
+                    document.getElementById('correoUsuario').value = data[0].email;
+                } else {
+                    // Limpiar los campos si no se encuentra información
+                    document.getElementById('nombreUsuario').value = '';
+                    document.getElementById('direccionUsuario').value = '';
+                    document.getElementById('telefonoUsuario').value = '';
+                    document.getElementById('correoUsuario').value = '';
+                    toastr.error("No se ha podido encontrar información del Ruc proporcionado");
+                }
+            },
+            error: function (error) {
+                // Manejar errores aquí
+                console.error('Error en la solicitud:', error);
+            }
         });
+    }
 
+    $(document).ready(function () {
+        cargarTablaTickets();
+        $('#vertickets-tab').on('click', function () {
+            cargarTablaTickets();
+        });
+    });
 
-    </script>
+    btnSaveChange.addEventListener("click", function () {
+        btnSaveChange.disabled = true;
+        toastr.info('Se estan realizando cambios en la información', 'Guardando...');
+        data = {
+            numSolicitante: numSolicitante,
+            Ruc: modalRucSolicitante.value,
+            Nombre: modalNombreSolicitante.value,
+            Correo: modalCorreoSolicitante.value,
+            Direccion: modaDireccionSolicitante.value,
+            Telefono: modaTelefonoSolicitante.value,
+            Empresa: modalEmpresaSolicitante.value
+        }
+        $.ajax({
+            url: '{% url "actualizar_solicitante" %}',
+            method: 'POST',
+            data: JSON.stringify(data), 
+            contentType: 'application/json',
+            success: function (response) {
+                if (response.success) {
+                    toastr.success('Los cambios han sido guardados correctamente', 'Cambios guardados');
+                    btnSaveChange.disabled = false;
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 3000);
+                } else {
+                    toastr.success('Los cambios han sido guardados correctamente', 'Cambios guardados');
+                    btnSaveChange.disabled = false;
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 3000);
+                }
+            },
+        });
+    })
+</script>
 {% endblock %}

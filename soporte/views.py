@@ -562,7 +562,7 @@ def solicitantescreados(request):
     consulta_sql = """
     select ss.id as NumSolicitante, ss.ruc as Ruc, ss.nombreApellido as Nombre,
     ss.telefonoSolicitante as Telefono, ss.direccion as Direccion, ss.correo as Correo,
-    se.nombreEmpresa as Empresa
+    se.id as idEmpresa, se.nombreEmpresa as Empresa
     from soporte_solicitante ss
     left join soporte_empresa se on se.id = ss.idEmpresa_id 
         """
@@ -2499,9 +2499,10 @@ def actualizar_empresa(request):
             with connection.cursor() as cursor:
                 cursor.execute(consulta_sql, [nombre_empresa, direccion, telefono, email, num_empresa])
 
-            # Crear el registro para crear un registro para los usuarios en la nueva empresa
-            user = User.objects.create_user(username=nombre_empresa, password='8soptativa', email=email)
-            user.save()
+            # Verificar si existe un usuario con el nombre de empresa
+            if not User.objects.filter(username=nombre_empresa).exists():
+                user = User.objects.create_user(username=nombre_empresa, password='8soptativa', email=email)
+                user.save()
 
             return JsonResponse({'status': 'success','success': True})
         except Exception as e:
@@ -2533,6 +2534,27 @@ def actualizar_modulo(request):
 
             return JsonResponse({'success': True})
         except Exception as e:
+            return JsonResponse({'error': 'Error al actualizar el Modulo'})
+    else:
+        return JsonResponse({'error': 'Método no permitido'})
+
+@csrf_exempt
+def actualizar_solicitante(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # Realiza la lógica para actualizar el solicitante
+            solicitante = Solicitante.objects.get(id=data['numSolicitante'])
+            solicitante.nombreApellido = data['Nombre']
+            solicitante.telefonoSolicitante = data['Telefono']
+            solicitante.direccion = data['Direccion']
+            solicitante.correo = data['Correo']
+            solicitante.idEmpresa = Empresa.objects.get(id=data['Empresa'])
+            solicitante.save()
+
+            return JsonResponse({'status': 'success', 'success': True})
+        except Exception as e:
+            print("Error:", e)
             return JsonResponse({'error': 'Error al actualizar el Modulo'})
     else:
         return JsonResponse({'error': 'Método no permitido'})
