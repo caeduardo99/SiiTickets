@@ -150,8 +150,10 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-warning btn-sm" id="btnSaveChange">Guardar cambios</button>
-                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-dark btn-sm" id="btnSaveChange">Guardar cambios</button>
+                <button type="button" class="btn btn-dark btn-sm" id="btnSendMessageWhatsapp">Enviar credenciales a
+                    Whatsapp</button>
+                <button type="button" class="btn btn-dark btn-sm" id="btnSendCredencialesMail">Enviar credenciales al correo</button>
             </div>
         </div>
     </div>
@@ -199,7 +201,7 @@
         });
     });
 
-    let numSolicitante
+    let numSolicitante, telefonoSolicitante, nameSolicitante, textEmpresa;
     const tbodySolicitante = document.getElementById("tbodySolicitante");
     const modalNumSolicitante = document.getElementById("modalNumSolicitante");
     const modalRucSolicitante = document.getElementById("modalRucSolicitante");
@@ -208,6 +210,9 @@
     const modaDireccionSolicitante = document.getElementById("modaDireccionSolicitante");
     const modaTelefonoSolicitante = document.getElementById("modaTelefonoSolicitante");
     const modalEmpresaSolicitante = document.getElementById("modalEmpresaSolicitante");
+    const btnSendMessageWhatsapp = document.getElementById("btnSendMessageWhatsapp");
+    const btnSendCredencialesMail = document.getElementById("btnSendCredencialesMail");
+
     function cargarTablaTickets() {
         $.ajax({
             url: '{% url "solicitantescreados" %}',
@@ -251,6 +256,11 @@
                         modaDireccionSolicitante.value = solicitante.Direccion;
                         const idEmpresaSeleccionada = solicitante.idEmpresa;
                         modalEmpresaSolicitante.value = idEmpresaSeleccionada;
+                        telefonoSolicitante = solicitante.Telefono;
+                        nameSolicitante = solicitante.Nombre;
+
+                        var selectedIndex = modalEmpresaSolicitante.selectedIndex;
+                        textEmpresa = modalEmpresaSolicitante.options[selectedIndex].text;
                     })
 
                     row.appendChild(cellRuc);
@@ -337,7 +347,7 @@
         $.ajax({
             url: '{% url "actualizar_solicitante" %}',
             method: 'POST',
-            data: JSON.stringify(data), 
+            data: JSON.stringify(data),
             contentType: 'application/json',
             success: function (response) {
                 if (response.success) {
@@ -355,6 +365,83 @@
                 }
             },
         });
+    })
+
+    // BOTON PARA ENVIO DE MENSAJE WHTAS
+    btnSendMessageWhatsapp.addEventListener("click", function () {
+        let empresaFormateada
+        // Condicion en caso de que la empresa tenga mas de una silaba
+        if (textEmpresa.split(' ').length > 1) {
+            const words = textEmpresa.split(' ');
+            let formattedText = words[0];
+            for (let i = 1; i < words.length; i++) {
+                formattedText += words[i].substring(0, 2);
+            }
+            // El resultado estará en formattedText
+            empresaFormateada = formattedText
+        } else {
+            empresaFormateada = textEmpresa
+        }
+
+        console.log(empresaFormateada)
+        message = `Muy buenas tardes ${nameSolicitante}, reciba un coordial saludo del departamente administradivo de Ishida Software, la razon de este mensaje es para enviarle las credenciales de acceso a nuestro nuevo portal de soportes (SiiTickets) en la direccion: *http://186.3.160.137:120/*, con el fin de optimizar y obtener una atencion mas personalizada.
+        Usuario: *${textEmpresa}*
+        Contraseña: *8soptativa*`;
+
+        // Crear la URL para enviar el mensaje a WhatsApp
+        const url = `https://wa.me/${telefonoSolicitante}?text=${encodeURIComponent(
+            message
+        )}`;
+
+        // Abrir la ventana del navegador para enviar el mensaje
+        window.open(url);
+    })
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Buscar el token CSRF en las cookies
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    btnSendCredencialesMail.addEventListener("click", function(){
+        btnSendCredencialesMail.disabled = true
+        const data = {
+            email: modalCorreoSolicitante.value,
+            telefono: modaTelefonoSolicitante.value,
+            nombreEmpresa: textEmpresa,
+        }
+        toastr.info('Enviando credenciales', "Enviando...");
+        // Enviar los datos a la vista de Django
+        fetch('enviar_credenciales/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al enviar la información de la empresa');
+                }
+                toastr.success(data.message, "Credenciales enviadas exitosamente.");
+                btnSendCredencialesMail.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                toastr.error(data.message, "Error al enviar las credenciales.");
+                btnSendCredencialesMail.disabled = false;
+            });
     })
 </script>
 {% endblock %}
