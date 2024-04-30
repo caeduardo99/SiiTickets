@@ -849,6 +849,7 @@ def getInfoReport(request, id_ticket):
 
     return JsonResponse(context, safe=False)
 
+
 def getInfoReportSoport(request, id_ticket):
     consulta_general = """
     SELECT st.id as idTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.comentario as comentarioTicket,
@@ -938,6 +939,17 @@ def getInfoActualizacionReport(request, id_ticket):
     }
 
     return JsonResponse(context, safe=False)
+
+def getNumberInfo(request, id_agente):
+    consult = """
+    select au.phone from auth_user au WHERE au.id = %s"""
+    connection = connections["default"]
+    with connection.cursor() as cursor:
+        cursor.execute(consult, [id_agente])
+        columns = [col[0] for col in cursor.description]
+        resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        
+    return JsonResponse(resultados, safe=False)
 
 
 def ticketsActualizacionCreados(request):
@@ -1049,7 +1061,7 @@ def ticketsoportescreadosid(request, ticket_id):
         st.causaerror,
         st.facturar,
         st.idAgente_id,
-        au.first_name || ' ' || au.last_name AS agente_nombre,
+        au.first_name || ' ' || au.last_name AS agente_nombre, au.phone,
         st.idSolicitante_id,
         st.idestado_id,
         st.chat,

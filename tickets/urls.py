@@ -76,7 +76,7 @@ urlpatterns = [
     path('cerrar_ticket/<int:id_ticket>',views.cerrar_ticket, name='cerrar_ticket'),
     path('regresar_estado_proceso/<int:id_ticket>',views.regresar_estado_proceso, name='regresar_estado_proceso'),
     path('actualizar_solicitante/', views.actualizar_solicitante, name='actualizar_solicitante'),
-    
+    path('getNumberInfo/<int:id_agente>', views.getNumberInfo, name='getNumberInfo'),
     path('empresascreados/', views.empresascreados, name='empresascreados'),
     path('moduloscreados/', views.moduloscreados, name='moduloscreados'),
     path('crear_empresa/', views.crear_empresa, name='crear_empresa'),

@@ -18,6 +18,8 @@ let resultadosProyectos,
   idEstadoGeneralTicket,
   estadoGeneraTicket,
   auntoTicket,
+  phoneSelected,
+  textAgente,
   base64Image;
 var resultadosAgentesData = window.resultados_agentes_data;
 var resultadosSolicitantesData = window.resultados_solicitantes_data;
@@ -197,7 +199,6 @@ fetch("ticketsoportescreados/")
               textAreaCausaError.value = infoGeneraTicket[0].causaerror;
 
               // Llenar el select con los datos de resultados_agentes_data
-
               const idAgenteSeleccionado = infoGeneraTicket[0].idAgente_id;
               $("#selectEditAgenteSolicitado")
                 .val(idAgenteSeleccionado)
@@ -258,7 +259,8 @@ fetch("ticketsoportescreados/")
               // Condicion en caso de que sea mafer  y su estado sea 5 para el boton de notificacion del agente para el cliente
               if (
                 (nombreUsuario == "mafer" &&
-                  (infoGeneraTicket[0].idestado_id == 5 || infoGeneraTicket[0].idestado_id == 4)) ||
+                  (infoGeneraTicket[0].idestado_id == 5 ||
+                    infoGeneraTicket[0].idestado_id == 4)) ||
                 infoGeneraTicket[0].idAgente_id == idUsuario
               ) {
                 btnNotificarSolicitante.style.display = "";
@@ -267,10 +269,10 @@ fetch("ticketsoportescreados/")
               }
 
               // En caso de que el usuario logeado sea el solicitante
-              if(razonSocial != infoGeneraTicket[0].nombreEmpresa){
-                btnNotificar.style.display = 'none'
-              }else{
-                btnNotificar.style.display = ''
+              if (razonSocial != infoGeneraTicket[0].nombreEmpresa) {
+                btnNotificar.style.display = "none";
+              } else {
+                btnNotificar.style.display = "";
               }
 
               // Si el usuario ingresado es admin
@@ -664,29 +666,58 @@ document
 // Funcionamiento del boton para asignar el nuevo agente
 btnAsignarAgente.addEventListener("click", function () {
   let valor_agente_select = selectEditAgenteSolicitado.value;
+  var selectedIndex = selectEditAgenteSolicitado.selectedIndex;
+  textAgente = selectEditAgenteSolicitado.options[selectedIndex].text;
 
   $.ajax({
-    url: `/asign_admin_ticket_support/${valor_agente_select}/${numTicketSoporte}/`,
-    type: "GET", // Puedes ajustar esto según tu lógica
-    dataType: "json",
+    url: "getNumberInfo/" + valor_agente_select,
+    type: "GET",
     success: function (data) {
-      if (data.status == "success") {
-        toastr.success(
-          data.status,
-          "Se cambio el agente a cargo de este ticket!"
-        );
-        // Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
-        setTimeout(function () {
-          window.location.reload();
-        }, 1000);
-      } else {
-        toastr.error(
-          "Error al cambiar el Agente administrador: " + response.message,
-          "Error"
-        );
-      }
+      phoneSelected = data[0].phone;
+
+      // Ejecucion del post
+      $.ajax({
+        url: `/asign_admin_ticket_support/${valor_agente_select}/${numTicketSoporte}/`,
+        type: "GET", // Puedes ajustar esto según tu lógica
+        dataType: "json",
+        success: function (data) {
+          if (data.status == "success") {
+            toastr.success(
+              data.status,
+              "Se cambio el agente a cargo de este ticket!"
+            );
+            // Mensaje para el agente
+            const message = `Hola ${textAgente} tiene un ticket asigando, con la siguiente información:
+      Número de ticket: *${numTicketSoporte}*
+      Problema:
+      *${textAreaComentarioEdit.value}*
+          espero su pronta respuesta.`;
+    
+            // Crear la URL para enviar el mensaje a WhatsApp
+            const url = `https://wa.me/${phoneSelected}?text=${encodeURIComponent(
+              message
+            )}`;
+    
+            // Abrir la ventana del navegador para enviar el mensaje
+            window.open(url);
+    
+            // Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
+            setTimeout(function () {
+              window.location.reload();
+            }, 2000);
+          } else {
+            toastr.error(
+              "Error al cambiar el Agente administrador: " + response.message,
+              "Error"
+            );
+          }
+        },
+        error: function (error) {
+          console.error(error);
+        },
+      });
     },
-    error: function (error) {
+    error: function (xhr, status, error) {
       console.error(error);
     },
   });
@@ -1164,10 +1195,10 @@ btnCreateTicketAgent.addEventListener("click", function () {
 
 btnNotificarSolicitante.addEventListener("click", function () {
   const phoneNumber = String(numeroSolicitante);
-  var message
-  if(idEstadoGeneralTicket == 4){
+  var message;
+  if (idEstadoGeneralTicket == 4) {
     message = `Muy buenas tardes ${nombreCompletoSolicitante}, le informamos que su requerimiento paso a estado de ${estadoGeneraTicket}, por favor contactese con el administrador para verificar si su solicitud fue resuelta`;
-  }else{
+  } else {
     message = `Muy buenas, le saluda ${razonSocial} del departamento de soporte de Ishida Software, le escribo con respecto al ticket número *${numTicketSoporte}* con asunto de *${auntoTicket}* que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}.
     Por lo tanto solicito los siguientes requerimiento para completar su solicitud:`;
   }
@@ -1181,7 +1212,7 @@ btnNotificarSolicitante.addEventListener("click", function () {
   window.open(url);
 });
 
-btnRegresarEstado.addEventListener("click", function(){
+btnRegresarEstado.addEventListener("click", function () {
   fetch(`regresar_estado_proceso/${numTicketSoporte}`, {
     method: "POST",
     headers: {
@@ -1211,11 +1242,11 @@ buscarSolicitante.addEventListener("keyup", function () {
   const textoBusqueda = buscarSolicitante.value.toLowerCase();
 
   Array.from(tBodyTicketSoporte.children).forEach(function (fila) {
-      const textoFila = fila.textContent.toLowerCase();
-      if (textoFila.includes(textoBusqueda)) {
-          fila.style.display = "";
-      } else {
-          fila.style.display = "none";
-      }
+    const textoFila = fila.textContent.toLowerCase();
+    if (textoFila.includes(textoBusqueda)) {
+      fila.style.display = "";
+    } else {
+      fila.style.display = "none";
+    }
   });
 });
