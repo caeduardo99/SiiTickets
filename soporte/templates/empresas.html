@@ -58,6 +58,13 @@
         </div>
         <!-- Sección de listado de empresas -->
         <div class="tab-pane fade" id="vertickets">
+            <div class="row g-1">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="buscarSolicitante" placeholder="Buscar...">
+                    </div>
+                </div>
+            </div>
             <div class="card mb-3">
                 <div class="card-header bg-danger text-white">Detalles de la Empresa</div>
                 <div class="card-body">
@@ -74,7 +81,7 @@
                                     <!-- Otros encabezados según tus campos -->
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tbodyEmpresas">
                                 <!-- Aquí se llenarán las filas de la tabla -->
                             </tbody>
                         </table>
@@ -119,7 +126,8 @@
                     </div>
                     <div class="row">
                         <div class="col-md-4" style="margin-top: 5px;">
-                            <button type="button" id="btnSaveChange" class="btn btn-dark btn-sm btn-block" onclick="guardarCambiosEmpresa()">Guardar
+                            <button type="button" id="btnSaveChange" class="btn btn-dark btn-sm btn-block"
+                                onclick="guardarCambiosEmpresa()">Guardar
                                 Cambios
                             </button>
                         </div>
@@ -150,7 +158,9 @@
     let editNombreEmpresa = document.getElementById('editNombreEmpresa');
     let editarEmpresaForm = document.getElementById('editarEmpresaForm');
     let btnEnviarManual = document.getElementById('btnEnviarManual');
-    let btnSaveChange = document.getElementById('btnSaveChange')
+    let btnSaveChange = document.getElementById('btnSaveChange');
+    const buscarSolicitante = document.getElementById("buscarSolicitante");
+    const tbodyEmpresas = document.getElementById("tbodyEmpresas");
 
     function cargarTablaTickets() {
         $.ajax({
@@ -273,7 +283,7 @@
                     // Verificar si la respuesta es exitosa
                     if (data.status === 'success') {
                         toastr.success(data.message, 'Ticket creado');
-                        
+
                         setTimeout(function () {
                             window.location.reload();
                         }, 2000);
@@ -374,5 +384,18 @@
             });
     })
 
+    // Input para buscar
+    buscarSolicitante.addEventListener("keyup", function () {
+        const textoBusqueda = buscarSolicitante.value.toLowerCase();
+
+        Array.from(tbodyEmpresas.children).forEach(function (fila) {
+            const textoFila = fila.textContent.toLowerCase();
+            if (textoFila.includes(textoBusqueda)) {
+                fila.style.display = "";
+            } else {
+                fila.style.display = "none";
+            }
+        });
+    });
 </script>
 {% endblock %}

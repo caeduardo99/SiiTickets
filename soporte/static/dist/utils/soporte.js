@@ -31,6 +31,7 @@ const textAreaCausaError = document.getElementById("textAreaCausaError");
 const btnNotificarSolicitante = document.getElementById(
   "btnNotificarSolicitante"
 );
+const buscarSolicitante = document.getElementById("buscarSolicitante");
 const btnRegresarEstado = document.getElementById("btnRegresarEstado");
 const tBodyTicketSoporte = document.getElementById("tbodyTicketTable");
 const modalInfoTicketLabel = document.getElementById("modalInfoTicketLabel");
@@ -1203,4 +1204,18 @@ btnRegresarEstado.addEventListener("click", function(){
       console.error("Error al modificar el ticket:", error);
       toastr.error("Error al modificar el ticket", data.message);
     });
-})
+});
+
+// Input para buscar
+buscarSolicitante.addEventListener("keyup", function () {
+  const textoBusqueda = buscarSolicitante.value.toLowerCase();
+
+  Array.from(tBodyTicketSoporte.children).forEach(function (fila) {
+      const textoFila = fila.textContent.toLowerCase();
+      if (textoFila.includes(textoBusqueda)) {
+          fila.style.display = "";
+      } else {
+          fila.style.display = "none";
+      }
+  });
+});

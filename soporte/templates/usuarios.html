@@ -74,6 +74,13 @@
         </div>
 
         <div class="tab-pane fade" id="verusuario">
+            <div class="row g-1">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="buscarSolicitante" placeholder="Buscar...">
+                    </div>                    
+                </div>
+            </div>
             <div class="card mb-3">
                 <div class="card-header bg-info text-white">Detalles del Solicitante</div>
                 <div class="card-body">
@@ -212,6 +219,7 @@
     const modalEmpresaSolicitante = document.getElementById("modalEmpresaSolicitante");
     const btnSendMessageWhatsapp = document.getElementById("btnSendMessageWhatsapp");
     const btnSendCredencialesMail = document.getElementById("btnSendCredencialesMail");
+    const buscarSolicitante = document.getElementById("buscarSolicitante")
 
     function cargarTablaTickets() {
         $.ajax({
@@ -442,5 +450,20 @@
                 btnSendCredencialesMail.disabled = false;
             });
     })
+
+    // Input para buscar
+    buscarSolicitante.addEventListener("keyup", function() {
+    const textoBusqueda = buscarSolicitante.value.toLowerCase(); 
+
+    Array.from(tbodySolicitante.children).forEach(function(fila) {
+        const textoFila = fila.textContent.toLowerCase();
+        if (textoFila.includes(textoBusqueda)) {
+            fila.style.display = "";
+        } else {
+            fila.style.display = "none"; 
+        }
+    });
+});
+
 </script>
 {% endblock %}
