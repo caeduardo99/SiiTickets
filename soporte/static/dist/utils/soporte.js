@@ -20,6 +20,7 @@ let resultadosProyectos,
   auntoTicket,
   phoneSelected,
   textAgente,
+  orderList,
   base64Image;
 var resultadosAgentesData = window.resultados_agentes_data;
 var resultadosSolicitantesData = window.resultados_solicitantes_data;
@@ -30,7 +31,8 @@ var selectSolicitante = document.getElementById("selectSolicitante");
 var solicitante = document.getElementById("solicitante");
 const solicitanteAgent = document.getElementById("solicitanteAgent");
 const textAreaCausaError = document.getElementById("textAreaCausaError");
-const btnChangeTicket = document.getElementById("btnChangeTicket")
+const btnChangeTicket = document.getElementById("btnChangeTicket");
+const btnStateAwait = document.getElementById("btnStateAwait");
 const btnNotificarSolicitante = document.getElementById(
   "btnNotificarSolicitante"
 );
@@ -42,6 +44,7 @@ const inputEditSoporte = document.getElementById("inputEditSoporte");
 const textAreaComentarioEdit = document.getElementById(
   "textAreaComentarioEdit"
 );
+const imageError2 = document.getElementById("imageError2")
 const prioridadSelectAgent = document.getElementById("prioridadSelectAgent");
 const btnCreateTicketAgent = document.getElementById("btnCreateTicketAgent");
 const btnEditarDatos = document.getElementById("btnEditarDatos");
@@ -70,12 +73,14 @@ const btnNotificar = document.getElementById("btnNotificar");
 const exampleFormControlTextarea1 = document.getElementById(
   "exampleFormControlTextarea1"
 );
+const rowInputImg2 = document.getElementById("rowInputImg2");
 const textAreaProblemaAgent = document.getElementById("textAreaProblemaAgent");
 const btnFinisTasks = document.getElementById("btnFinisTasks");
 const rowTableTaskEdit = document.getElementById("rowTableTaskEdit");
 const btnNewTask = document.getElementById("btnNewTask");
 const btnGenerarReporte = document.getElementById("btnGenerarReporte");
 const selectFacturacion = document.getElementById("selectFacturacion");
+const inputNewImage2 = document.getElementById("inputNewImage2");
 
 // Funcionalidad en caso de que sea cliente o agente
 if (mostrarCampo == "True") {
@@ -234,19 +239,39 @@ fetch("ticketsoportescreados/")
                 infoGeneraTicket[0].fechaFinalizacionReal;
 
               imageError.src = "";
-              const urlImage = infoGeneraTicket[0].imagenes;
-              imageError.src = "/media/" + urlImage;
+              var urlImageGenera = infoGeneraTicket[0].imagenes;
+              const [urlImage1, urlImage2] = urlImageGenera.split(",");
+              imageError.src = "/media/" + urlImage1;
+              imageError2.src = urlImage2 == undefined ? '/media/ticket_images/imagenDisponible.png' : ("/media/" + urlImage2)
               imageError.addEventListener("mouseover", function () {
                 this.style.cursor = "pointer";
                 this.style.filter = "brightness(50%)";
               });
+              imageError2.addEventListener("mouseover", function(){
+                this.style.cursor = "pointer";
+                this.style.filter = "brightness(50%)";
+              })
               imageError.addEventListener("click", function () {
                 const imageUrl = this.src;
                 window.open(imageUrl, "_blank");
               });
+              imageError2.addEventListener("click", function(){
+                const imageUrl = this.src;
+                window.open(imageUrl, "_blank");
+              })
               imageError.addEventListener("mouseout", function () {
                 this.style.filter = "";
               });
+              imageError2.addEventListener("mouseout", function () {
+                this.style.filter = "";
+              });
+              
+              // Condicion en caso de que este lleno
+              if(urlImage2 == undefined && infoGeneraTicket[0].idestado_id == 1){
+                rowInputImg2.style.display = ''
+              }else{
+                rowInputImg2.style.display = 'none'
+              }
 
               // Condiciones en caso de que el estado del ticket esta hecho o no
               if (
@@ -443,7 +468,7 @@ fetch("ticketsoportescreados/")
                     }
                   }
                   // En caso de que el que abra este ticket sea administrador del mismo
-                  if (idUsuario == infoGeneraTicket[0].idAgente_id) {
+                  if (idUsuario == infoGeneraTicket[0].idAgente_id && infoGeneraTicket[0].idestado_id == 2) {
                     btnNewTask.style.display = "";
                     btnNewTask.disabled = false;
                     // En caso de que mi tarea esta finalizada
@@ -470,6 +495,8 @@ fetch("ticketsoportescreados/")
                       );
                       cellAcciones.appendChild(checkBoxFinishTask);
                     }
+                  }else{
+                    btnNewTask.style.display = "none";
                   }
 
                   rowTask.appendChild(cellTarea);
@@ -693,15 +720,15 @@ btnAsignarAgente.addEventListener("click", function () {
       Problema:
       *${textAreaComentarioEdit.value}*
           espero su pronta respuesta.`;
-    
+
             // Crear la URL para enviar el mensaje a WhatsApp
             const url = `https://wa.me/${phoneSelected}?text=${encodeURIComponent(
               message
             )}`;
-    
+
             // Abrir la ventana del navegador para enviar el mensaje
             window.open(url);
-    
+
             // Recargar la página después de un breve retraso (por ejemplo, 1 segundo)
             setTimeout(function () {
               window.location.reload();
@@ -992,7 +1019,7 @@ function makePdf(
     "es-ES",
     opcionesDeFormato
   );
-
+  console.log(arrayActivities)
   var objGeneratePdf = {
     content: [
       { image: imageUrl, width: 100, height: 100, alignment: "center" },
@@ -1050,7 +1077,10 @@ function makePdf(
       },
       {
         ul: arrayActivities.map((activity) => [
-          `- Actividad: ${activity.descripcion}, hecho por: ${activity.agente_actividad_nombre}, inicio el: ${activity.fechainicio}`,
+          `- Actividad: ${activity.descripcion}, hecho por: ${activity.agente_actividad_nombre} 
+          FIS: ${activity.fechainicio}
+          FFS: ${activity.fechafinal}
+          `,
           {
             image: activity.imagen_actividades,
             width: 430,
@@ -1250,4 +1280,42 @@ buscarSolicitante.addEventListener("keyup", function () {
       fila.style.display = "none";
     }
   });
+});
+
+// Boton para ordenar la tabla
+btnStateAwait.addEventListener("click", function () {
+  orderList = false;
+});
+
+// Funcionalidad para agregar la imagen
+inputNewImage2.addEventListener("change", function () {
+  var file = this.files[0];
+  var formData = new FormData();
+  formData.append("image", file);
+
+  fetch(`addImgAlter/${numTicketSoporte}`, {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}",
+    },
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status == "success") {
+        toastr.success("Imagen copiada y pegada correctamente");
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        toastr.error("Error al copiar y pegar la imagen");
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
+    })
+    .catch((error) => {
+      toastr.error("Error al copiar y pegar la imagen");
+      console.error("Error al enviar la imagen:", error);
+    });
 });

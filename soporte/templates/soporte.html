@@ -146,17 +146,20 @@
             
             <div class="tab-pane fade" id="vertickets">
                 <div class="row g-1">
-                    <div class="col-md-12">
+                    <div class="col-md-10">
                         <div class="form-group">
                             <input type="text" class="form-control" id="buscarSolicitante" placeholder="Buscar...">
                         </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-sm btn-dark btn-block" id="btnStateAwait">Ordenar</button>
                     </div>
                 </div>
                 <div class="card mb-3">
                     <div class="card-header bg-danger text-white">Detalles del Ticket</div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover table-sm" style="overflow-y: auto; max-height: 400px;">
+                        <div class="table-responsive" style="overflow-y: auto; max-height: 400px;">
+                            <table class="table table-hover table-sm">
                                 <thead>
                                 <tr>
                                     <th>NumTicket</th>
@@ -253,6 +256,15 @@
                         </div>
                         <div class="col-md-6">
                             <img class="img-fluid" id="imageError">
+                            <br>
+                            <img class="img-fluid" id="imageError2">
+                            <br>
+                            <div class="input-group" id="rowInputImg2">
+                                <div class="custom-file">
+                                  <input type="file" class="custom-file-input" id="inputNewImage2" aria-describedby="inputGroupFileAddon04">
+                                  <label class="custom-file-label" for="inputNewImage2">Agregar otra imagen</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <hr>

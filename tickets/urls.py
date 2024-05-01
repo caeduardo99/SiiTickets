@@ -86,7 +86,7 @@ urlpatterns = [
     path('detalles_modulo/', views.detalles_modulo, name='detalles_modulo'),
     path('actualizar_empresa/', views.actualizar_empresa, name='actualizar_empresa'),
     path('actualizar_modulo/', views.actualizar_modulo, name='actualizar_modulo'),
-
+    path('addImgAlter/<int:id_ticket>', views.addImgAlter, name='addImgAlter'),
     path('editar_desarrollo/', views.editar_desarrollo, name='editar_desarrollo'),
     path('crear_solicitante/', views.crear_solicitante, name='crear_solicitante'),
     path('tareas_desarrollo_success/', views.tareas_desarrollo_success, name='tareas_desarrollo_success'),
