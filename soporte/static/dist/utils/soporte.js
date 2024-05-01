@@ -21,6 +21,7 @@ let resultadosProyectos,
   phoneSelected,
   textAgente,
   orderList,
+  orderByDescending = false,
   base64Image;
 var resultadosAgentesData = window.resultados_agentes_data;
 var resultadosSolicitantesData = window.resultados_solicitantes_data;
@@ -44,7 +45,7 @@ const inputEditSoporte = document.getElementById("inputEditSoporte");
 const textAreaComentarioEdit = document.getElementById(
   "textAreaComentarioEdit"
 );
-const imageError2 = document.getElementById("imageError2")
+const imageError2 = document.getElementById("imageError2");
 const prioridadSelectAgent = document.getElementById("prioridadSelectAgent");
 const btnCreateTicketAgent = document.getElementById("btnCreateTicketAgent");
 const btnEditarDatos = document.getElementById("btnEditarDatos");
@@ -106,434 +107,7 @@ fetch("ticketsoportescreados/")
       const resultadosAgrupados = Array.from(mapaAgrupado.values());
       resultadosProyectos = resultadosAgrupados;
 
-      // Agrupacion de tablas
-      tBodyTicketSoporte.innerHTML = "";
-      resultadosProyectos.forEach((proyecto) => {
-        var row = document.createElement("tr");
-
-        var cellNumTicket = document.createElement("td");
-        cellNumTicket.textContent = `000-${proyecto.NumTicket}`;
-
-        var cellEmpresa = document.createElement("td");
-        cellEmpresa.textContent = proyecto.nombreEmpresa;
-
-        var cellMotivo = document.createElement("td");
-        cellMotivo.textContent = proyecto.comentario;
-
-        var cellSolicitante = document.createElement("td");
-        cellSolicitante.textContent = proyecto.fullNameSolicitante;
-
-        var cellAgente = document.createElement("td");
-        cellAgente.textContent = proyecto.prioridad;
-
-        let svg;
-        if (proyecto.idEstado === 2) {
-          svg = createSVG(
-            "M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"
-          );
-        } else if (proyecto.idEstado === 1) {
-          svg = createSVG(
-            "M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
-          );
-        } else if (proyecto.idEstado === 4) {
-          svg = createSVG(
-            "M192 0c-41.8 0-77.4 26.7-90.5 64H64C28.7 64 0 92.7 0 128V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64H282.5C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM305 273L177 401c-9.4 9.4-24.6 9.4-33.9 0L79 337c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L271 239c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"
-          );
-        } else if (proyecto.idEstado === 5) {
-          svg = createSVG(
-            "M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
-          );
-        } else if (proyecto.idEstado === 3) {
-          svg = createSVG(
-            "M32 0C14.3 0 0 14.3 0 32S14.3 64 32 64V75c0 42.4 16.9 83.1 46.9 113.1L146.7 256 78.9 323.9C48.9 353.9 32 394.6 32 437v11c-17.7 0-32 14.3-32 32s14.3 32 32 32H64 320h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V437c0-42.4-16.9-83.1-46.9-113.1L237.3 256l67.9-67.9c30-30 46.9-70.7 46.9-113.1V64c17.7 0 32-14.3 32-32s-14.3-32-32-32H320 64 32zM288 437v11H96V437c0-25.5 10.1-49.9 28.1-67.9L192 301.3l67.9 67.9c18 18 28.1 42.4 28.1 67.9z"
-          );
-        }
-
-        var cellEstado = document.createElement("td");
-        cellEstado.appendChild(svg);
-
-        var cellAcciones = document.createElement("td");
-        var btnVer = document.createElement("button");
-        btnVer.textContent = "Ver";
-        btnVer.className = "btn btn-info btn-sm";
-        btnVer.dataset.toggle = "modal";
-        btnVer.dataset.target = "#modalInfoTicket";
-
-        // Funcionalidad del boton ver
-        btnVer.addEventListener("click", function () {
-          btnFinishTicket.style.display = "none";
-          btnGenerarReporte.style.display = "none";
-          btnNewTask.style.display = "none";
-          textAreaCausaError.disabled = true;
-          numTicketSoporte = proyecto.NumTicket;
-          selectEditAgenteSolicitado.disabled = true;
-          modalInfoTicketLabel.textContent = `Ticket número 000-${numTicketSoporte}`;
-          tbodyListTask.innerHTML = "";
-          btnAsignarAgente.style.display = "none";
-          arrayTasks = [];
-          infoGeneraTicket = [];
-          infoTareas = [];
-          rowTableTaskEdit.style.display = "none";
-          btnGenerarReporte.style.display = "none";
-
-          // Consulta para los detalles del Ticket
-          fetch(`ticketsoportescreadosid/${numTicketSoporte}/`)
-            .then((response) => response.json())
-            .then(async (data) => {
-              infoGeneraTicket = data.ticket;
-              infoTareas = data.actividades;
-              textAreaComentarioEdit.innerHTML = "";
-              textAreaComentarioEdit.textContent =
-                infoGeneraTicket[0].comentario;
-              idEstadoGeneralTicket = infoGeneraTicket[0].idestado_id;
-
-              // Si el estado del ticket es 4 se debe aparecer el boton
-              if (infoGeneraTicket[0].idestado_id == 4 && idUsuario == 2) {
-                btnFinishTicket.style.display = "";
-                btnRegresarEstado.style.display = "";
-              } else {
-                btnFinishTicket.style.display = "none";
-                btnRegresarEstado.style.display = "none";
-              }
-
-              if (infoGeneraTicket[0].idestado_id == 5) {
-                btnGenerarReporte.style.display = "";
-              } else {
-                btnGenerarReporte.style.display = "none";
-              }
-
-              textAreaCausaError.value = infoGeneraTicket[0].causaerror;
-
-              // Llenar el select con los datos de resultados_agentes_data
-              const idAgenteSeleccionado = infoGeneraTicket[0].idAgente_id;
-              $("#selectEditAgenteSolicitado")
-                .val(idAgenteSeleccionado)
-                .trigger("change");
-              valAgenteAsignadoDefault = $("#selectEditAgenteSolicitado").val();
-
-              // Datos para el envio  de Whatsapp
-              numeroSolicitante = infoGeneraTicket[0].telefonoSolicitante;
-              nombreCompletoSolicitante = infoGeneraTicket[0].nombreApellido;
-              nombreEmpresaSolicitante = infoGeneraTicket[0].nombreEmpresa;
-              auntoTicket = infoGeneraTicket[0].comentario;
-
-              const idSolicitanteSeleccionado =
-                infoGeneraTicket[0].idSolicitante_id;
-              $("#selectSolicitante")
-                .val(idSolicitanteSeleccionado)
-                .trigger("change");
-
-              fechaCreacionEdit.innerHTML = "";
-              fechaCreacionEdit.value = infoGeneraTicket[0].fechaCreacion;
-              estadoGeneraTicket = infoGeneraTicket[0].estadoTicket;
-              var facturar = infoGeneraTicket[0].facturar;
-              facturacionText = infoGeneraTicket[0].facturar;
-              $("#selectFacturacion").val(String(facturar)).trigger("change");
-
-              fechaFinalizacionEdit.innerHTML = "";
-              fechaFinalizacionEdit.value =
-                infoGeneraTicket[0].fechaFinalizacion;
-
-              fechaFinalizacionRealEdit.innerHTML = "";
-              fechaFinalizacionRealEdit.value =
-                infoGeneraTicket[0].fechaFinalizacionReal;
-
-              imageError.src = "";
-              var urlImageGenera = infoGeneraTicket[0].imagenes;
-              const [urlImage1, urlImage2] = urlImageGenera.split(",");
-              imageError.src = "/media/" + urlImage1;
-              imageError2.src = urlImage2 == undefined ? '/media/ticket_images/imagenDisponible.png' : ("/media/" + urlImage2)
-              imageError.addEventListener("mouseover", function () {
-                this.style.cursor = "pointer";
-                this.style.filter = "brightness(50%)";
-              });
-              imageError2.addEventListener("mouseover", function(){
-                this.style.cursor = "pointer";
-                this.style.filter = "brightness(50%)";
-              })
-              imageError.addEventListener("click", function () {
-                const imageUrl = this.src;
-                window.open(imageUrl, "_blank");
-              });
-              imageError2.addEventListener("click", function(){
-                const imageUrl = this.src;
-                window.open(imageUrl, "_blank");
-              })
-              imageError.addEventListener("mouseout", function () {
-                this.style.filter = "";
-              });
-              imageError2.addEventListener("mouseout", function () {
-                this.style.filter = "";
-              });
-              
-              // Condicion en caso de que este lleno
-              if(urlImage2 == undefined && infoGeneraTicket[0].idestado_id == 1){
-                rowInputImg2.style.display = ''
-              }else{
-                rowInputImg2.style.display = 'none'
-              }
-
-              // Condiciones en caso de que el estado del ticket esta hecho o no
-              if (
-                infoGeneraTicket[0].idestado_id == 1 &&
-                nombreUsuario == "mafer"
-              ) {
-                selectEditAgenteSolicitado.disabled = false;
-                btnAsignarAgente.style.display = "";
-              }
-
-              // Condicion en caso de que sea mafer  y su estado sea 5 para el boton de notificacion del agente para el cliente
-              if (
-                (nombreUsuario == "mafer" &&
-                  (infoGeneraTicket[0].idestado_id == 5 ||
-                    infoGeneraTicket[0].idestado_id == 4)) ||
-                infoGeneraTicket[0].idAgente_id == idUsuario
-              ) {
-                btnNotificarSolicitante.style.display = "";
-              } else {
-                btnNotificarSolicitante.style.display = "none";
-              }
-
-              // En caso de que el usuario logeado sea el solicitante
-              if (razonSocial != infoGeneraTicket[0].nombreEmpresa) {
-                btnNotificar.style.display = "none";
-              } else {
-                btnNotificar.style.display = "";
-              }
-
-              // Si el usuario ingresado es admin
-              if (
-                infoGeneraTicket[0].idAgente_id == idUsuario &&
-                nombreUsuario != "mafer" &&
-                nombreUsuario != "superadmin"
-              ) {
-                if (
-                  infoGeneraTicket[0].causaerror == " " &&
-                  infoGeneraTicket[0].fechaFinalizacion == null
-                ) {
-                  textAreaCausaError.disabled = false;
-                  fechaFinalizacionEdit.disabled = false;
-                  selectFacturacion.disabled = false;
-                } else {
-                  textAreaCausaError.disabled = true;
-                  fechaFinalizacionEdit.disabled = true;
-                  selectFacturacion.disabled = true;
-                }
-              }
-              // Iteracion para la tabulacion de las tareas en  caso de que hayan tareas en los tickets
-              if (infoTareas.length != 0) {
-                rowTableTaskEdit.style.display = "";
-                infoTareas.forEach((tarea) => {
-                  const rowTask = document.createElement("tr");
-
-                  // En caso de que la tarea se perteneciente al usuario logeado, debe dejar colocar un input
-                  const cellTarea = document.createElement("td");
-                  if (
-                    tarea.descripcion == "" &&
-                    idUsuario == tarea.idAgente_id &&
-                    (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
-                  ) {
-                    var inputDescripcion = document.createElement("input");
-                    inputDescripcion.type = "text";
-                    inputDescripcion.classList = "form-control form-control-sm";
-                    inputDescripcion.id = "descripcionActividad";
-                    inputDescripcion.placeholder =
-                      "Descripcion de al actividad a realizar";
-                    cellTarea.appendChild(inputDescripcion);
-                  } else {
-                    if (tarea.descripcion == "") {
-                      cellTarea.textContent =
-                        "El usuario no ha determinado la tarea";
-                    } else {
-                      cellTarea.textContent = tarea.descripcion;
-                    }
-                  }
-
-                  const cellEstado = document.createElement("td");
-                  cellEstado.textContent = tarea.estado_actividad;
-
-                  const cellAgente = document.createElement("td");
-                  cellAgente.textContent = tarea.agente_actividad_nombre;
-
-                  // Ahora en caso de que el fecha fina este vacio le permita al usuario participante agregar una fecha
-                  const cellFechaFinalizacion = document.createElement("td");
-                  if (
-                    tarea.fechafinal == null &&
-                    idUsuario == tarea.idAgente_id &&
-                    (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
-                  ) {
-                    var inputFecha = document.createElement("input");
-                    inputFecha.className = "form-control form-control-sm";
-                    inputFecha.type = "datetime-local";
-                    cellFechaFinalizacion.appendChild(inputFecha);
-                  } else {
-                    if (tarea.fechafinal == null) {
-                      cellFechaFinalizacion.textContent =
-                        "El usuario no ha determinado la tarea";
-                    } else {
-                      cellFechaFinalizacion.textContent = tarea.fechafinal;
-                    }
-                  }
-
-                  //Funcionalidad de la columna de acciones, en caso de que sea asignado debo agregar la información,los checks
-                  const cellAcciones = document.createElement("td");
-                  if (
-                    nombreUsuario != "mafer" &&
-                    nombreUsuario != "superadmin"
-                  ) {
-                    // En caso de que yo sienod un usuario normal, osea no admin sea seleccionado
-                    if (
-                      tarea.idestado_id == 2 &&
-                      tarea.idAgente_id == idUsuario
-                    ) {
-                      var checkBox = document.createElement("input");
-                      checkBox.type = "checkbox";
-                      checkBox.disabled = true;
-                      checkBox.addEventListener("change", (event) => {
-                        const checkboxId = tarea.id;
-
-                        if (event.target.checked) {
-                          arrayTasks.push({
-                            id: checkboxId,
-                            fechaFinalizacion: inputFecha.value,
-                            imagen: base64Image,
-                          });
-                          if (arrayTasks.length != 0) {
-                            btnTerminarTareas.style.display = "";
-                          } else {
-                            btnTerminarTareas.style.display = "none";
-                          }
-                        } else {
-                          arrayTasks = arrayTasks.filter(
-                            (task) => task.id !== checkboxId
-                          );
-                        }
-                      });
-                      cellAcciones.appendChild(checkBox);
-                    }
-                  }
-
-                  // Funcionalidad en caso de que la imagen este vacia o no, si esta vicia debe permitirme subir una imagen, en caso de que no solo ver la imagen
-                  const cellImage = document.createElement("td");
-                  if (tarea.imagen_actividades != "") {
-                    const verImage = document.createElement("button");
-                    verImage.textContent = "Imagen";
-                    verImage.type = "button";
-                    verImage.className = "btn btn-secondary btn-sm btn-block";
-                    verImage.addEventListener("click", function () {
-                      const newWindow = window.open(
-                        "",
-                        "ImageWindow",
-                        "width=400,height=400"
-                      );
-                      newWindow.document.write(
-                        `<img src="${tarea.imagen_actividades}" style="max-width: 100%; max-height: 100%;">`
-                      );
-                    });
-                    cellImage.appendChild(verImage);
-                  } else {
-                    if (idUsuario == tarea.idAgente_id) {
-                      var inputImagen = document.createElement("input");
-                      inputImagen.setAttribute("type", "file");
-                      inputImagen.setAttribute(
-                        "class",
-                        "form-control-file form-control-sm"
-                      );
-                      // Funcionalidad de la seleccion de imagen
-                      inputImagen.addEventListener("change", function () {
-                        base64Image = "";
-                        var file = inputImagen.files[0];
-                        var reader = new FileReader();
-                        reader.onload = function (event) {
-                          base64Image = event.target.result;
-                        };
-                        reader.readAsDataURL(file);
-                        if (tarea.descripcion != "" && inputFecha.value != "") {
-                          toastr.info(
-                            "Listo para enviar",
-                            "La tarea esta lista para enviar"
-                          );
-                          checkBox.disabled = false;
-                        } else {
-                          toastr.error(
-                            "Falta información",
-                            "Se necesita completar todos los campos"
-                          );
-                          checkBox.disabled = true;
-                        }
-                      });
-                      cellImage.appendChild(inputImagen);
-                    } else {
-                      cellImage.textContent = "No hay imagen de la solución";
-                    }
-                  }
-                  // En caso de que el que abra este ticket sea administrador del mismo
-                  if (idUsuario == infoGeneraTicket[0].idAgente_id && infoGeneraTicket[0].idestado_id == 2) {
-                    btnNewTask.style.display = "";
-                    btnNewTask.disabled = false;
-                    // En caso de que mi tarea esta finalizada
-                    if (tarea.idestado_id == 4) {
-                      var checkBoxFinishTask = document.createElement("input");
-                      checkBoxFinishTask.type = "checkbox";
-                      checkBoxFinishTask.addEventListener(
-                        "change",
-                        function () {
-                          const taskId = tarea.id;
-                          if (this.checked) {
-                            arrayFinishTasks.push(taskId);
-                          } else {
-                            arrayFinishTasks = arrayFinishTasks.filter(
-                              (id) => id !== taskId
-                            );
-                          }
-                          if (arrayFinishTasks.length != 0) {
-                            btnFinisTasks.style.display = "";
-                          } else {
-                            btnFinisTasks.style.display = "none";
-                          }
-                        }
-                      );
-                      cellAcciones.appendChild(checkBoxFinishTask);
-                    }
-                  }else{
-                    btnNewTask.style.display = "none";
-                  }
-
-                  rowTask.appendChild(cellTarea);
-                  rowTask.appendChild(cellEstado);
-                  rowTask.appendChild(cellAgente);
-                  rowTask.appendChild(cellFechaFinalizacion);
-                  rowTask.appendChild(cellImage);
-                  rowTask.appendChild(cellAcciones);
-
-                  tbodyListTask.appendChild(rowTask);
-                });
-              } else {
-                // En caso de que no haya tareas se ejecutara el siguiente codigo, donde hay un boton que genera una tabla
-                if (
-                  infoGeneraTicket[0].idestado_id == 2 &&
-                  (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
-                ) {
-                  if (idUsuario == infoGeneraTicket[0].idAgente_id) {
-                    btnNewTask.style.display = "";
-                    btnNewTask.disabled = false;
-                  }
-                }
-              }
-            });
-        });
-        cellAcciones.appendChild(btnVer);
-
-        row.appendChild(cellNumTicket);
-        row.appendChild(cellEmpresa);
-        row.appendChild(cellMotivo);
-        row.appendChild(cellSolicitante);
-        row.appendChild(cellAgente);
-        row.appendChild(cellEstado);
-        row.appendChild(cellAcciones);
-
-        tBodyTicketSoporte.appendChild(row);
-      });
+      tabular(resultadosProyectos);
     } else {
       var row = document.createElement("tr");
       var cell = document.createElement("td");
@@ -546,6 +120,444 @@ fetch("ticketsoportescreados/")
     }
   })
   .catch((error) => console.error("Error:", error));
+
+  function orderByEstadoDesc(a, b) {
+    if (orderByDescending) {
+      return a.idEstado -b.idEstado;
+    } else {
+      return b.idEstado - a.idEstado;
+    }
+  }
+  function toggleOrder() {
+    orderByDescending = !orderByDescending;
+  }
+
+// Funcion para tabular
+function tabular(resultadosProyectos, orderByFunc) {
+  resultadosProyectos.sort(orderByFunc);
+  tBodyTicketSoporte.innerHTML = "";
+  resultadosProyectos.forEach((proyecto) => {
+    var row = document.createElement("tr");
+
+    var cellNumTicket = document.createElement("td");
+    cellNumTicket.textContent = `000-${proyecto.NumTicket}`;
+
+    var cellEmpresa = document.createElement("td");
+    cellEmpresa.textContent = proyecto.nombreEmpresa;
+
+    var cellMotivo = document.createElement("td");
+    cellMotivo.textContent = proyecto.comentario;
+
+    var cellSolicitante = document.createElement("td");
+    cellSolicitante.textContent = proyecto.fullNameSolicitante;
+
+    var cellAgente = document.createElement("td");
+    cellAgente.textContent = proyecto.prioridad;
+
+    let svg;
+    if (proyecto.idEstado === 2) {
+      svg = createSVG(
+        "M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"
+      );
+    } else if (proyecto.idEstado === 1) {
+      svg = createSVG(
+        "M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
+      );
+    } else if (proyecto.idEstado === 4) {
+      svg = createSVG(
+        "M192 0c-41.8 0-77.4 26.7-90.5 64H64C28.7 64 0 92.7 0 128V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64H282.5C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM305 273L177 401c-9.4 9.4-24.6 9.4-33.9 0L79 337c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L271 239c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"
+      );
+    } else if (proyecto.idEstado === 5) {
+      svg = createSVG(
+        "M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
+      );
+    } else if (proyecto.idEstado === 3) {
+      svg = createSVG(
+        "M32 0C14.3 0 0 14.3 0 32S14.3 64 32 64V75c0 42.4 16.9 83.1 46.9 113.1L146.7 256 78.9 323.9C48.9 353.9 32 394.6 32 437v11c-17.7 0-32 14.3-32 32s14.3 32 32 32H64 320h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V437c0-42.4-16.9-83.1-46.9-113.1L237.3 256l67.9-67.9c30-30 46.9-70.7 46.9-113.1V64c17.7 0 32-14.3 32-32s-14.3-32-32-32H320 64 32zM288 437v11H96V437c0-25.5 10.1-49.9 28.1-67.9L192 301.3l67.9 67.9c18 18 28.1 42.4 28.1 67.9z"
+      );
+    }
+
+    var cellEstado = document.createElement("td");
+    cellEstado.appendChild(svg);
+
+    var cellAcciones = document.createElement("td");
+    var btnVer = document.createElement("button");
+    btnVer.textContent = "Ver";
+    btnVer.className = "btn btn-info btn-sm";
+    btnVer.dataset.toggle = "modal";
+    btnVer.dataset.target = "#modalInfoTicket";
+
+    // Funcionalidad del boton ver
+    btnVer.addEventListener("click", function () {
+      btnFinishTicket.style.display = "none";
+      btnGenerarReporte.style.display = "none";
+      btnNewTask.style.display = "none";
+      textAreaCausaError.disabled = true;
+      numTicketSoporte = proyecto.NumTicket;
+      selectEditAgenteSolicitado.disabled = true;
+      modalInfoTicketLabel.textContent = `Ticket número 000-${numTicketSoporte}`;
+      tbodyListTask.innerHTML = "";
+      btnAsignarAgente.style.display = "none";
+      arrayTasks = [];
+      infoGeneraTicket = [];
+      infoTareas = [];
+      rowTableTaskEdit.style.display = "none";
+      btnGenerarReporte.style.display = "none";
+
+      // Consulta para los detalles del Ticket
+      fetch(`ticketsoportescreadosid/${numTicketSoporte}/`)
+        .then((response) => response.json())
+        .then(async (data) => {
+          infoGeneraTicket = data.ticket;
+          infoTareas = data.actividades;
+          textAreaComentarioEdit.innerHTML = "";
+          textAreaComentarioEdit.textContent = infoGeneraTicket[0].comentario;
+          idEstadoGeneralTicket = infoGeneraTicket[0].idestado_id;
+
+          // Si el estado del ticket es 4 se debe aparecer el boton
+          if (infoGeneraTicket[0].idestado_id == 4 && idUsuario == 2) {
+            btnFinishTicket.style.display = "";
+            btnRegresarEstado.style.display = "";
+          } else {
+            btnFinishTicket.style.display = "none";
+            btnRegresarEstado.style.display = "none";
+          }
+
+          if (infoGeneraTicket[0].idestado_id == 5) {
+            btnGenerarReporte.style.display = "";
+          } else {
+            btnGenerarReporte.style.display = "none";
+          }
+
+          textAreaCausaError.value = infoGeneraTicket[0].causaerror;
+
+          // Llenar el select con los datos de resultados_agentes_data
+          const idAgenteSeleccionado = infoGeneraTicket[0].idAgente_id;
+          $("#selectEditAgenteSolicitado")
+            .val(idAgenteSeleccionado)
+            .trigger("change");
+          valAgenteAsignadoDefault = $("#selectEditAgenteSolicitado").val();
+
+          // Datos para el envio  de Whatsapp
+          numeroSolicitante = infoGeneraTicket[0].telefonoSolicitante;
+          nombreCompletoSolicitante = infoGeneraTicket[0].nombreApellido;
+          nombreEmpresaSolicitante = infoGeneraTicket[0].nombreEmpresa;
+          auntoTicket = infoGeneraTicket[0].comentario;
+
+          const idSolicitanteSeleccionado =
+            infoGeneraTicket[0].idSolicitante_id;
+          $("#selectSolicitante")
+            .val(idSolicitanteSeleccionado)
+            .trigger("change");
+
+          fechaCreacionEdit.innerHTML = "";
+          fechaCreacionEdit.value = infoGeneraTicket[0].fechaCreacion;
+          estadoGeneraTicket = infoGeneraTicket[0].estadoTicket;
+          var facturar = infoGeneraTicket[0].facturar;
+          facturacionText = infoGeneraTicket[0].facturar;
+          $("#selectFacturacion").val(String(facturar)).trigger("change");
+
+          fechaFinalizacionEdit.innerHTML = "";
+          fechaFinalizacionEdit.value = infoGeneraTicket[0].fechaFinalizacion;
+
+          fechaFinalizacionRealEdit.innerHTML = "";
+          fechaFinalizacionRealEdit.value =
+            infoGeneraTicket[0].fechaFinalizacionReal;
+
+          imageError.src = "";
+          var urlImageGenera = infoGeneraTicket[0].imagenes;
+          const [urlImage1, urlImage2] = urlImageGenera.split(",");
+          imageError.src = "/media/" + urlImage1;
+          imageError2.src =
+            urlImage2 == undefined
+              ? "/media/ticket_images/imagenDisponible.png"
+              : "/media/" + urlImage2;
+          imageError.addEventListener("mouseover", function () {
+            this.style.cursor = "pointer";
+            this.style.filter = "brightness(50%)";
+          });
+          imageError2.addEventListener("mouseover", function () {
+            this.style.cursor = "pointer";
+            this.style.filter = "brightness(50%)";
+          });
+          imageError.addEventListener("click", function () {
+            const imageUrl = this.src;
+            window.open(imageUrl, "_blank");
+          });
+          imageError2.addEventListener("click", function () {
+            const imageUrl = this.src;
+            window.open(imageUrl, "_blank");
+          });
+          imageError.addEventListener("mouseout", function () {
+            this.style.filter = "";
+          });
+          imageError2.addEventListener("mouseout", function () {
+            this.style.filter = "";
+          });
+
+          // Condicion en caso de que este lleno
+          if (urlImage2 == undefined && infoGeneraTicket[0].idestado_id == 1) {
+            rowInputImg2.style.display = "";
+          } else {
+            rowInputImg2.style.display = "none";
+          }
+
+          // Condiciones en caso de que el estado del ticket esta hecho o no
+          if (
+            infoGeneraTicket[0].idestado_id == 1 &&
+            nombreUsuario == "mafer"
+          ) {
+            selectEditAgenteSolicitado.disabled = false;
+            btnAsignarAgente.style.display = "";
+          }
+
+          // Condicion en caso de que sea mafer  y su estado sea 5 para el boton de notificacion del agente para el cliente
+          if (
+            (nombreUsuario == "mafer" &&
+              (infoGeneraTicket[0].idestado_id == 5 ||
+                infoGeneraTicket[0].idestado_id == 4)) ||
+            infoGeneraTicket[0].idAgente_id == idUsuario
+          ) {
+            btnNotificarSolicitante.style.display = "";
+          } else {
+            btnNotificarSolicitante.style.display = "none";
+          }
+
+          // En caso de que el usuario logeado sea el solicitante
+          if (razonSocial != infoGeneraTicket[0].nombreEmpresa) {
+            btnNotificar.style.display = "none";
+          } else {
+            btnNotificar.style.display = "";
+          }
+
+          // Si el usuario ingresado es admin
+          if (
+            infoGeneraTicket[0].idAgente_id == idUsuario &&
+            nombreUsuario != "mafer" &&
+            nombreUsuario != "superadmin"
+          ) {
+            if (
+              infoGeneraTicket[0].causaerror == " " &&
+              infoGeneraTicket[0].fechaFinalizacion == null
+            ) {
+              textAreaCausaError.disabled = false;
+              fechaFinalizacionEdit.disabled = false;
+              selectFacturacion.disabled = false;
+            } else {
+              textAreaCausaError.disabled = true;
+              fechaFinalizacionEdit.disabled = true;
+              selectFacturacion.disabled = true;
+            }
+          }
+          // Iteracion para la tabulacion de las tareas en  caso de que hayan tareas en los tickets
+          if (infoTareas.length != 0) {
+            rowTableTaskEdit.style.display = "";
+            infoTareas.forEach((tarea) => {
+              const rowTask = document.createElement("tr");
+
+              // En caso de que la tarea se perteneciente al usuario logeado, debe dejar colocar un input
+              const cellTarea = document.createElement("td");
+              if (
+                tarea.descripcion == "" &&
+                idUsuario == tarea.idAgente_id &&
+                (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
+              ) {
+                var inputDescripcion = document.createElement("input");
+                inputDescripcion.type = "text";
+                inputDescripcion.classList = "form-control form-control-sm";
+                inputDescripcion.id = "descripcionActividad";
+                inputDescripcion.placeholder =
+                  "Descripcion de al actividad a realizar";
+                cellTarea.appendChild(inputDescripcion);
+              } else {
+                if (tarea.descripcion == "") {
+                  cellTarea.textContent =
+                    "El usuario no ha determinado la tarea";
+                } else {
+                  cellTarea.textContent = tarea.descripcion;
+                }
+              }
+
+              const cellEstado = document.createElement("td");
+              cellEstado.textContent = tarea.estado_actividad;
+
+              const cellAgente = document.createElement("td");
+              cellAgente.textContent = tarea.agente_actividad_nombre;
+
+              // Ahora en caso de que el fecha fina este vacio le permita al usuario participante agregar una fecha
+              const cellFechaFinalizacion = document.createElement("td");
+              if (
+                tarea.fechafinal == null &&
+                idUsuario == tarea.idAgente_id &&
+                (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
+              ) {
+                var inputFecha = document.createElement("input");
+                inputFecha.className = "form-control form-control-sm";
+                inputFecha.type = "datetime-local";
+                cellFechaFinalizacion.appendChild(inputFecha);
+              } else {
+                if (tarea.fechafinal == null) {
+                  cellFechaFinalizacion.textContent =
+                    "El usuario no ha determinado la tarea";
+                } else {
+                  cellFechaFinalizacion.textContent = tarea.fechafinal;
+                }
+              }
+
+              //Funcionalidad de la columna de acciones, en caso de que sea asignado debo agregar la información,los checks
+              const cellAcciones = document.createElement("td");
+              if (nombreUsuario != "mafer" && nombreUsuario != "superadmin") {
+                // En caso de que yo sienod un usuario normal, osea no admin sea seleccionado
+                if (tarea.idestado_id == 2 && tarea.idAgente_id == idUsuario) {
+                  var checkBox = document.createElement("input");
+                  checkBox.type = "checkbox";
+                  checkBox.disabled = true;
+                  checkBox.addEventListener("change", (event) => {
+                    const checkboxId = tarea.id;
+
+                    if (event.target.checked) {
+                      arrayTasks.push({
+                        id: checkboxId,
+                        fechaFinalizacion: inputFecha.value,
+                        imagen: base64Image,
+                      });
+                      if (arrayTasks.length != 0) {
+                        btnTerminarTareas.style.display = "";
+                      } else {
+                        btnTerminarTareas.style.display = "none";
+                      }
+                    } else {
+                      arrayTasks = arrayTasks.filter(
+                        (task) => task.id !== checkboxId
+                      );
+                    }
+                  });
+                  cellAcciones.appendChild(checkBox);
+                }
+              }
+
+              // Funcionalidad en caso de que la imagen este vacia o no, si esta vicia debe permitirme subir una imagen, en caso de que no solo ver la imagen
+              const cellImage = document.createElement("td");
+              if (tarea.imagen_actividades != "") {
+                const verImage = document.createElement("button");
+                verImage.textContent = "Imagen";
+                verImage.type = "button";
+                verImage.className = "btn btn-secondary btn-sm btn-block";
+                verImage.addEventListener("click", function () {
+                  const newWindow = window.open(
+                    "",
+                    "ImageWindow",
+                    "width=400,height=400"
+                  );
+                  newWindow.document.write(
+                    `<img src="${tarea.imagen_actividades}" style="max-width: 100%; max-height: 100%;">`
+                  );
+                });
+                cellImage.appendChild(verImage);
+              } else {
+                if (idUsuario == tarea.idAgente_id) {
+                  var inputImagen = document.createElement("input");
+                  inputImagen.setAttribute("type", "file");
+                  inputImagen.setAttribute(
+                    "class",
+                    "form-control-file form-control-sm"
+                  );
+                  // Funcionalidad de la seleccion de imagen
+                  inputImagen.addEventListener("change", function () {
+                    base64Image = "";
+                    var file = inputImagen.files[0];
+                    var reader = new FileReader();
+                    reader.onload = function (event) {
+                      base64Image = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                    if (tarea.descripcion != "" && inputFecha.value != "") {
+                      toastr.info(
+                        "Listo para enviar",
+                        "La tarea esta lista para enviar"
+                      );
+                      checkBox.disabled = false;
+                    } else {
+                      toastr.error(
+                        "Falta información",
+                        "Se necesita completar todos los campos"
+                      );
+                      checkBox.disabled = true;
+                    }
+                  });
+                  cellImage.appendChild(inputImagen);
+                } else {
+                  cellImage.textContent = "No hay imagen de la solución";
+                }
+              }
+              // En caso de que el que abra este ticket sea administrador del mismo
+              if (
+                idUsuario == infoGeneraTicket[0].idAgente_id &&
+                infoGeneraTicket[0].idestado_id == 2
+              ) {
+                btnNewTask.style.display = "";
+                btnNewTask.disabled = false;
+                // En caso de que mi tarea esta finalizada
+                if (tarea.idestado_id == 4) {
+                  var checkBoxFinishTask = document.createElement("input");
+                  checkBoxFinishTask.type = "checkbox";
+                  checkBoxFinishTask.addEventListener("change", function () {
+                    const taskId = tarea.id;
+                    if (this.checked) {
+                      arrayFinishTasks.push(taskId);
+                    } else {
+                      arrayFinishTasks = arrayFinishTasks.filter(
+                        (id) => id !== taskId
+                      );
+                    }
+                    if (arrayFinishTasks.length != 0) {
+                      btnFinisTasks.style.display = "";
+                    } else {
+                      btnFinisTasks.style.display = "none";
+                    }
+                  });
+                  cellAcciones.appendChild(checkBoxFinishTask);
+                }
+              } else {
+                btnNewTask.style.display = "none";
+              }
+
+              rowTask.appendChild(cellTarea);
+              rowTask.appendChild(cellEstado);
+              rowTask.appendChild(cellAgente);
+              rowTask.appendChild(cellFechaFinalizacion);
+              rowTask.appendChild(cellImage);
+              rowTask.appendChild(cellAcciones);
+
+              tbodyListTask.appendChild(rowTask);
+            });
+          } else {
+            // En caso de que no haya tareas se ejecutara el siguiente codigo, donde hay un boton que genera una tabla
+            if (
+              infoGeneraTicket[0].idestado_id == 2 &&
+              (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
+            ) {
+              if (idUsuario == infoGeneraTicket[0].idAgente_id) {
+                btnNewTask.style.display = "";
+                btnNewTask.disabled = false;
+              }
+            }
+          }
+        });
+    });
+    cellAcciones.appendChild(btnVer);
+
+    row.appendChild(cellNumTicket);
+    row.appendChild(cellEmpresa);
+    row.appendChild(cellMotivo);
+    row.appendChild(cellSolicitante);
+    row.appendChild(cellAgente);
+    row.appendChild(cellEstado);
+    row.appendChild(cellAcciones);
+
+    tBodyTicketSoporte.appendChild(row);
+  });
+}
 
 //Funcionalidad del select, si oara que muestre los pertenecientes a la empresa
 for (var i = 0; i < selectSolicitante.options.length; i++) {
@@ -1019,7 +1031,7 @@ function makePdf(
     "es-ES",
     opcionesDeFormato
   );
-  console.log(arrayActivities)
+  console.log(arrayActivities);
   var objGeneratePdf = {
     content: [
       { image: imageUrl, width: 100, height: 100, alignment: "center" },
@@ -1284,7 +1296,8 @@ buscarSolicitante.addEventListener("keyup", function () {
 
 // Boton para ordenar la tabla
 btnStateAwait.addEventListener("click", function () {
-  orderList = false;
+  toggleOrder(); 
+  tabular(resultadosProyectos, orderByEstadoDesc);
 });
 
 // Funcionalidad para agregar la imagen
