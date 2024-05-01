@@ -77,7 +77,7 @@
             <div class="row g-1">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <input type="text" class="form-control" id="buscarSolicitante" placeholder="Buscar...">
+                        <input type="text" class="form-control" id="buscarSolicitanteUsuarios" placeholder="Buscar...">
                     </div>                    
                 </div>
             </div>
@@ -219,7 +219,7 @@
     const modalEmpresaSolicitante = document.getElementById("modalEmpresaSolicitante");
     const btnSendMessageWhatsapp = document.getElementById("btnSendMessageWhatsapp");
     const btnSendCredencialesMail = document.getElementById("btnSendCredencialesMail");
-    const buscarSolicitante = document.getElementById("buscarSolicitante")
+    const buscarSolicitanteUsuarios = document.getElementById("buscarSolicitanteUsuarios")
 
     function cargarTablaTickets() {
         $.ajax({
@@ -452,8 +452,8 @@
     })
 
     // Input para buscar
-    buscarSolicitante.addEventListener("keyup", function() {
-    const textoBusqueda = buscarSolicitante.value.toLowerCase(); 
+    buscarSolicitanteUsuarios.addEventListener("keyup", function() {
+    const textoBusqueda = buscarSolicitanteUsuarios.value.toLowerCase(); 
 
     Array.from(tbodySolicitante.children).forEach(function(fila) {
         const textoFila = fila.textContent.toLowerCase();

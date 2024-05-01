@@ -61,7 +61,7 @@
             <div class="row g-1">
                 <div class="col-md-12">
                     <div class="form-group">
-                        <input type="text" class="form-control" id="buscarSolicitante" placeholder="Buscar...">
+                        <input type="text" class="form-control" id="buscarSolicitanteEmpresa" placeholder="Buscar...">
                     </div>
                 </div>
             </div>
@@ -159,7 +159,7 @@
     let editarEmpresaForm = document.getElementById('editarEmpresaForm');
     let btnEnviarManual = document.getElementById('btnEnviarManual');
     let btnSaveChange = document.getElementById('btnSaveChange');
-    const buscarSolicitante = document.getElementById("buscarSolicitante");
+    const buscarSolicitanteEmpresa = document.getElementById("buscarSolicitanteEmpresa");
     const tbodyEmpresas = document.getElementById("tbodyEmpresas");
 
     function cargarTablaTickets() {
@@ -385,8 +385,8 @@
     })
 
     // Input para buscar
-    buscarSolicitante.addEventListener("keyup", function () {
-        const textoBusqueda = buscarSolicitante.value.toLowerCase();
+    buscarSolicitanteEmpresa.addEventListener("keyup", function () {
+        const textoBusqueda = buscarSolicitanteEmpresa.value.toLowerCase();
 
         Array.from(tbodyEmpresas.children).forEach(function (fila) {
             const textoFila = fila.textContent.toLowerCase();

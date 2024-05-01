@@ -30,6 +30,7 @@ var selectSolicitante = document.getElementById("selectSolicitante");
 var solicitante = document.getElementById("solicitante");
 const solicitanteAgent = document.getElementById("solicitanteAgent");
 const textAreaCausaError = document.getElementById("textAreaCausaError");
+const btnChangeTicket = document.getElementById("btnChangeTicket")
 const btnNotificarSolicitante = document.getElementById(
   "btnNotificarSolicitante"
 );
