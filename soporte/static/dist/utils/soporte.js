@@ -640,10 +640,12 @@ function enviarMensajeWhatsApp(creacionVer) {
     var selectedText = selectSolicitante.options[selectedIndex].text;
     const phoneNumber = "+593994606970";
     const message = `Hola, le saluda ${selectedText} para el siguiente requerimiento: 
-        Número de ticket: *${numTicketSoporte}*
-        Problema:
-        *${textAreaComentarioEdit.value}*
-            espero su pronta respuesta.`;
+    Número de ticket: *${numTicketSoporte}*
+    Problema:
+    *${textAreaComentarioEdit.value}*
+    espero su pronta respuesta.
+            
+    SiiTickets (http://186.3.160.137:120/).`;
 
     // Crear la URL para enviar el mensaje a WhatsApp
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
@@ -732,10 +734,13 @@ btnAsignarAgente.addEventListener("click", function () {
             );
             // Mensaje para el agente
             const message = `Hola ${textAgente} tiene un ticket asigando, con la siguiente información:
-      Número de ticket: *${numTicketSoporte}*
-      Problema:
-      *${textAreaComentarioEdit.value}*
-          espero su pronta respuesta.`;
+  Número de ticket: *${numTicketSoporte}*
+  Problema:
+  *${textAreaComentarioEdit.value}*
+  
+  Espero su pronta respuesta.
+          
+  SiiTickets (http://186.3.160.137:120/).`;
 
             // Crear la URL para enviar el mensaje a WhatsApp
             const url = `https://wa.me/${phoneSelected}?text=${encodeURIComponent(
