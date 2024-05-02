@@ -483,7 +483,7 @@ def agentesjson(request):
     SELECT au.id, au.first_name || ' ' || au.last_name AS full_name, aug.group_id 
     FROM auth_user au 
     INNER JOIN auth_user_groups aug ON aug.user_id = au.id
-    WHERE aug.group_id <> 1
+    WHERE aug.group_id <> 1 AND au.id <> 2 AND au.id <> 1
     """
     connection = connections["default"]
 
