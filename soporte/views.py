@@ -3201,3 +3201,24 @@ def finish_ticket_update(request, id_ticket):
         return JsonResponse(
             {"status": "error", "message": "El ticket no existe"}, status=404
         )
+
+@csrf_exempt
+def null_ticket(request, id_ticket):
+    try:
+        fecha_actual = datetime.now()
+        fecha_finalizacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
+
+        ticket = TicketSoporte.objects.get(id=id_ticket)
+        print(ticket)
+        ticket.idestado_id = 6
+        ticket.fechaFinalizacionReal = fecha_finalizacion
+        ticket.save()
+
+        return JsonResponse(
+            {"status": "success", "message": "Anulacion Exitosa"}
+        )
+    except Exception as e:
+        return JsonResponse(
+            {"status": "error", "message": f"Error al anular el ticket: {str(e)}"},
+            status=400,
+        )

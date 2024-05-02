@@ -33,7 +33,6 @@ urlpatterns = [
     path('usuariosEmpresas', views.usuariosEmpresas, name='usuariosEmpresas'),
     path('reportes', views.views_reports, name='views_reports'),
     path('logout/', views.signout, name='logout'),
-
     path('solicitantesjson/', views.solicitantesjson, name='solicitantesjson'),
     path('agentesjson/', views.agentesjson, name='agentesjson'),
     path('estadosjson/', views.estadosjson, name='estadosjson'),
@@ -41,7 +40,6 @@ urlpatterns = [
     path('empresasjson/', views.empresasjson, name='empresasjson'),
     path('clienteconsultajson/', views.clienteconsultajson, name='clienteconsultajson'),
     path('modulojson/', views.modulojson, name='modulojson'),
-
     path('ticketsoportescreados/', views.ticketsoportescreados, name='ticketsoportescreados'),
     path('ticketsoportescreadosid/<int:ticket_id>/', views.ticketsoportescreadosid, name='ticketsoportescreadosid'),
     path('crear_ticket_soporte/', views.crear_ticket_soporte, name='crear_ticket_soporte'),
@@ -92,9 +90,8 @@ urlpatterns = [
     path('tareas_desarrollo_success/', views.tareas_desarrollo_success, name='tareas_desarrollo_success'),
     path('tareas_actualizacion_success/', views.tareas_actualizacion_success, name='tareas_actualizacion_success'),
     path('solicitantescreados/', views.solicitantescreados, name='solicitantescreados'),
-
+    path('null_ticket/<int:id_ticket>', views.null_ticket, name='null_ticket'),
     path('consultatareas_view/', views.consultatareas_view, name='consultatareas_view'),
-
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

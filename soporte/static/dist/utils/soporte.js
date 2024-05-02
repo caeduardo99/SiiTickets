@@ -180,7 +180,7 @@ function tabular(resultadosProyectos, orderByFunc) {
       );
       row.className = 'table-warning'
     } else if(proyecto.idEstado === 6){
-      vg = createSVG(
+      svg = createSVG(
         "M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
       );
       row.className = 'table-danger'
@@ -312,7 +312,7 @@ function tabular(resultadosProyectos, orderByFunc) {
           }
 
           // Condicion en caso de que el ticket deba ser Anulado
-          if(infoGeneraTicket[0].idestado_id == 1 || infoGeneraTicket[0].idestado_id == 3){
+          if((infoGeneraTicket[0].idestado_id == 1 || infoGeneraTicket[0].idestado_id == 3) && (idUsuario == '2' || idUsuario == idAgenteSeleccionado) ){
             btnNullTicket.style.display = "";
           }else{
             btnNullTicket.style.display = "none";
@@ -1356,3 +1356,29 @@ inputNewImage2.addEventListener("change", function () {
       console.error("Error al enviar la imagen:", error);
     });
 });
+
+// Funcionalidad del boton de anular
+btnNullTicket.addEventListener("click", function(){
+  fetch(`null_ticket/${numTicketSoporte}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status == "success") {
+        toastr.success("El ticket ha sido anulado correctamente.", data.message);
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        toastr.error("Error al anular el ticket, revise el servicio", data.message);
+      }
+    })
+    .catch((error) => {
+      console.error("Error al anular el ticket, revise el servicio:", error);
+      toastr.error("Error al anular el ticket, revise el servicio", data.message);
+    });
+})
