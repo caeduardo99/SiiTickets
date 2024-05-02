@@ -2820,13 +2820,6 @@ def actualizar_empresa(request):
                     [nombre_empresa, direccion, telefono, email, num_empresa],
                 )
 
-            # Verificar si existe un usuario con el nombre de empresa
-            if not User.objects.filter(username=nombre_empresa).exists():
-                user = User.objects.create_user(
-                    username=nombre_empresa, password="8soptativa", email=email
-                )
-                user.save()
-
             return JsonResponse({"status": "success", "success": True})
         except Exception as e:
             return JsonResponse({"error": "Error al actualizar la empresa"})
