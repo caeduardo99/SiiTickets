@@ -5,7 +5,18 @@
     #numTickestCompleteTotals, #numTickestAwaitTotals, #numTicketProcessVenci, #tdTimeLastUpdate, #tdTimeLastTicket, #tdTimeDevelop {
         color: rgba(0, 0, 0, 0.5); /* Color con opacidad */
     }
+    #cardTicketsPendientes:hover {
+        cursor: pointer;
+    }
+    #cardTicketsCompletos:hover {
+        cursor: pointer;
+    }
+    #cardTicketsProcess:hover {
+        cursor: pointer;
+    }
+
 </style>
+<input type="hidden" id="idUsuario" value="{{ user.id }}">
 <section class="content-header">
     <div class="container-fluid">
         <div class="row mb-2">
@@ -23,7 +34,7 @@
     </div>
     <div class="row">
         <div class="col-md-6">
-            <div class="card">
+            <div class="card" id="cardTicketsPendientes">
                 <div class="card-body">
                     <div class="row g-1">
                         <div class="col-md-10">
@@ -43,7 +54,7 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card">
+            <div class="card" id="cardTicketsCompletos">
                 <div class="card-body">
                     <div class="row g-1">
                         <div class="col-md-10">
@@ -65,7 +76,7 @@
     </div>
     <div class="row">
         <div class="col-md-6">
-            <div class="card">
+            <div class="card" id="cardTicketsProcess">
                 <div class="card-body">
                     <div class="row g-1">
                         <div class="col-md-10">

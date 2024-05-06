@@ -1,7 +1,6 @@
 $(document).ready(function () {
   // VARIABLES PRINCIPALES
   const textBienvenida = document.getElementById("textBienvenida");
-
   const numTicketsComplete = document.getElementById('numTicketsComplete');
   const numTickestCompleteTotals = document.getElementById('numTickestCompleteTotals');
   const numTicketsAwait = document.getElementById('numTicketsAwait');
@@ -11,6 +10,8 @@ $(document).ready(function () {
   const tdTimeLastTicket = document.getElementById('tdTimeLastTicket');
   const tdTimeLastUpdate = document.getElementById('tdTimeLastUpdate');
   const tdTimeDevelop = document.getElementById('tdTimeDevelop');
+  const cardTicketsPendientes = document.getElementById('cardTicketsPendientes');
+  const cardTicketsCompletos = document.getElementById('cardTicketsCompletos');
 
   textBienvenida.textContent =
     infoUsuario.Nombre != ""
@@ -23,10 +24,10 @@ $(document).ready(function () {
     .then((data) => {
         console.log(data)
         numTicketsComplete.textContent = `${data.numDayliTicketComplete} Tickets completos (Hoy)`;
-        numTickestCompleteTotals.textContent = `${data.numTicketsComplete} Tickets completados hasta la fecha`;
-        numTickestAwaitTotals.textContent = `${data.numTicketAwait} Tickets en espera hasta la fecha`;
+        numTickestCompleteTotals.textContent = idUsuario.value == 2 ? `${data.numTicketsComplete} Tickets completados por los colaboradores hasta la fecha` :  `${data.numTicketsComplete} Tickets completados por/para este usuario hasta la fecha`;
+        numTickestAwaitTotals.textContent = idUsuario.value == 2 ? `${data.numTicketAwait} Tickets pendientes de asignar a la fecha` : `${data.numTicketAwait} Tickets en espera del agente.`;
         numTicketsAwait.textContent = `${data.numTicketAwaitToDay} Tickets en espera (Hoy)`;
-        numTicketProcess.textContent = `${data.numTicketProcess} Tickets en proceso`;
+        numTicketProcess.textContent = `${data.numTicketProcess} Tickets en proceso (Hoy)`;
         numTicketProcessVenci.textContent = `${data.numTicketProcessVenci} Tickets en proceso con fecha atrasada`;
 
         tdTimeLastTicket.textContent = data.tiempoDiferenciaSoporte == "" ? 'No hay tickets creados para este usuario' : `Utimo ticket creado hace ${data.tiempoDiferenciaSoporte}`;
@@ -70,4 +71,12 @@ $(document).ready(function () {
             options: barChartOptions
         })
     });
+
+    cardTicketsPendientes.addEventListener('click', function(){
+        window.location.href = '/soporte';
+    });
+
+    cardTicketsCompletos.addEventListener('click', function(){
+        window.location.href = '/soporte';
+    })
 });

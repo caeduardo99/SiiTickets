@@ -1447,7 +1447,7 @@ def infoAgenteSolicitado(request, id_agente):
 
 def info_panel_contro(request):
     id_usuario = request.user.id if request.user.is_authenticated else None
-    email_usuario = request.user.email if request.user.is_authenticated else None
+    nombre_usuario = request.user.first_name if request.user.is_authenticated else None
 
     if id_usuario == 2 or id_usuario == 1:
         fecha_actual = date.today()
@@ -1466,7 +1466,7 @@ def info_panel_contro(request):
         SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 2
         """
         consulta_admin_await = """
-        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 1 OR st.idestado_id = 4
+        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 1
         """
         consulta_admin_all = """
         SELECT * FROM soporte_ticketsoporte st 
@@ -1533,10 +1533,10 @@ def info_panel_contro(request):
         WHERE st.idestado_id = 5 AND st.idAgente_id = %s
         """
         consulta_admin_process_venci = """
-        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 2 AND st.idestado_id = 3 AND st.idAgente_id = %s
+        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 2 AND st.idAgente_id = %s
         """
         consulta_admin_await = """
-        SELECT * FROM soporte_ticketsoporte st WHERE st.idestado_id = 1 OR st.idestado_id = 4 AND st.idAgente_id = %s
+        SELECT * FROM soporte_ticketsoporte st WHERE (st.idestado_id = 1 OR st.idestado_id = 2 OR st.idestado_id = 3) AND st.idAgente_id = %s
         """
         consulta_admin_all = """
         SELECT * FROM soporte_ticketsoporte st WHERE st.idAgente_id = %s
@@ -1599,87 +1599,86 @@ def info_panel_contro(request):
             and len(resultados_admin_dev) == 0
         ):
             consulta_admin_complete = """
-            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa, au.first_name as NombreAgente, au.last_name as ApellidoAgente
+            SELECT st.*
             FROM soporte_ticketsoporte st 
-            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
+            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
             INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
-            INNER JOIN auth_user au ON au.id = st.idAgente_id
-            WHERE st.idestado_id = 5 AND se.email = %s
+            WHERE st.idestado_id = 5 AND se.nombreEmpresa = %s
             """
             consulta_admin_process_venci = """
-            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
-            FROM soporte_ticketsoporte st
-            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
-            WHERE st.idestado_id = 2 AND se.email = %s
+             SELECT st.* 
+ 			FROM soporte_ticketsoporte st 
+ 			INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+			INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
+ 			WHERE st.idestado_id = 2 AND se.nombreEmpresa = %s
             """
             consulta_admin_await = """
-            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
-            FROM soporte_ticketsoporte st
-            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
-            WHERE st.idestado_id = 1 OR st.idestado_id = 4 AND se.email = %s
+            SELECT st.* 
+			FROM soporte_ticketsoporte st 
+			INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+			INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+			WHERE (st.idestado_id = 1 OR st.idestado_id = 4) AND se.nombreEmpresa = %s
             """
             consulta_admin_all = """
-            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
-            FROM soporte_ticketsoporte st
-            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
-            WHERE se.email = %s
+            SELECT st.* 
+			FROM soporte_ticketsoporte st 
+			INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+			INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
+			WHERE se.nombreEmpresa = %s
             """
             consult_admin_all_update = """
-            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
-            FROM soporte_ticketactualizacion st
-            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
-            WHERE se.email = %s
+            SELECT st.* 
+			FROM soporte_ticketactualizacion st 
+			INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+			INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
+			WHERE se.nombreEmpresa = %s
             """
             consult_admin_all_dev = """
-            SELECT st.*, se.nombreEmpresa, se.email as emailEmpresa
-            FROM soporte_ticketdesarrollo st
-            INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id
-            INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id 
-            WHERE se.email = %s
+            SELECT st.* 
+			FROM soporte_ticketdesarrollo st 
+			INNER JOIN soporte_solicitante ss ON ss.id = st.idSolicitante_id 
+			INNER JOIN soporte_empresa se ON se.id = ss.idEmpresa_id
+			WHERE se.nombreEmpresa = %s
             """
             connection = connections["default"]
 
             with connection.cursor() as cursor:
-                cursor.execute(consulta_admin_complete, [email_usuario])
+                cursor.execute(consulta_admin_complete, [nombre_usuario])
                 columns = [col[0] for col in cursor.description]
                 resultados_admin = [
                     dict(zip(columns, row)) for row in cursor.fetchall()
                 ]
 
             with connection.cursor() as cursor:
-                cursor.execute(consulta_admin_process_venci, [email_usuario])
+                cursor.execute(consulta_admin_process_venci, [nombre_usuario])
                 columns = [col[0] for col in cursor.description]
                 resultados_admin_process = [
                     dict(zip(columns, row)) for row in cursor.fetchall()
                 ]
 
             with connection.cursor() as cursor:
-                cursor.execute(consulta_admin_await, [email_usuario])
+                cursor.execute(consulta_admin_await, [nombre_usuario])
                 columns = [col[0] for col in cursor.description]
                 resultados_admin_await = [
                     dict(zip(columns, row)) for row in cursor.fetchall()
                 ]
 
             with connection.cursor() as cursor:
-                cursor.execute(consulta_admin_all, [email_usuario])
+                cursor.execute(consulta_admin_all, [nombre_usuario])
                 columns = [col[0] for col in cursor.description]
                 resultados_admin_all = [
                     dict(zip(columns, row)) for row in cursor.fetchall()
                 ]
 
             with connection.cursor() as cursor:
-                cursor.execute(consult_admin_all_update, [email_usuario])
+                cursor.execute(consult_admin_all_update, [nombre_usuario])
                 columns = [col[0] for col in cursor.description]
                 resultados_admin_update = [
                     dict(zip(columns, row)) for row in cursor.fetchall()
                 ]
 
             with connection.cursor() as cursor:
-                cursor.execute(consult_admin_all_dev, [email_usuario])
+                cursor.execute(consult_admin_all_dev, [nombre_usuario])
                 columns = [col[0] for col in cursor.description]
                 resultados_admin_dev = [
                     dict(zip(columns, row)) for row in cursor.fetchall()
@@ -1709,7 +1708,7 @@ def info_panel_contro(request):
         result_proccess_venci = [
             obj
             for obj in resultados_admin_process
-            if obj["fechaFinalizacion"] < fecha_actual_con_hora
+            if obj["fechaInicio"] < fecha_actual_con_hora
         ]
     else:
         result_proccess_venci = []
@@ -1938,11 +1937,11 @@ def enviar_credenciales(request):
         mensaje = f"""
 <html>
 <body>
-<p>Reciba un coordial saludo desde el departamente de Desarrollo de Ishida Software, el presente correo es para indicarle las credenciales que han sido enviadas para su acceso como empresa <b>{nombre_empresa}</b>, a nuestro nuevo portal de soporte "SiiTickets" en (http://186.3.160.137:120/), que tiene como finalidad principal optimizar y obtener una atencion mas personalizada.
+<p>Reciba un cordial saludo desde el departamento de Desarrollo de Ishida Software, el presente correo es para indicarle las credenciales que han sido enviadas para su acceso como empresa <b>{nombre_empresa}</b>, a nuestro nuevo portal de soporte "SiiTickets" en (http://186.3.160.137:120/), que tiene como finalidad principal optimizar y obtener una atención más personalizada.
 </p>
 <p>El nombre de usuario es: <b>{nombre_formateado}</b></p>
 <p>La contraseña es: <b>8soptativa</b></p>
-<p><i>En caso de no acceder o tener algun requerimiento adicional sobre estas credenciales, por favor contactarse con cualquiera de nuestros canales oficiales de Ishida Software</i></p>
+<p><i>En caso de no acceder o tener algún requerimiento adicional sobre estas credenciales, por favor contactarse con cualquiera de nuestros canales oficiales de Ishida Software.</i></p>
 </body>
 </html>
 """

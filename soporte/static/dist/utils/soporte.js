@@ -146,6 +146,8 @@ function tabular(resultadosProyectos, orderByFunc) {
     cellEmpresa.textContent = proyecto.nombreEmpresa;
 
     var cellMotivo = document.createElement("td");
+    cellMotivo.style.overflow = "hidden";
+    cellMotivo.style.fontSize = "12px";
     cellMotivo.textContent = proyecto.comentario;
 
     var cellSolicitante = document.createElement("td");
@@ -153,6 +155,12 @@ function tabular(resultadosProyectos, orderByFunc) {
 
     var cellAgente = document.createElement("td");
     cellAgente.textContent = proyecto.prioridad;
+
+    var cellFechaSolicitud = document.createElement("td");
+    const fechaCreacionTicket = proyecto.fechaCreacionTicket;
+    const fecha = new Date(fechaCreacionTicket);
+    const formattedFecha = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()} ${fecha.getHours()}:${fecha.getMinutes()}:${fecha.getSeconds()}`;
+    cellFechaSolicitud.textContent = formattedFecha;
 
     let svg;
     if (proyecto.idEstado === 2) {
@@ -222,6 +230,7 @@ function tabular(resultadosProyectos, orderByFunc) {
           textAreaComentarioEdit.innerHTML = "";
           textAreaComentarioEdit.textContent = infoGeneraTicket[0].comentario;
           idEstadoGeneralTicket = infoGeneraTicket[0].idestado_id;
+          empresa
 
           // Si el estado del ticket es 4 se debe aparecer el boton
           if (infoGeneraTicket[0].idestado_id == 4 && idUsuario == 2) {
@@ -386,7 +395,7 @@ function tabular(resultadosProyectos, orderByFunc) {
                 inputDescripcion.classList = "form-control form-control-sm";
                 inputDescripcion.id = "descripcionActividad";
                 inputDescripcion.placeholder =
-                  "Descripcion de al actividad a realizar";
+                  "Descripción de la actividad a realizar";
                 cellTarea.appendChild(inputDescripcion);
               } else {
                 if (tarea.descripcion == "") {
@@ -571,6 +580,7 @@ function tabular(resultadosProyectos, orderByFunc) {
     row.appendChild(cellMotivo);
     row.appendChild(cellSolicitante);
     row.appendChild(cellAgente);
+    row.appendChild(cellFechaSolicitud);
     row.appendChild(cellEstado);
     row.appendChild(cellAcciones);
 
@@ -748,7 +758,7 @@ btnAsignarAgente.addEventListener("click", function () {
               "Se cambio el agente a cargo de este ticket!"
             );
             // Mensaje para el agente
-            const message = `Hola ${textAgente} tiene un ticket asigando, con la siguiente información:
+            const message = `Hola ${textAgente} tiene un ticket asignado, con la siguiente información:
   Número de ticket: *${numTicketSoporte}*
   Problema:
   *${textAreaComentarioEdit.value}*
@@ -1009,6 +1019,7 @@ btnGenerarReporte.addEventListener("click", function () {
   makePdf(
     comentario.toString(),
     solicitanteFormat,
+    solicitanteSelect.value,
     agenteForamt,
     fechaFormateada,
     fechaEstimadaFormateada,
@@ -1031,6 +1042,7 @@ textAreaCausaError.addEventListener("input", function () {
 function makePdf(
   comentario,
   solicitante,
+  idSolicitante,
   agente,
   fechaCreacion,
   fechaEstimada,
@@ -1055,7 +1067,7 @@ function makePdf(
     "es-ES",
     opcionesDeFormato
   );
-  console.log(arrayActivities);
+  
   var objGeneratePdf = {
     content: [
       { image: imageUrl, width: 100, height: 100, alignment: "center" },
@@ -1114,8 +1126,7 @@ function makePdf(
       {
         ul: arrayActivities.map((activity) => [
           `- Actividad: ${activity.descripcion}, hecho por: ${activity.agente_actividad_nombre} 
-          FIS: ${activity.fechainicio}
-          FFS: ${activity.fechafinal}
+          ${razonSocial != nombreEmpresaSolicitante ? `FIS: ${activity.fechainicio} FFS: ${activity.fechafinal}` : ''}
           `,
           {
             image: activity.imagen_actividades,
@@ -1264,7 +1275,7 @@ btnNotificarSolicitante.addEventListener("click", function () {
   const phoneNumber = String(numeroSolicitante);
   var message;
   if (idEstadoGeneralTicket == 4) {
-    message = `Muy buenas tardes ${nombreCompletoSolicitante}, le informamos que su requerimiento paso a estado de ${estadoGeneraTicket}, por favor contactese con el administrador para verificar si su solicitud fue resuelta`;
+    message = `Muy buenas tardes ${nombreCompletoSolicitante}, le informamos que su requerimiento paso a estado de ${estadoGeneraTicket}, por favor contactece con el administrador para verificar si su solicitud fue resuelta`;
   } else {
     message = `Muy buenas, le saluda ${razonSocial} del departamento de soporte de Ishida Software, le escribo con respecto al ticket número *${numTicketSoporte}* con asunto de *${auntoTicket}* que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}.
     Por lo tanto solicito los siguientes requerimiento para completar su solicitud:`;
