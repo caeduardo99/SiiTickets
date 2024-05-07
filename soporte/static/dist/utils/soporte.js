@@ -219,7 +219,6 @@ function tabular(resultadosProyectos, orderByFunc) {
       infoGeneraTicket = [];
       infoTareas = [];
       rowTableTaskEdit.style.display = "none";
-      btnGenerarReporte.style.display = "none";
 
       // Consulta para los detalles del Ticket
       fetch(`ticketsoportescreadosid/${numTicketSoporte}/`)
@@ -241,7 +240,7 @@ function tabular(resultadosProyectos, orderByFunc) {
             btnRegresarEstado.style.display = "none";
           }
 
-          if (infoGeneraTicket[0].idestado_id == 5) {
+          if (infoGeneraTicket[0].idestado_id == 5 || infoGeneraTicket[0].idestado_id == 4) {
             btnGenerarReporte.style.display = "";
           } else {
             btnGenerarReporte.style.display = "none";
