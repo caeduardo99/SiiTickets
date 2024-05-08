@@ -39,6 +39,12 @@
                                     {% csrf_token %}
                                     <div class="row g-1">
                                         <div class="col-md-12">
+                                            <label for="asuntoTicket" class="form-label">Asunto</label>
+                                            <input type="text" name="asuntoTicket" class="form-control" placeholder="Asunto general del Ticket">
+                                        </div>
+                                    </div>
+                                    <div class="row g-1">
+                                        <div class="col-md-12">
                                             <div class="mb-3">
                                                 <label for="exampleFormControlTextarea1" class="form-label">Detalle su problema</label>
                                                 <textarea class="form-control" name="exampleFormControlTextarea1" id="exampleFormControlTextarea1" rows="3"></textarea>
@@ -87,9 +93,16 @@
                                     </div>
                                 </form>
                             </div>
+
                             <div id="formularioAgente" style="display: none;">
                                 <form class="form-group" method="post" action="{% url 'crear_ticket_soporte_agente' %}" enctype="multipart/form-data">
                                     <!-- Resto del formulario aquí -->
+                                    <div class="row g-1">
+                                        <div class="col-md-12">
+                                            <label for="asuntoTicket" class="form-label">Asunto</label>
+                                            <input type="text" name="asuntoTicketAgente" id="asuntoTicketAgente" class="form-control" placeholder="Asunto general del Ticket">
+                                        </div>
+                                    </div>
                                     <div class="row g-1">
                                         <div class="col-md-12">
                                             <div class="mb-3">
@@ -164,7 +177,7 @@
                                 <tr>
                                     <th>NumTicket</th>
                                     <th>Empresa</th>
-                                    <th>Motivo</th>
+                                    <th>Asunto</th>
                                     <th>Solicitante</th>
                                     <th>Prioridad</th>
                                     <th>Fecha de Solicitud</th>
@@ -195,6 +208,12 @@
             </div>
             <div class="modal-body">
                 <form class="form">
+                    <div class="row g-1">
+                        <div class="col-md-12">
+                            <label for="asuntoTicket" class="form-label">Asunto</label>
+                            <input type="text" name="asuntoTicketAgenteEdit" id="asuntoTicketAgenteEdit" class="form-control" disabled>
+                        </div>
+                    </div>
                     <div class="row g-1">
                         <div class="col-md-12">
                             <label for="textAreaComentarioEdit" class="form-label">Comentario</label>

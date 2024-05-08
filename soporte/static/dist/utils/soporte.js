@@ -17,9 +17,10 @@ let resultadosProyectos,
   nombreEmpresaSolicitante,
   idEstadoGeneralTicket,
   estadoGeneraTicket,
-  auntoTicket,
+  detalleTicket,
   phoneSelected,
   textAgente,
+  asunto,
   orderList,
   orderByDescending = false,
   base64Image;
@@ -36,6 +37,8 @@ const btnStateAwait = document.getElementById("btnStateAwait");
 const btnNotificarSolicitante = document.getElementById(
   "btnNotificarSolicitante"
 );
+const asuntoTicketAgenteEdit = document.getElementById("asuntoTicketAgenteEdit");
+const asuntoTicketAgente = document.getElementById("asuntoTicketAgente");
 const btnNullTicket = document.getElementById("btnNullTicket");
 const buscarSolicitante = document.getElementById("buscarSolicitante");
 const btnRegresarEstado = document.getElementById("btnRegresarEstado");
@@ -146,9 +149,7 @@ function tabular(resultadosProyectos, orderByFunc) {
     cellEmpresa.textContent = proyecto.nombreEmpresa;
 
     var cellMotivo = document.createElement("td");
-    cellMotivo.style.overflow = "hidden";
-    cellMotivo.style.fontSize = "12px";
-    cellMotivo.textContent = proyecto.comentario;
+    cellMotivo.textContent = proyecto.asunto == "" ? "S/E" : proyecto.asunto;
 
     var cellSolicitante = document.createElement("td");
     cellSolicitante.textContent = proyecto.fullNameSolicitante;
@@ -226,6 +227,11 @@ function tabular(resultadosProyectos, orderByFunc) {
         .then(async (data) => {
           infoGeneraTicket = data.ticket;
           infoTareas = data.actividades;
+          asunto = infoGeneraTicket[0].asunto == "" ? "No se ha especificado el asunto" : infoGeneraTicket[0].asunto;
+
+          asuntoTicketAgenteEdit.innerHTML = "";
+          asuntoTicketAgenteEdit.value = asunto;
+
           textAreaComentarioEdit.innerHTML = "";
           textAreaComentarioEdit.textContent = infoGeneraTicket[0].comentario;
           idEstadoGeneralTicket = infoGeneraTicket[0].idestado_id;
@@ -259,7 +265,7 @@ function tabular(resultadosProyectos, orderByFunc) {
           numeroSolicitante = infoGeneraTicket[0].telefonoSolicitante;
           nombreCompletoSolicitante = infoGeneraTicket[0].nombreApellido;
           nombreEmpresaSolicitante = infoGeneraTicket[0].nombreEmpresa;
-          auntoTicket = infoGeneraTicket[0].comentario;
+          detalleTicket = infoGeneraTicket[0].comentario;
 
           const idSolicitanteSeleccionado =
             infoGeneraTicket[0].idSolicitante_id;
@@ -995,6 +1001,7 @@ btnGenerarReporte.addEventListener("click", function () {
   var selectAgente = selectEditAgenteSolicitado.selectedOptions[0];
   var agente = selectAgente.textContent.toString();
   var agenteForamt = agente.replace(/^\s+|\s+$/g, "");
+  var asunto = asuntoTicketAgenteEdit.value;
 
   var solicitanteSelect = selectSolicitante.selectedOptions[0];
   var solcitante = solicitanteSelect.textContent.toString();
@@ -1017,8 +1024,8 @@ btnGenerarReporte.addEventListener("click", function () {
 
   makePdf(
     comentario.toString(),
+    asunto.toString(),
     solicitanteFormat,
-    solicitanteSelect.value,
     agenteForamt,
     fechaFormateada,
     fechaEstimadaFormateada,
@@ -1040,8 +1047,8 @@ textAreaCausaError.addEventListener("input", function () {
 // Funcion para crear el PDF
 function makePdf(
   comentario,
+  asunto,
   solicitante,
-  idSolicitante,
   agente,
   fechaCreacion,
   fechaEstimada,
@@ -1071,15 +1078,26 @@ function makePdf(
     content: [
       { image: imageUrl, width: 100, height: 100, alignment: "center" },
       {
-        text: `Ticket número: ${numTicketSoporte}`,
+        text: `Ticket número: 000-${numTicketSoporte}`,
         fontSize: 18,
         alignment: "center",
         bold: true,
         margin: [0, 15, 0, 0],
       },
       {
-        text: "Requerimiento solicitado ",
-        fontSize: 15,
+        text: "Asunto",
+        fontSize: 12,
+        bold: true,
+        margin: [0, 15, 0, 0],
+      },
+      {
+        text: asunto,
+        fontSize: 11,
+        margin: [0, 8, 0, 0],
+      },
+      {
+        text: "Detalle ",
+        fontSize: 12,
         bold: true,
         margin: [0, 15, 0, 0],
       },
@@ -1210,13 +1228,13 @@ btnCreateTicketAgent.addEventListener("click", function () {
   event.preventDefault();
 
   var csrftoken = getCookie("csrftoken");
-
+  var asunto = asuntoTicketAgente.value;
   var problema = textAreaProblemaAgent.value;
   var solicitante = solicitanteAgent.value;
   var prioridad = prioridadSelectAgent.value;
   var file = document.getElementById("inputFileAgent").files[0];
-
   var data = new FormData();
+  data.append("asuntoTicketAgente", asunto);
   data.append("textAreaProblemaAgent", problema);
   data.append("solicitanteAgent", solicitante);
   data.append("prioridadSelectAgent", prioridad);
@@ -1274,9 +1292,10 @@ btnNotificarSolicitante.addEventListener("click", function () {
   const phoneNumber = String(numeroSolicitante);
   var message;
   if (idEstadoGeneralTicket == 4) {
-    message = `Muy buenas tardes ${nombreCompletoSolicitante}, le informamos que su requerimiento paso a estado de ${estadoGeneraTicket}, por favor contactece con el administrador para verificar si su solicitud fue resuelta`;
+    message = `Estimado/s ${nombreCompletoSolicitante}, le informamos que su requerimiento: *${detalleTicket}*, Ticket *#${numTicketSoporte}* fue atendido, por favor confirmar si su solicitud fue resuelta.`;
   } else {
-    message = `Muy buenas, le saluda ${razonSocial} del departamento de soporte de Ishida Software, le escribo con respecto al ticket número *${numTicketSoporte}* con asunto de *${auntoTicket}* que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}.
+    message = `Estimado/s, le saluda ${razonSocial} del departamento de soporte de Ishida Software, me dirigo con respecto al ticket *#${numTicketSoporte}* con asunto: *${detalleTicket}* 
+    Que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}.
     Por lo tanto solicito los siguientes requerimiento para completar su solicitud:`;
   }
 

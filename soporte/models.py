@@ -84,6 +84,7 @@ class TicketSoporte(models.Model):
     fechaInicio = models.DateTimeField(null=True, blank=True)
     fechaFinalizacion = models.DateTimeField(null=True, blank=True)
     fechaFinalizacionReal = models.DateTimeField(null=True, blank=True)
+    asunto = models.CharField(max_length=200, default='')
     comentario = models.CharField(max_length=255)
     prioridad = models.CharField(null=True, blank=True, max_length=255)
     causaerror = models.CharField(max_length=255)

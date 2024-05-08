@@ -599,7 +599,7 @@ def ticketsoportescreados(request):
     consulta_sql = """"""
     if id_usuario == 2 or id_usuario == 1:
         consulta_sql += """
-        select st.id as NumTicket, st.comentario, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
+        select st.id as NumTicket, st.comentario, st.asunto, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
         au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
         ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante,
         se.id as idEstado, se.descripcion as estado,
@@ -617,7 +617,7 @@ def ticketsoportescreados(request):
         """
     else:
         consulta_sql += """
-        select st.id as NumTicket, st.comentario, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
+        select st.id as NumTicket, st.comentario, st.asunto, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
         au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
         ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante,
         se.id as idEstado, se.descripcion as estado,
@@ -639,7 +639,7 @@ def ticketsoportescreados(request):
     """
 
     consulta_get_projects = """
-select st.id as NumTicket, st.comentario, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
+select st.id as NumTicket, st.comentario, st.asunto, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
         au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
         ss.id as idSolicitante, ss.nombreApellido as fullNameSolicitante,
         se.id as idEstado, se.descripcion as estado,
@@ -1153,6 +1153,7 @@ def ticketsoportescreadosid(request, ticket_id):
         st.fechaFinalizacion,
         st.fechaFinalizacionReal,
         st.comentario,
+        st.asunto,
         st.causaerror,
         st.facturar,
         st.idAgente_id,
@@ -1804,6 +1805,7 @@ def info_panel_contro(request):
 def crear_ticket_soporte(request):
     try:
         fecha_actual = datetime.now()
+        asunto = request.POST.get("asuntoTicket", "")
         detalle_problema = request.POST.get("exampleFormControlTextarea1", "")
         imagen_problema = request.FILES.get("inputGroupFile03", None)
         prioridad = request.POST.get("prioridadSelect", "")
@@ -1836,6 +1838,7 @@ def crear_ticket_soporte(request):
             fechaFinalizacionReal=fecha_finalizacion_real,
             comentario=detalle_problema,
             prioridad=prioridad,
+            asunto=asunto,
             causaerror=causa_error,
             idestado=EstadosTicket.objects.get(id=idEstado),
             facturar=factura,
@@ -1859,6 +1862,7 @@ def crear_ticket_soporte(request):
 @require_POST
 def crear_ticket_soporte_agente(request):
     if request.method == "POST":
+        asunto = request.POST.get("asuntoTicketAgente")
         detalle_problema = request.POST.get("textAreaProblemaAgent")
         solicitante = request.POST.get("solicitanteAgent")
         prioridad = request.POST.get("prioridadSelectAgent")
@@ -1889,6 +1893,7 @@ def crear_ticket_soporte_agente(request):
             fechaInicio=fecha_inicio,
             fechaFinalizacion=fecha_finalizacion,
             fechaFinalizacionReal=fecha_finalizacion_real,
+            asunto=asunto,
             comentario=detalle_problema,
             prioridad=prioridad,
             causaerror=causa_error,
