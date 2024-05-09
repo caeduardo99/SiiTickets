@@ -339,7 +339,7 @@ function tabular(resultadosProyectos, orderByFunc) {
 
           // Condiciones en caso de que el estado del ticket esta hecho o no
           if (
-            infoGeneraTicket[0].idestado_id == 1 &&
+            (infoGeneraTicket[0].idestado_id == 1 || infoGeneraTicket[0].idestado_id == 3 ) &&
             nombreUsuario == "mafer"
           ) {
             selectEditAgenteSolicitado.disabled = false;
