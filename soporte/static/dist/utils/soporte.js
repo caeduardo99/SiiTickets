@@ -1308,7 +1308,7 @@ btnNotificarSolicitante.addEventListener("click", function () {
   if (idEstadoGeneralTicket == 4) {
     message = `Estimado/s ${nombreCompletoSolicitante}, le informamos que su requerimiento: *${detalleTicket}*, Ticket *#${numTicketSoporte}* fue atendido, por favor confirmar si su solicitud fue resuelta.`;
   } else {
-    message = `Estimado/s, le saluda ${razonSocial} del departamento de soporte de Ishida Software, me dirigo con respecto al ticket *#${numTicketSoporte}* con asunto: *${detalleTicket}* 
+    message = `Estimado/s, le saluda ${razonSocial} del departamento de soporte de Ishida Software, me dirijo con respecto al ticket *#${numTicketSoporte}* con asunto: *${detalleTicket}* 
     Que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}.
     Por lo tanto solicito los siguientes requerimiento para completar su solicitud:`;
   }
