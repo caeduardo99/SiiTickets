@@ -222,6 +222,7 @@ function tabular(resultadosProyectos, orderByFunc) {
       infoGeneraTicket = [];
       infoTareas = [];
       rowTableTaskEdit.style.display = "none";
+      btnNullTicket.style.display = "none";
 
       // Consulta para los detalles del Ticket
       fetch(`ticketsoportescreadosid/${numTicketSoporte}/`)
@@ -331,7 +332,8 @@ function tabular(resultadosProyectos, orderByFunc) {
           }
 
           // Condicion en caso de que el ticket deba ser Anulado
-          if((infoGeneraTicket[0].idestado_id == 1 || infoGeneraTicket[0].idestado_id == 3) && (idUsuario == '2' || idUsuario == idAgenteSeleccionado) ){
+          console.log(infoGeneraTicket[0])
+          if((infoGeneraTicket[0].idestado_id != 5 && infoGeneraTicket[0].idestado_id != 6 ) && (idUsuario == '2' || idUsuario == idAgenteSeleccionado) ){
             btnNullTicket.style.display = "";
           }else{
             btnNullTicket.style.display = "none";
