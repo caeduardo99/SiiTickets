@@ -299,8 +299,9 @@ function tabular(resultadosProyectos, orderByFunc) {
           imageError.src = "/media/" + urlImage1;
           imageError2.src =
             urlImage2 == undefined
-              ? "/media/ticket_images/imagenDisponible.png"
+              ? imageError2.style.display = "none"
               : "/media/" + urlImage2;
+
           imageError.addEventListener("mouseover", function () {
             this.style.cursor = "pointer";
             this.style.filter = "brightness(50%)";
