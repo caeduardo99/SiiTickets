@@ -37,6 +37,7 @@ const btnStateAwait = document.getElementById("btnStateAwait");
 const btnNotificarSolicitante = document.getElementById(
   "btnNotificarSolicitante"
 );
+const textAreaComentarioAdicional = document.getElementById("textAreaComentarioAdicional");
 const asuntoTicketAgenteEdit = document.getElementById("asuntoTicketAgenteEdit");
 const asuntoTicketAgente = document.getElementById("asuntoTicketAgente");
 const btnNullTicket = document.getElementById("btnNullTicket");
@@ -213,6 +214,7 @@ function tabular(resultadosProyectos, orderByFunc) {
       textAreaCausaError.disabled = true;
       numTicketSoporte = proyecto.NumTicket;
       selectEditAgenteSolicitado.disabled = true;
+      textAreaComentarioAdicional.disabled = true;
       modalInfoTicketLabel.textContent = `Ticket número 000-${numTicketSoporte}`;
       tbodyListTask.innerHTML = "";
       btnAsignarAgente.style.display = "none";
@@ -231,6 +233,9 @@ function tabular(resultadosProyectos, orderByFunc) {
 
           asuntoTicketAgenteEdit.innerHTML = "";
           asuntoTicketAgenteEdit.value = asunto;
+
+          textAreaComentarioAdicional.innerHTML = "";
+          textAreaComentarioAdicional.value = infoGeneraTicket[0].chat;
 
           textAreaComentarioEdit.innerHTML = "";
           textAreaComentarioEdit.textContent = infoGeneraTicket[0].comentario;
@@ -338,9 +343,11 @@ function tabular(resultadosProyectos, orderByFunc) {
             nombreUsuario == "mafer"
           ) {
             selectEditAgenteSolicitado.disabled = false;
+            textAreaComentarioAdicional.disabled = false;
             btnAsignarAgente.style.display = "";
           }else{
             selectEditAgenteSolicitado.disabled = true;
+            textAreaComentarioAdicional.disabled = true;
             btnAsignarAgente.style.display = "none";
           }
 
@@ -387,7 +394,6 @@ function tabular(resultadosProyectos, orderByFunc) {
             rowTableTaskEdit.style.display = "";
             infoTareas.forEach((tarea) => {
               const rowTask = document.createElement("tr");
-
               // En caso de que la tarea se perteneciente al usuario logeado, debe dejar colocar un input
               const cellTarea = document.createElement("td");
               if (
@@ -417,7 +423,7 @@ function tabular(resultadosProyectos, orderByFunc) {
               const cellAgente = document.createElement("td");
               cellAgente.textContent = tarea.agente_actividad_nombre;
 
-              // Ahora en caso de que el fecha fina este vacio le permita al usuario participante agregar una fecha
+              // Ahora en caso de que el fecha final este vacio le permita al usuario participante agregar una fecha
               const cellFechaFinalizacion = document.createElement("td");
               if (
                 tarea.fechafinal == null &&
@@ -744,7 +750,6 @@ btnAsignarAgente.addEventListener("click", function () {
   let valor_agente_select = selectEditAgenteSolicitado.value;
   var selectedIndex = selectEditAgenteSolicitado.selectedIndex;
   textAgente = selectEditAgenteSolicitado.options[selectedIndex].text;
-
   $.ajax({
     url: "getNumberInfo/" + valor_agente_select,
     type: "GET",
@@ -756,6 +761,9 @@ btnAsignarAgente.addEventListener("click", function () {
         url: `/asign_admin_ticket_support/${valor_agente_select}/${numTicketSoporte}/`,
         type: "GET", // Puedes ajustar esto según tu lógica
         dataType: "json",
+        data: {
+          comentario_adicional: textAreaComentarioAdicional.value == "" ? "Sin comentarios" : textAreaComentarioAdicional.value
+        },
         success: function (data) {
           if (data.status == "success") {
             toastr.success(
@@ -768,6 +776,9 @@ btnAsignarAgente.addEventListener("click", function () {
   Problema:
   *${textAreaComentarioEdit.value}*
   
+  Comentario:
+  *${textAreaComentarioAdicional.value == "" ? "Sin comentarios" : textAreaComentarioAdicional.value}*
+
   Espero su pronta respuesta.
           
   SiiTickets (http://186.3.160.137:120/).`;

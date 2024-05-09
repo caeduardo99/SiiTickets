@@ -2005,11 +2005,13 @@ def asign_admin_ticket_support(request, id_agente, id_ticket):
         fecha_actual = datetime.now()
         fechaAsignacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
         ticket = TicketSoporte.objects.get(id=id_ticket)
+        comentario_adicional = request.GET.get('comentario_adicional')
         # Cambio de agente administrador
         ticket.idAgente_id = id_agente
         # Cambio de estado a en proceso
         ticket.idestado_id = 3
         ticket.fechaInicio = fechaAsignacion
+        ticket.chat = comentario_adicional
         ticket.save()
         # Devolver la respuesta JSON
         return JsonResponse(

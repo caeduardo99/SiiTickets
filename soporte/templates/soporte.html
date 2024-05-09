@@ -257,14 +257,17 @@
                             <input type="datetime-local" id="fechaFinalizacionEdit" name="fechaFinalizacionEdit" class="form-control" disabled>
                         </div>
                         <div class="col-md-4">
-                            <label for="datetimeInput">Fecha Finalización:</label>
+                            <label for="datetimeInput">Fecha de cierre del Ticket:</label>
                             <input type="datetime-local" id="fechaFinalizacionRealEdit" name="fechaFinalizacionRealEdit" class="form-control" disabled>
                         </div>
                     </div>
                     <br>
                     <div class="row g-1">
                         <div class="col-md-7">
-                            <label for="textAreaCausaError" class="form-label">El requerimiento necesita facturacion ?</label>
+                            <label for="textAreaComentarioAdicional" class="form-label">Comentario adicional:</label>
+                            <textarea class="form-control" id="textAreaComentarioAdicional" rows="3" disabled></textarea>
+                            <br>
+                            <label for="textAreaCausaError" class="form-label">El requerimiento necesita facturación ?</label>
                             <select class="custom-select" id="selectFacturacion" disabled>
                                 <option selected>El requerimiento se factura ?</option>
                                 <option value="true">Si</option>
@@ -272,7 +275,7 @@
                             </select>
                             <br>
                             <label for="textAreaCausaError" class="form-label">Causa del error:</label>
-                            <textarea class="form-control" id="textAreaCausaError" rows="5" disabled></textarea>
+                            <textarea class="form-control" id="textAreaCausaError" rows="3" disabled></textarea>
                         </div>
                         <div class="col-md-5">
                             <img class="img-fluid" id="imageError" style="width: 250px;height: auto;">
