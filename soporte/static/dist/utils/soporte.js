@@ -37,8 +37,13 @@ const btnStateAwait = document.getElementById("btnStateAwait");
 const btnNotificarSolicitante = document.getElementById(
   "btnNotificarSolicitante"
 );
+const colRequerimientoAgente = document.getElementById("colRequerimientoAgente");
+const colSolicitanteAgente = document.getElementById("colSolicitanteAgente");
+const colPrioridad = document.getElementById("colPrioridad");
+const rowProblemaAgente = document.getElementById("rowProblemaAgente");
 const textAreaComentarioAdicional = document.getElementById("textAreaComentarioAdicional");
 const asuntoTicketAgenteEdit = document.getElementById("asuntoTicketAgenteEdit");
+const asuntoTicket = document.getElementById("asuntoTicket");
 const asuntoTicketAgente = document.getElementById("asuntoTicketAgente");
 const btnNullTicket = document.getElementById("btnNullTicket");
 const buscarSolicitante = document.getElementById("buscarSolicitante");
@@ -51,6 +56,7 @@ const textAreaComentarioEdit = document.getElementById(
 );
 const imageError2 = document.getElementById("imageError2");
 const prioridadSelectAgent = document.getElementById("prioridadSelectAgent");
+const prioridadSelect = document.getElementById("prioridadSelect");
 const btnCreateTicketAgent = document.getElementById("btnCreateTicketAgent");
 const btnEditarDatos = document.getElementById("btnEditarDatos");
 const btnFinishTicket = document.getElementById("btnFinishTicket");
@@ -78,8 +84,11 @@ const btnNotificar = document.getElementById("btnNotificar");
 const exampleFormControlTextarea1 = document.getElementById(
   "exampleFormControlTextarea1"
 );
+const rowPoblema = document.getElementById("rowPoblema");
+const colImageAgente = document.getElementById("colImageAgente");
 const rowInputImg2 = document.getElementById("rowInputImg2");
 const textAreaProblemaAgent = document.getElementById("textAreaProblemaAgent");
+const colImage = document.getElementById("colImage");
 const btnFinisTasks = document.getElementById("btnFinisTasks");
 const rowTableTaskEdit = document.getElementById("rowTableTaskEdit");
 const btnNewTask = document.getElementById("btnNewTask");
@@ -297,10 +306,12 @@ function tabular(resultadosProyectos, orderByFunc) {
           var urlImageGenera = infoGeneraTicket[0].imagenes;
           const [urlImage1, urlImage2] = urlImageGenera.split(",");
           imageError.src = "/media/" + urlImage1;
-          imageError2.src =
-            urlImage2 == undefined
-              ? imageError2.style.display = "none"
-              : "/media/" + urlImage2;
+          if(urlImage2 == undefined){
+            imageError2.style.display = "none"
+          }else{
+            imageError2.style.display = ""
+            imageError2.src = "/media/" + urlImage2
+          }
 
           imageError.addEventListener("mouseover", function () {
             this.style.cursor = "pointer";
@@ -333,7 +344,6 @@ function tabular(resultadosProyectos, orderByFunc) {
           }
 
           // Condicion en caso de que el ticket deba ser Anulado
-          console.log(infoGeneraTicket[0])
           if((infoGeneraTicket[0].idestado_id != 5 && infoGeneraTicket[0].idestado_id != 6 ) && (idUsuario == '2' || idUsuario == idAgenteSeleccionado) ){
             btnNullTicket.style.display = "";
           }else{
@@ -647,11 +657,13 @@ function mostrarNombreArchivo(client, agent) {
       const nombreArchivo = input.files[0].name;
       label.innerHTML = nombreArchivo;
       input.setAttribute("value", nombreArchivo);
-      btnCreateTicket.disabled = false;
+      colSolicitante.style.display = "";
+      colPrioridad.style.display = "";
     } else {
       label.innerHTML = "Sube una imagen del problema que presentas";
       input.setAttribute("value", "");
-      btnCreateTicket.disabled = true;
+      colSolicitante.style.display = "none";
+      colPrioridad.style.display = "none";
     }
   }
   if ((agent = 1)) {
@@ -663,11 +675,13 @@ function mostrarNombreArchivo(client, agent) {
       nombreArchivoAgente = nombreArchivo;
       label.innerHTML = nombreArchivo;
       input.setAttribute("value", nombreArchivo);
-      btnCreateTicketAgent.disabled = false;
+      colSolicitanteAgente.style.display = "";
+      colRequerimientoAgente.style.display = "";
     } else {
       label.innerHTML = "Sube una imagen del problema que presentas";
       input.setAttribute("value", "");
-      btnCreateTicketAgent.disabled = true;
+      colSolicitanteAgente.style.display = "none";
+      colRequerimientoAgente.style.display = "none";
     }
   }
 }
@@ -1424,4 +1438,43 @@ btnNullTicket.addEventListener("click", function(){
       console.error("Error al anular el ticket, revise el servicio:", error);
       toastr.error("Error al anular el ticket, revise el servicio", data.message);
     });
+})
+
+
+// Funcionalidad para llenar la informacion de los tickets
+asuntoTicketAgente.addEventListener("input", function(){
+  if((asuntoTicketAgente.value).length > 4 ){
+    rowProblemaAgente.style.display = ""
+  }else{
+    rowProblemaAgente.style.display = "none"
+  }
+})
+asuntoTicket.addEventListener("input", function(){
+  if((asuntoTicket.value).length > 4){
+    rowPoblema.style.display = ""
+  }else{
+    rowPoblema.style.display = "none"
+  }
+})
+
+textAreaProblemaAgent.addEventListener("input", function(){
+  if((textAreaProblemaAgent.value).length > 10){
+    colImageAgente.style.display = ""
+  }else{
+    colImageAgente.style.display = "none"
+  }
+})
+exampleFormControlTextarea1.addEventListener("input", function(){
+  if((exampleFormControlTextarea1.value).length > 10){
+    colImage.style.display = ""
+  }else{
+    colImage.style.display = "none"
+  }
+})
+
+prioridadSelect.addEventListener("change", function(){
+  btnCreateTicket.disabled = false
+})
+prioridadSelectAgent.addEventListener("change", function(){
+  btnCreateTicketAgent.disabled = false
 })

@@ -40,10 +40,12 @@
                                     <div class="row g-1">
                                         <div class="col-md-12">
                                             <label for="asuntoTicket" class="form-label">Asunto</label>
-                                            <input type="text" name="asuntoTicket" class="form-control" placeholder="Asunto general del Ticket">
+                                            <input type="text"
+                                            id="asuntoTicket" name="asuntoTicket" class="form-control" placeholder="Asunto general del Ticket">
                                         </div>
                                     </div>
-                                    <div class="row g-1">
+                                    <br>
+                                    <div class="row g-1" id="rowPoblema" style="display: none;">
                                         <div class="col-md-12">
                                             <div class="mb-3">
                                                 <label for="exampleFormControlTextarea1" class="form-label">Detalle su problema</label>
@@ -52,7 +54,7 @@
                                         </div>
                                     </div>
                                     <div class="row g-1">
-                                        <div class="col-md-4">
+                                        <div class="col-md-4" id="colImage" style="display: none;">
                                             <label class="form-label">Imagen</label>
                                             <div class="input-group mb-3">
                                                 <div class="custom-file">
@@ -61,8 +63,8 @@
                                                 </div>
                                               </div>                                       
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="form-group" id="rowSolicitante">
+                                        <div class="col-md-4" id="colSolicitante" style="display: none;">
+                                            <div class="form-group">
                                                 <label for="solicitante">Solicitante:</label>
                                                 <select class="select2" id="solicitante" style="width: 100%;" name="solicitante">
                                                     <option value="">Seleccione Solicitante</option>
@@ -74,9 +76,9 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-4" id="colPrioridad" style="display: none;">
                                             <label class="form-label">Prioridad del requerimiento</label>
-                                            <select class="custom-select" name="prioridadSelect">
+                                            <select class="custom-select" name="prioridadSelect" id="prioridadSelect">
                                                 <option selected>Seleccionar la prioridad</option>
                                                 <option value="Alta">Alta</option>
                                                 <option value="Media">Media</option>
@@ -103,7 +105,8 @@
                                             <input type="text" name="asuntoTicketAgente" id="asuntoTicketAgente" class="form-control" placeholder="Asunto general del Ticket">
                                         </div>
                                     </div>
-                                    <div class="row g-1">
+                                    <br>
+                                    <div class="row g-1" id="rowProblemaAgente" style="display: none;">
                                         <div class="col-md-12">
                                             <div class="mb-3">
                                                 <label for="textAreaProblemaAgent" class="form-label">Detalle el problema del Cliente</label>
@@ -112,7 +115,7 @@
                                         </div>
                                     </div>
                                     <div class="row g-1">
-                                        <div class="col-md-4">
+                                        <div class="col-md-4" id="colImageAgente" style="display: none;">
                                             <label class="form-label">Imagen del problema</label>
                                             <div class="input-group mb-3">
                                                 <div class="custom-file">
@@ -121,7 +124,7 @@
                                                 </div>
                                               </div>                                       
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-4" id="colSolicitanteAgente" style="display: none;">
                                             <div class="form-group">
                                                 <label for="solicitanteAgent">Solicitante:</label>
                                                 <select class="select2" id="solicitanteAgent" style="width: 100%;" name="solicitanteAgent">
@@ -134,7 +137,7 @@
                                                 </select>
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-4" id="colRequerimientoAgente" style="display: none;">
                                             <label class="form-label">Prioridad del requerimiento</label>
                                             <select class="custom-select" id="prioridadSelectAgent" name="prioridadSelectAgent">
                                                 <option selected>Seleccionar la prioridad</option>
