@@ -1195,7 +1195,8 @@ def ticketsoportescreadosid(request, ticket_id):
         est.descripcion AS estado_actividad,
         aps.imagen_actividades,
         aps.fechainicio,
-        aps.fechafinal
+        aps.fechafinal,
+        aps.horasTrabajadas
     FROM
         soporte_actividadprincipalsoporte aps
     LEFT JOIN
@@ -1942,7 +1943,7 @@ def enviar_credenciales(request):
         mensaje = f"""
 <html>
 <body>
-<p>Reciba un cordial saludo desde el departamento de Desarrollo de Ishida Software, el presente correo es para indicarle las credenciales que han sido enviadas para su acceso como empresa <b>{nombre_empresa}</b>, a nuestro nuevo portal de soporte "SiiTickets" en (http://186.3.160.137:120/), que tiene como finalidad principal optimizar y obtener una atención más personalizada.
+<p>Reciba un cordial saludo desde el departamento administrativo de Ishida Software, el presente correo es para indicarle las credenciales que han sido enviadas para su acceso como empresa <b>{nombre_empresa}</b>, a nuestro nuevo portal de soporte "SiiTickets" en (http://186.3.160.137:120/), que tiene como finalidad principal optimizar y obtener una atención más personalizada.
 </p>
 <p>El nombre de usuario es: <b>{nombre_formateado}</b></p>
 <p>La contraseña es: <b>8soptativa</b></p>
@@ -2215,6 +2216,7 @@ def editar_tareas_soporte(request):
         for actividad, task in zip(actividades, tasks):
             actividad.idestado = EstadosTicket.objects.get(id=4)
             actividad.fechafinal = task.get("fechaFinalizacion")
+            actividad.horasTrabajadas = task.get("horas")
             actividad.imagen_actividades = task.get("imagen")
 
             actividad.save()

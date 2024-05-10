@@ -131,3 +131,4 @@ class ActividadPrincipalSoporte(models.Model):
     idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ticket_act_agente')
     fechainicio = models.DateTimeField(null=True, blank=True)
     fechafinal = models.DateTimeField(null=True, blank=True)
+    horasTrabajadas = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)

@@ -23,6 +23,7 @@ let resultadosProyectos,
   asunto,
   orderList,
   orderByDescending = false,
+  ticketsCompletos = false,
   base64Image;
 var resultadosAgentesData = window.resultados_agentes_data;
 var resultadosSolicitantesData = window.resultados_solicitantes_data;
@@ -37,18 +38,25 @@ const btnStateAwait = document.getElementById("btnStateAwait");
 const btnNotificarSolicitante = document.getElementById(
   "btnNotificarSolicitante"
 );
-const colRequerimientoAgente = document.getElementById("colRequerimientoAgente");
+const colRequerimientoAgente = document.getElementById(
+  "colRequerimientoAgente"
+);
 const colSolicitanteAgente = document.getElementById("colSolicitanteAgente");
 const colPrioridad = document.getElementById("colPrioridad");
 const rowProblemaAgente = document.getElementById("rowProblemaAgente");
-const textAreaComentarioAdicional = document.getElementById("textAreaComentarioAdicional");
-const asuntoTicketAgenteEdit = document.getElementById("asuntoTicketAgenteEdit");
+const textAreaComentarioAdicional = document.getElementById(
+  "textAreaComentarioAdicional"
+);
+const asuntoTicketAgenteEdit = document.getElementById(
+  "asuntoTicketAgenteEdit"
+);
 const asuntoTicket = document.getElementById("asuntoTicket");
 const asuntoTicketAgente = document.getElementById("asuntoTicketAgente");
 const btnNullTicket = document.getElementById("btnNullTicket");
 const buscarSolicitante = document.getElementById("buscarSolicitante");
 const btnRegresarEstado = document.getElementById("btnRegresarEstado");
-const tBodyTicketSoporte = document.getElementById("tbodyTicketTable");
+let tBodyTicketSoporte = document.getElementById("tbodyTicketTable");
+let tbodyTicketComplete = document.getElementById("tbodyTicketComplete");
 const modalInfoTicketLabel = document.getElementById("modalInfoTicketLabel");
 const inputEditSoporte = document.getElementById("inputEditSoporte");
 const textAreaComentarioEdit = document.getElementById(
@@ -95,6 +103,10 @@ const btnNewTask = document.getElementById("btnNewTask");
 const btnGenerarReporte = document.getElementById("btnGenerarReporte");
 const selectFacturacion = document.getElementById("selectFacturacion");
 const inputNewImage2 = document.getElementById("inputNewImage2");
+const verticketsCompletos = document.getElementById("verticketsCompletos-tab");
+const vertickets = document.getElementById("vertickets-tab");
+const btnStateAwaitComplete = document.getElementById("btnStateAwaitComplete");
+const buscarSolicitanteCompleto = document.getElementById("buscarSolicitanteCompleto");
 
 // Funcionalidad en caso de que sea cliente o agente
 if (mostrarCampo == "True") {
@@ -105,45 +117,81 @@ if (mostrarCampo == "True") {
   formularioAgente.style.display = "none";
 }
 
-// Consulta a la base para la obtencion de todos los tickets disponibles
-fetch("ticketsoportescreados/")
-  .then((response) => response.json())
-  .then((data) => {
-    if (data.length != 0) {
-      const mapaAgrupado = new Map();
-      data.forEach((proyecto) => {
-        const numTicket = proyecto.NumTicket;
-        if (!mapaAgrupado.has(numTicket)) {
-          mapaAgrupado.set(numTicket, proyecto);
-        }
-      });
-      const resultadosAgrupados = Array.from(mapaAgrupado.values());
-      resultadosProyectos = resultadosAgrupados;
+verticketsCompletos.addEventListener("click", function () {
+  ticketsCompletos = true;
+  // Consulta a la base para la obtencion de todos los tickets disponibles
+  fetch("ticketsoportescreados/")
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.length != 0) {
+        const mapaAgrupado = new Map();
+        data.forEach((proyecto) => {
+          const numTicket = proyecto.NumTicket;
+          if (!mapaAgrupado.has(numTicket)) {
+            mapaAgrupado.set(numTicket, proyecto);
+          }
+        });
+        const resultadosAgrupados = Array.from(mapaAgrupado.values());
+        resultadosProyectos = resultadosAgrupados;
 
-      tabular(resultadosProyectos);
-    } else {
-      var row = document.createElement("tr");
-      var cell = document.createElement("td");
-      cell.textContent =
-        "No hay tickets de actualizacion creados en ningun estado para este usuario.";
-      cell.colSpan = 7;
-      cell.style.textAlign = "center";
-      row.appendChild(cell);
-      tBodyTicketSoporte.appendChild(row);
-    }
-  })
-  .catch((error) => console.error("Error:", error));
+        tabular(resultadosProyectos);
+      } else {
+        var row = document.createElement("tr");
+        var cell = document.createElement("td");
+        cell.textContent =
+          "No hay tickets de actualizacion creados en ningun estado para este usuario.";
+        cell.colSpan = 7;
+        cell.style.textAlign = "center";
+        row.appendChild(cell);
+        tBodyTicketSoporte.appendChild(row);
+      }
+    })
+    .catch((error) => console.error("Error:", error));
+  console.log(ticketsCompletos);
+});
+vertickets.addEventListener("click", function () {
+  ticketsCompletos = false;
+  // Consulta a la base para la obtencion de todos los tickets disponibles
+  fetch("ticketsoportescreados/")
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.length != 0) {
+        const mapaAgrupado = new Map();
+        data.forEach((proyecto) => {
+          const numTicket = proyecto.NumTicket;
+          if (!mapaAgrupado.has(numTicket)) {
+            mapaAgrupado.set(numTicket, proyecto);
+          }
+        });
+        const resultadosAgrupados = Array.from(mapaAgrupado.values());
+        resultadosProyectos = resultadosAgrupados;
 
-  function orderByEstadoDesc(a, b) {
-    if (orderByDescending) {
-      return a.idEstado -b.idEstado;
-    } else {
-      return b.idEstado - a.idEstado;
-    }
+        tabular(resultadosProyectos);
+      } else {
+        var row = document.createElement("tr");
+        var cell = document.createElement("td");
+        cell.textContent =
+          "No hay tickets de actualizacion creados en ningun estado para este usuario.";
+        cell.colSpan = 7;
+        cell.style.textAlign = "center";
+        row.appendChild(cell);
+        tBodyTicketSoporte.appendChild(row);
+      }
+    })
+    .catch((error) => console.error("Error:", error));
+  console.log(ticketsCompletos);
+});
+
+function orderByEstadoDesc(a, b) {
+  if (orderByDescending) {
+    return a.idEstado - b.idEstado;
+  } else {
+    return b.idEstado - a.idEstado;
   }
-  function toggleOrder() {
-    orderByDescending = !orderByDescending;
-  }
+}
+function toggleOrder() {
+  orderByDescending = !orderByDescending;
+}
 
 // Funcion para tabular
 function tabular(resultadosProyectos, orderByFunc) {
@@ -170,7 +218,9 @@ function tabular(resultadosProyectos, orderByFunc) {
     var cellFechaSolicitud = document.createElement("td");
     const fechaCreacionTicket = proyecto.fechaCreacionTicket;
     const fecha = new Date(fechaCreacionTicket);
-    const formattedFecha = `${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()} ${fecha.getHours()}:${fecha.getMinutes()}:${fecha.getSeconds()}`;
+    const formattedFecha = `${fecha.getDate()}/${
+      fecha.getMonth() + 1
+    }/${fecha.getFullYear()} ${fecha.getHours()}:${fecha.getMinutes()}:${fecha.getSeconds()}`;
     cellFechaSolicitud.textContent = formattedFecha;
 
     let svg;
@@ -178,31 +228,65 @@ function tabular(resultadosProyectos, orderByFunc) {
       svg = createSVG(
         "M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"
       );
+      if(ticketsCompletos == true){
+        row.style.display = 'none'
+      }else{
+        row.style.display = ''
+      }
     } else if (proyecto.idEstado === 1) {
       svg = createSVG(
         "M64 64c0-17.7-14.3-32-32-32S0 46.3 0 64V320c0 17.7 14.3 32 32 32s32-14.3 32-32V64zM32 480a40 40 0 1 0 0-80 40 40 0 1 0 0 80z"
       );
-      row.className = 'table-secondary'
+      row.className = "table-secondary";
+      if(ticketsCompletos == true){
+        row.style.display = 'none'
+      }else{
+        row.style.display = ''
+      }
     } else if (proyecto.idEstado === 4) {
       svg = createSVG(
         "M192 0c-41.8 0-77.4 26.7-90.5 64H64C28.7 64 0 92.7 0 128V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V128c0-35.3-28.7-64-64-64H282.5C269.4 26.7 233.8 0 192 0zm0 64a32 32 0 1 1 0 64 32 32 0 1 1 0-64zM305 273L177 401c-9.4 9.4-24.6 9.4-33.9 0L79 337c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L271 239c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"
       );
-      row.className = 'table-info';
+      row.className = "table-info";
+      if(ticketsCompletos == true){
+        row.style.display = 'none'
+      }else{
+        row.style.display = ''
+      }
     } else if (proyecto.idEstado === 5) {
       svg = createSVG(
         "M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"
       );
-      row.className = 'table-success';
+      row.className = "table-success";
+      if (ticketsCompletos == false) {
+        row.style.display = "none";
+        tBodyTicketSoporte = document.getElementById("tbodyTicketTable");
+      } else {
+        row.style.display = "";
+        tBodyTicketSoporte = tbodyTicketComplete;
+      }
     } else if (proyecto.idEstado === 3) {
       svg = createSVG(
         "M32 0C14.3 0 0 14.3 0 32S14.3 64 32 64V75c0 42.4 16.9 83.1 46.9 113.1L146.7 256 78.9 323.9C48.9 353.9 32 394.6 32 437v11c-17.7 0-32 14.3-32 32s14.3 32 32 32H64 320h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V437c0-42.4-16.9-83.1-46.9-113.1L237.3 256l67.9-67.9c30-30 46.9-70.7 46.9-113.1V64c17.7 0 32-14.3 32-32s-14.3-32-32-32H320 64 32zM288 437v11H96V437c0-25.5 10.1-49.9 28.1-67.9L192 301.3l67.9 67.9c18 18 28.1 42.4 28.1 67.9z"
       );
-      row.className = 'table-warning'
-    } else if(proyecto.idEstado === 6){
+      row.className = "table-warning";
+      if(ticketsCompletos == true){
+        row.style.display = 'none'
+      }else{
+        row.style.display = ''
+      }
+    } else if (proyecto.idEstado === 6) {
       svg = createSVG(
         "M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
       );
-      row.className = 'table-danger'
+      row.className = "table-danger";
+      if (ticketsCompletos == false) {
+        row.style.display = "none";
+        tBodyTicketSoporte = document.getElementById("tbodyTicketTable");;
+      } else {
+        row.style.display = "";
+        tBodyTicketSoporte = tbodyTicketComplete;
+      }
     }
 
     var cellEstado = document.createElement("td");
@@ -239,7 +323,10 @@ function tabular(resultadosProyectos, orderByFunc) {
         .then(async (data) => {
           infoGeneraTicket = data.ticket;
           infoTareas = data.actividades;
-          asunto = infoGeneraTicket[0].asunto == "" ? "No se ha especificado el asunto" : infoGeneraTicket[0].asunto;
+          asunto =
+            infoGeneraTicket[0].asunto == ""
+              ? "No se ha especificado el asunto"
+              : infoGeneraTicket[0].asunto;
 
           asuntoTicketAgenteEdit.innerHTML = "";
           asuntoTicketAgenteEdit.value = asunto;
@@ -250,7 +337,7 @@ function tabular(resultadosProyectos, orderByFunc) {
           textAreaComentarioEdit.innerHTML = "";
           textAreaComentarioEdit.textContent = infoGeneraTicket[0].comentario;
           idEstadoGeneralTicket = infoGeneraTicket[0].idestado_id;
-          empresa
+          empresa;
 
           // Si el estado del ticket es 4 se debe aparecer el boton
           if (infoGeneraTicket[0].idestado_id == 4 && idUsuario == 2) {
@@ -260,8 +347,11 @@ function tabular(resultadosProyectos, orderByFunc) {
             btnFinishTicket.style.display = "none";
             btnRegresarEstado.style.display = "none";
           }
-
-          if (infoGeneraTicket[0].idestado_id == 5 || infoGeneraTicket[0].idestado_id == 4) {
+          // Condicion para generar el reporte
+          if (
+            infoGeneraTicket[0].idestado_id == 5 ||
+            infoGeneraTicket[0].idestado_id == 4
+          ) {
             btnGenerarReporte.style.display = "";
           } else {
             btnGenerarReporte.style.display = "none";
@@ -306,11 +396,11 @@ function tabular(resultadosProyectos, orderByFunc) {
           var urlImageGenera = infoGeneraTicket[0].imagenes;
           const [urlImage1, urlImage2] = urlImageGenera.split(",");
           imageError.src = "/media/" + urlImage1;
-          if(urlImage2 == undefined){
-            imageError2.style.display = "none"
-          }else{
-            imageError2.style.display = ""
-            imageError2.src = "/media/" + urlImage2
+          if (urlImage2 == undefined) {
+            imageError2.style.display = "none";
+          } else {
+            imageError2.style.display = "";
+            imageError2.src = "/media/" + urlImage2;
           }
 
           imageError.addEventListener("mouseover", function () {
@@ -336,7 +426,7 @@ function tabular(resultadosProyectos, orderByFunc) {
             this.style.filter = "";
           });
 
-          // Condicion en caso de que este lleno
+          // Condicion en caso de que la imagen esté llena
           if (urlImage2 == undefined && infoGeneraTicket[0].idestado_id == 1) {
             rowInputImg2.style.display = "";
           } else {
@@ -344,21 +434,26 @@ function tabular(resultadosProyectos, orderByFunc) {
           }
 
           // Condicion en caso de que el ticket deba ser Anulado
-          if((infoGeneraTicket[0].idestado_id != 5 && infoGeneraTicket[0].idestado_id != 6 ) && (idUsuario == '2' || idUsuario == idAgenteSeleccionado) ){
+          if (
+            infoGeneraTicket[0].idestado_id != 5 &&
+            infoGeneraTicket[0].idestado_id != 6 &&
+            (idUsuario == "2" || idUsuario == idAgenteSeleccionado)
+          ) {
             btnNullTicket.style.display = "";
-          }else{
+          } else {
             btnNullTicket.style.display = "none";
           }
 
           // Condiciones en caso de que el estado del ticket esta hecho o no
           if (
-            (infoGeneraTicket[0].idestado_id == 1 || infoGeneraTicket[0].idestado_id == 3 ) &&
+            (infoGeneraTicket[0].idestado_id == 1 ||
+              infoGeneraTicket[0].idestado_id == 3) &&
             nombreUsuario == "mafer"
           ) {
             selectEditAgenteSolicitado.disabled = false;
             textAreaComentarioAdicional.disabled = false;
             btnAsignarAgente.style.display = "";
-          }else{
+          } else {
             selectEditAgenteSolicitado.disabled = true;
             textAreaComentarioAdicional.disabled = true;
             btnAsignarAgente.style.display = "none";
@@ -438,6 +533,7 @@ function tabular(resultadosProyectos, orderByFunc) {
 
               // Ahora en caso de que el fecha final este vacio le permita al usuario participante agregar una fecha
               const cellFechaFinalizacion = document.createElement("td");
+              const cellHorasTrabajadas = document.createElement("td");
               if (
                 tarea.fechafinal == null &&
                 idUsuario == tarea.idAgente_id &&
@@ -446,13 +542,20 @@ function tabular(resultadosProyectos, orderByFunc) {
                 var inputFecha = document.createElement("input");
                 inputFecha.className = "form-control form-control-sm";
                 inputFecha.type = "datetime-local";
+                var inputHoras = document.createElement("input");
+                inputHoras.className = "form-control form-control-sm";
+                inputHoras.type = "number";
+
                 cellFechaFinalizacion.appendChild(inputFecha);
+                cellHorasTrabajadas.appendChild(inputHoras);
               } else {
                 if (tarea.fechafinal == null) {
                   cellFechaFinalizacion.textContent =
-                    "El usuario no ha determinado la tarea";
+                    "El usuario no ha determinado la fecha";
+                  cellHorasTrabajadas.textContent = '---';
                 } else {
                   cellFechaFinalizacion.textContent = tarea.fechafinal;
+                  cellHorasTrabajadas.textContent = `${tarea.horasTrabajadas} Horas`;
                 }
               }
 
@@ -471,6 +574,7 @@ function tabular(resultadosProyectos, orderByFunc) {
                       arrayTasks.push({
                         id: checkboxId,
                         fechaFinalizacion: inputFecha.value,
+                        horas: inputHoras.value,
                         imagen: base64Image,
                       });
                       if (arrayTasks.length != 0) {
@@ -578,6 +682,7 @@ function tabular(resultadosProyectos, orderByFunc) {
               rowTask.appendChild(cellEstado);
               rowTask.appendChild(cellAgente);
               rowTask.appendChild(cellFechaFinalizacion);
+              rowTask.appendChild(cellHorasTrabajadas);
               rowTask.appendChild(cellImage);
               rowTask.appendChild(cellAcciones);
 
@@ -779,7 +884,10 @@ btnAsignarAgente.addEventListener("click", function () {
         type: "GET", // Puedes ajustar esto según tu lógica
         dataType: "json",
         data: {
-          comentario_adicional: textAreaComentarioAdicional.value == "" ? "Sin comentarios" : textAreaComentarioAdicional.value
+          comentario_adicional:
+            textAreaComentarioAdicional.value == ""
+              ? "Sin comentarios"
+              : textAreaComentarioAdicional.value,
         },
         success: function (data) {
           if (data.status == "success") {
@@ -794,7 +902,11 @@ btnAsignarAgente.addEventListener("click", function () {
   *${textAreaComentarioEdit.value}*
   
   Comentario:
-  *${textAreaComentarioAdicional.value == "" ? "Sin comentarios" : textAreaComentarioAdicional.value}*
+  *${
+    textAreaComentarioAdicional.value == ""
+      ? "Sin comentarios"
+      : textAreaComentarioAdicional.value
+  }*
 
   Espero su pronta respuesta.
           
@@ -832,7 +944,6 @@ btnAsignarAgente.addEventListener("click", function () {
 
 // Funcionamiento del boton agregar nueva tarea
 btnNewTask.addEventListener("click", function () {
-  console.log(infoTareas);
   rowTableTaskEdit.style.display = "";
 
   // Crea una nueva fila
@@ -866,6 +977,9 @@ btnNewTask.addEventListener("click", function () {
 
   var fechaCell = document.createElement("td");
   fechaCell.textContent = "El agente encargado fija la fecha de culminación";
+
+  var horasCell = document.createElement("td");
+  horasCell.textContent = "El agente encargado fija las horas trabajadas";
 
   var imagenCell = document.createElement("td");
   imagenCell.textContent = "El agente encargado sube la imagen de la solución";
@@ -943,6 +1057,7 @@ btnNewTask.addEventListener("click", function () {
   newRow.appendChild(cellEstado);
   newRow.appendChild(agenteCell);
   newRow.appendChild(fechaCell);
+  newRow.appendChild(horasCell);
   newRow.appendChild(imagenCell);
   newRow.appendChild(accionesCell);
 
@@ -1101,7 +1216,7 @@ function makePdf(
     "es-ES",
     opcionesDeFormato
   );
-  
+
   var objGeneratePdf = {
     content: [
       { image: imageUrl, width: 100, height: 100, alignment: "center" },
@@ -1163,15 +1278,15 @@ function makePdf(
         margin: [0, 15, 0, 0],
       },
       {
-        text: "El valor a facturar será por hora técnica o fracción de hora ",
-        fontSize: 10,
-        bold: true,
-        margin: [0, 2, 0, 0],
-      },
-      {
         ul: arrayActivities.map((activity) => [
-          `- Actividad: ${activity.descripcion}, hecho por: ${activity.agente_actividad_nombre} 
-          ${razonSocial != nombreEmpresaSolicitante ? `FIS: ${activity.fechainicio} FFS: ${activity.fechafinal}` : ''}
+          `Actividad: ${activity.descripcion}
+          Hecho por: ${activity.agente_actividad_nombre}.
+          ${
+            razonSocial != nombreEmpresaSolicitante
+              ? `Horas trabajadas por el agente: ${activity.horasTrabajadas} horas.
+              FIS: ${activity.fechainicio} FFS: ${activity.fechafinal}.`
+              : ""
+          }
           `,
           {
             image: activity.imagen_actividades,
@@ -1199,15 +1314,22 @@ function makePdf(
       return [
         {
           text: `Reporte generado por ${razonSocial} el día ${fechaFormateadaActualReport}`,
-          fontSize: 9,
+          fontSize: 8,
           italics: true,
           margin: [35, 5, 0, 0],
           paddin: [10, 0, 0, 0],
         },
         {
+          text: 'El valor a facturar será por hora técnica o fracción de hora.',
+          fontSize: 8,
+          bold: true,
+          margin: [35, 2, 0, 0],
+          paddin: [5, 0, 0, 0],
+        },
+        {
           text: `Página ${currentPage} de ${pageCount}`,
           alignment: "right",
-          margin: [0, 0, 40, 0],
+          margin: [0, 0, 35, 0],
         },
       ];
     },
@@ -1364,10 +1486,11 @@ btnRegresarEstado.addEventListener("click", function () {
 // Input para buscar
 buscarSolicitante.addEventListener("keyup", function () {
   const textoBusqueda = buscarSolicitante.value.toLowerCase();
-
-  Array.from(tBodyTicketSoporte.children).forEach(function (fila) {
+  const tabla = document.getElementById("tbodyTicketTable");
+  
+  Array.from(tabla.children).forEach(function (fila) {
     const textoFila = fila.textContent.toLowerCase();
-    if (textoFila.includes(textoBusqueda)) {
+    if ((textoFila.includes(textoBusqueda)) && (!fila.classList.contains("table-success")) && (!fila.classList.contains("table-danger"))) {
       fila.style.display = "";
     } else {
       fila.style.display = "none";
@@ -1375,11 +1498,29 @@ buscarSolicitante.addEventListener("keyup", function () {
   });
 });
 
+buscarSolicitanteCompleto.addEventListener("keyup", function(){
+  const textoBusquedaCompleta = buscarSolicitanteCompleto.value.toLowerCase();
+  const tabla = document.getElementById("tbodyTicketComplete");
+
+  Array.from(tabla.children).forEach(function (fila) {
+    const textoFila = fila.textContent.toLowerCase();
+    if ((textoFila.includes(textoBusquedaCompleta)) && (fila.classList.length > 0) && (!fila.classList.contains("table-warning")) && (!fila.classList.contains("table-secondary"))) {
+      fila.style.display = "";
+    } else {
+      fila.style.display = "none";
+    }
+  });
+})
+
 // Boton para ordenar la tabla
 btnStateAwait.addEventListener("click", function () {
-  toggleOrder(); 
+  toggleOrder();
   tabular(resultadosProyectos, orderByEstadoDesc);
 });
+btnStateAwaitComplete.addEventListener("click", function(){
+  toggleOrder();
+  tabular(resultadosProyectos, orderByEstadoDesc);
+})
 
 // Funcionalidad para agregar la imagen
 inputNewImage2.addEventListener("change", function () {
@@ -1415,7 +1556,7 @@ inputNewImage2.addEventListener("change", function () {
 });
 
 // Funcionalidad del boton de anular
-btnNullTicket.addEventListener("click", function(){
+btnNullTicket.addEventListener("click", function () {
   fetch(`null_ticket/${numTicketSoporte}`, {
     method: "POST",
     headers: {
@@ -1426,55 +1567,63 @@ btnNullTicket.addEventListener("click", function(){
     .then((response) => response.json())
     .then((data) => {
       if (data.status == "success") {
-        toastr.success("El ticket ha sido anulado correctamente.", data.message);
+        toastr.success(
+          "El ticket ha sido anulado correctamente.",
+          data.message
+        );
         setTimeout(() => {
           window.location.reload();
         }, 2000);
       } else {
-        toastr.error("Error al anular el ticket, revise el servicio", data.message);
+        toastr.error(
+          "Error al anular el ticket, revise el servicio",
+          data.message
+        );
       }
     })
     .catch((error) => {
       console.error("Error al anular el ticket, revise el servicio:", error);
-      toastr.error("Error al anular el ticket, revise el servicio", data.message);
+      toastr.error(
+        "Error al anular el ticket, revise el servicio",
+        data.message
+      );
     });
-})
-
+});
 
 // Funcionalidad para llenar la informacion de los tickets
-asuntoTicketAgente.addEventListener("input", function(){
-  if((asuntoTicketAgente.value).length > 4 ){
-    rowProblemaAgente.style.display = ""
-  }else{
-    rowProblemaAgente.style.display = "none"
+asuntoTicketAgente.addEventListener("input", function () {
+  if (asuntoTicketAgente.value.length > 4) {
+    rowProblemaAgente.style.display = "";
+  } else {
+    rowProblemaAgente.style.display = "none";
   }
-})
-asuntoTicket.addEventListener("input", function(){
-  if((asuntoTicket.value).length > 4){
-    rowPoblema.style.display = ""
-  }else{
-    rowPoblema.style.display = "none"
+});
+asuntoTicket.addEventListener("input", function () {
+  if (asuntoTicket.value.length > 4) {
+    rowPoblema.style.display = "";
+  } else {
+    rowPoblema.style.display = "none";
   }
-})
+});
 
-textAreaProblemaAgent.addEventListener("input", function(){
-  if((textAreaProblemaAgent.value).length > 10){
-    colImageAgente.style.display = ""
-  }else{
-    colImageAgente.style.display = "none"
+textAreaProblemaAgent.addEventListener("input", function () {
+  if (textAreaProblemaAgent.value.length > 10) {
+    colImageAgente.style.display = "";
+  } else {
+    colImageAgente.style.display = "none";
   }
-})
-exampleFormControlTextarea1.addEventListener("input", function(){
-  if((exampleFormControlTextarea1.value).length > 10){
-    colImage.style.display = ""
-  }else{
-    colImage.style.display = "none"
+});
+exampleFormControlTextarea1.addEventListener("input", function () {
+  if (exampleFormControlTextarea1.value.length > 10) {
+    colImage.style.display = "";
+  } else {
+    colImage.style.display = "none";
   }
-})
+});
 
-prioridadSelect.addEventListener("change", function(){
-  btnCreateTicket.disabled = false
-})
-prioridadSelectAgent.addEventListener("change", function(){
-  btnCreateTicketAgent.disabled = false
-})
+prioridadSelect.addEventListener("change", function () {
+  btnCreateTicket.disabled = false;
+});
+prioridadSelectAgent.addEventListener("change", function () {
+  btnCreateTicketAgent.disabled = false;
+});

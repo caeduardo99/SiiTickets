@@ -24,8 +24,11 @@
                 <a class="nav-link active" id="nuevoticket-tab" data-toggle="tab" href="#nuevoticket">Nuevo Ticket</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Tickets</a>
+                <a class="nav-link" id="vertickets-tab" data-toggle="tab" href="#vertickets">Tickets en proceso</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="verticketsCompletos-tab" data-toggle="tab" href="#verticketsCompletos">Tickets completos</a>
+            </li> 
 
         </ul>
 
@@ -164,7 +167,7 @@
                 <div class="row g-1">
                     <div class="col-md-10">
                         <div class="form-group">
-                            <input type="text" class="form-control" id="buscarSolicitante" placeholder="Buscar...">
+                            <input type="text" class="form-control form-control-sm" id="buscarSolicitante" placeholder="Buscar...">
                         </div>
                     </div>
                     <div class="col-md-2">
@@ -189,6 +192,43 @@
                                 </tr>
                                 </thead>
                                 <tbody id="tbodyTicketTable">
+                                <!-- Aquí se llenarán las filas de la tabla -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="verticketsCompletos">
+                <div class="row g-1">
+                    <div class="col-md-10">
+                        <div class="form-group">
+                            <input type="text" class="form-control form-control-sm" id="buscarSolicitanteCompleto" placeholder="Buscar...">
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-sm btn-dark btn-block" id="btnStateAwaitComplete">Ordenar</button>
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">Tickets completos o anulados</div>
+                    <div class="card-body">
+                        <div class="table-responsive" style="overflow-y: auto; max-height: 380px;">
+                            <table class="table table-hover table-sm">
+                                <thead>
+                                <tr>
+                                    <th>NumTicket</th>
+                                    <th>Empresa</th>
+                                    <th>Asunto</th>
+                                    <th>Solicitante</th>
+                                    <th>Prioridad</th>
+                                    <th>Fecha de Solicitud</th>
+                                    <th>Estado</th>
+                                    <th>Accion</th>
+                                </tr>
+                                </thead>
+                                <tbody id="tbodyTicketComplete">
                                 <!-- Aquí se llenarán las filas de la tabla -->
                                 </tbody>
                             </table>
@@ -281,9 +321,9 @@
                             <textarea class="form-control" id="textAreaCausaError" rows="3" disabled></textarea>
                         </div>
                         <div class="col-md-5">
-                            <img class="img-fluid" id="imageError" style="width: 250px;height: auto;">
+                            <img class="img-fluid" id="imageError" style="width: 250px;height: auto;" alt=" Imagen o Video adjunto (Click para ver)">
                             <br>
-                            <img class="img-fluid" id="imageError2" style="width: 250px;height: auto;">
+                            <img class="img-fluid" id="imageError2" style="width: 250px;height: auto;" alt="Imagen o Video adjunto (Click para ver)">
                             <br>
                             <div class="input-group" id="rowInputImg2">
                                 <div class="custom-file">
@@ -309,6 +349,7 @@
                                 <th scope="col">Estado</th>
                                 <th scope="col">Agente</th>
                                 <th scope="col">Fecha finalización</th>
+                                <th scope="col">Horas trabajadas</th>
                                 <th scope="col">Imagen del requerimiento solucionado</th>
                                 <th scope="col">Acciones</th>
                               </tr>
