@@ -23,8 +23,7 @@ let resultadosProyectos,
   asunto,
   orderList,
   orderByDescending = false,
-  ticketsCompletos = false,
-  base64Image;
+  ticketsCompletos = false;
 var resultadosAgentesData = window.resultados_agentes_data;
 var resultadosSolicitantesData = window.resultados_solicitantes_data;
 var nombreUsuario = document.getElementById("nombreUsuario").value;
@@ -504,6 +503,7 @@ function tabular(resultadosProyectos, orderByFunc) {
               const rowTask = document.createElement("tr");
               // En caso de que la tarea se perteneciente al usuario logeado, debe dejar colocar un input
               const cellTarea = document.createElement("td");
+
               if (
                 tarea.descripcion == "" &&
                 idUsuario == tarea.idAgente_id &&
@@ -524,7 +524,6 @@ function tabular(resultadosProyectos, orderByFunc) {
                   cellTarea.textContent = tarea.descripcion;
                 }
               }
-
               const cellEstado = document.createElement("td");
               cellEstado.textContent = tarea.estado_actividad;
 
@@ -534,6 +533,8 @@ function tabular(resultadosProyectos, orderByFunc) {
               // Ahora en caso de que el fecha final este vacio le permita al usuario participante agregar una fecha
               const cellFechaFinalizacion = document.createElement("td");
               const cellHorasTrabajadas = document.createElement("td");
+              const cellImage = document.createElement("td");
+
               if (
                 tarea.fechafinal == null &&
                 idUsuario == tarea.idAgente_id &&
@@ -542,23 +543,60 @@ function tabular(resultadosProyectos, orderByFunc) {
                 var inputFecha = document.createElement("input");
                 inputFecha.className = "form-control form-control-sm";
                 inputFecha.type = "datetime-local";
+
                 var inputHoras = document.createElement("input");
                 inputHoras.className = "form-control form-control-sm";
                 inputHoras.type = "number";
 
+                var inputImagen = document.createElement("input");
+                inputImagen.setAttribute("type", "file");
+                inputImagen.setAttribute("class","form-control-file form-control-sm");
+                // Funcionalidad en caso de que la imagen este vacia o no, si esta vicia debe permitirme subir una imagen, en caso de que no solo ver la imagen
+                inputImagen.addEventListener("change", function () {
+                  if (tarea.descripcion != "" && inputFecha.value != "") {
+                    toastr.info(
+                      "Listo para enviar",
+                      "La tarea esta lista para enviar"
+                    );
+                    checkBox.disabled = false;
+                  } else {
+                    toastr.error(
+                      "Falta información",
+                      "Se necesita completar todos los campos"
+                    );
+                    checkBox.disabled = true;
+                  }
+                });
+                
                 cellFechaFinalizacion.appendChild(inputFecha);
                 cellHorasTrabajadas.appendChild(inputHoras);
+                cellImage.appendChild(inputImagen);
               } else {
-                if (tarea.fechafinal == null) {
+                if (tarea.fechafinal == null && tarea.imagen_actividades == "") {
                   cellFechaFinalizacion.textContent =
                     "El usuario no ha determinado la fecha";
                   cellHorasTrabajadas.textContent = '---';
+                  cellImage.textContent = 'No hay imagen de la solución'
                 } else {
                   cellFechaFinalizacion.textContent = tarea.fechafinal;
                   cellHorasTrabajadas.textContent = `${tarea.horasTrabajadas} Horas`;
+                  const verImage = document.createElement("button");
+                  verImage.textContent = "Imagen";
+                  verImage.type = "button";
+                  verImage.className = "btn btn-secondary btn-sm btn-block";
+                  verImage.addEventListener("click", function () {
+                    const newWindow = window.open(
+                      "",
+                      "ImageWindow",
+                      "width=400,height=400"
+                    );
+                    newWindow.document.write(
+                      `<img src="${tarea.imagen_actividades}" style="max-width: 100%; max-height: 100%;">`
+                    );
+                  });
+                  cellImage.appendChild(verImage);
                 }
               }
-
               //Funcionalidad de la columna de acciones, en caso de que sea asignado debo agregar la información,los checks
               const cellAcciones = document.createElement("td");
               if (nombreUsuario != "mafer" && nombreUsuario != "superadmin") {
@@ -567,9 +605,9 @@ function tabular(resultadosProyectos, orderByFunc) {
                   var checkBox = document.createElement("input");
                   checkBox.type = "checkbox";
                   checkBox.disabled = true;
-                  checkBox.addEventListener("change", (event) => {
+                  checkBox.addEventListener("change", async (event) => {
                     const checkboxId = tarea.id;
-
+                    const base64Image = await loadImage(inputImagen);
                     if (event.target.checked) {
                       arrayTasks.push({
                         id: checkboxId,
@@ -589,61 +627,6 @@ function tabular(resultadosProyectos, orderByFunc) {
                     }
                   });
                   cellAcciones.appendChild(checkBox);
-                }
-              }
-
-              // Funcionalidad en caso de que la imagen este vacia o no, si esta vicia debe permitirme subir una imagen, en caso de que no solo ver la imagen
-              const cellImage = document.createElement("td");
-              if (tarea.imagen_actividades != "") {
-                const verImage = document.createElement("button");
-                verImage.textContent = "Imagen";
-                verImage.type = "button";
-                verImage.className = "btn btn-secondary btn-sm btn-block";
-                verImage.addEventListener("click", function () {
-                  const newWindow = window.open(
-                    "",
-                    "ImageWindow",
-                    "width=400,height=400"
-                  );
-                  newWindow.document.write(
-                    `<img src="${tarea.imagen_actividades}" style="max-width: 100%; max-height: 100%;">`
-                  );
-                });
-                cellImage.appendChild(verImage);
-              } else {
-                if (idUsuario == tarea.idAgente_id) {
-                  var inputImagen = document.createElement("input");
-                  inputImagen.setAttribute("type", "file");
-                  inputImagen.setAttribute(
-                    "class",
-                    "form-control-file form-control-sm"
-                  );
-                  // Funcionalidad de la seleccion de imagen
-                  inputImagen.addEventListener("change", function () {
-                    base64Image = "";
-                    var file = inputImagen.files[0];
-                    var reader = new FileReader();
-                    reader.onload = function (event) {
-                      base64Image = event.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                    if (tarea.descripcion != "" && inputFecha.value != "") {
-                      toastr.info(
-                        "Listo para enviar",
-                        "La tarea esta lista para enviar"
-                      );
-                      checkBox.disabled = false;
-                    } else {
-                      toastr.error(
-                        "Falta información",
-                        "Se necesita completar todos los campos"
-                      );
-                      checkBox.disabled = true;
-                    }
-                  });
-                  cellImage.appendChild(inputImagen);
-                } else {
-                  cellImage.textContent = "No hay imagen de la solución";
                 }
               }
               // En caso de que el que abra este ticket sea administrador del mismo
@@ -724,6 +707,21 @@ for (var i = 0; i < selectSolicitante.options.length; i++) {
   if (empresa !== nombreUsuario) {
     option.style.display = "none";
   }
+}
+
+// Funcion para transformar a Base64
+function loadImage(inputImagen) {
+  return new Promise((resolve, reject) => {
+    var file = inputImagen.files[0];
+    var reader = new FileReader();
+    reader.onload = function (event) {
+      resolve(event.target.result);
+    };
+    reader.onerror = function (error) {
+      reject(error);
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 // Función para crear elementos SVG
