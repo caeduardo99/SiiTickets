@@ -1196,7 +1196,7 @@ def ticketsoportescreadosid(request, ticket_id):
         aps.imagen_actividades,
         aps.fechainicio,
         aps.fechafinal,
-        aps.horasTrabajadas
+        aps.minutosTrabajados
     FROM
         soporte_actividadprincipalsoporte aps
     LEFT JOIN
@@ -2216,7 +2216,7 @@ def editar_tareas_soporte(request):
         for actividad, task in zip(actividades, tasks):
             actividad.idestado = EstadosTicket.objects.get(id=4)
             actividad.fechafinal = task.get("fechaFinalizacion")
-            actividad.horasTrabajadas = task.get("horas")
+            actividad.minutosTrabajados = task.get("minutos")
             actividad.imagen_actividades = task.get("imagen")
 
             actividad.save()

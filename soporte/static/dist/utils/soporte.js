@@ -532,7 +532,7 @@ function tabular(resultadosProyectos, orderByFunc) {
 
               // Ahora en caso de que el fecha final este vacio le permita al usuario participante agregar una fecha
               const cellFechaFinalizacion = document.createElement("td");
-              const cellHorasTrabajadas = document.createElement("td");
+              const cellMinutosTrabajados = document.createElement("td");
               const cellImage = document.createElement("td");
 
               if (
@@ -544,9 +544,9 @@ function tabular(resultadosProyectos, orderByFunc) {
                 inputFecha.className = "form-control form-control-sm";
                 inputFecha.type = "datetime-local";
 
-                var inputHoras = document.createElement("input");
-                inputHoras.className = "form-control form-control-sm";
-                inputHoras.type = "number";
+                var inputMinutos = document.createElement("input");
+                inputMinutos.className = "form-control form-control-sm";
+                inputMinutos.type = "number";
 
                 var inputImagen = document.createElement("input");
                 inputImagen.setAttribute("type", "file");
@@ -569,17 +569,17 @@ function tabular(resultadosProyectos, orderByFunc) {
                 });
                 
                 cellFechaFinalizacion.appendChild(inputFecha);
-                cellHorasTrabajadas.appendChild(inputHoras);
+                cellMinutosTrabajados.appendChild(inputMinutos);
                 cellImage.appendChild(inputImagen);
               } else {
                 if (tarea.fechafinal == null && tarea.imagen_actividades == "") {
                   cellFechaFinalizacion.textContent =
                     "El usuario no ha determinado la fecha";
-                  cellHorasTrabajadas.textContent = '---';
+                  cellMinutosTrabajados.textContent = '---';
                   cellImage.textContent = 'No hay imagen de la solución'
                 } else {
                   cellFechaFinalizacion.textContent = tarea.fechafinal;
-                  cellHorasTrabajadas.textContent = `${tarea.horasTrabajadas} Horas`;
+                  cellMinutosTrabajados.textContent = `${tarea.minutosTrabajados} Minutos`;
                   const verImage = document.createElement("button");
                   verImage.textContent = "Imagen";
                   verImage.type = "button";
@@ -612,7 +612,7 @@ function tabular(resultadosProyectos, orderByFunc) {
                       arrayTasks.push({
                         id: checkboxId,
                         fechaFinalizacion: inputFecha.value,
-                        horas: inputHoras.value,
+                        minutos: inputMinutos.value,
                         imagen: base64Image,
                       });
                       if (arrayTasks.length != 0) {
@@ -665,7 +665,7 @@ function tabular(resultadosProyectos, orderByFunc) {
               rowTask.appendChild(cellEstado);
               rowTask.appendChild(cellAgente);
               rowTask.appendChild(cellFechaFinalizacion);
-              rowTask.appendChild(cellHorasTrabajadas);
+              rowTask.appendChild(cellMinutosTrabajados);
               rowTask.appendChild(cellImage);
               rowTask.appendChild(cellAcciones);
 
@@ -977,7 +977,7 @@ btnNewTask.addEventListener("click", function () {
   fechaCell.textContent = "El agente encargado fija la fecha de culminación";
 
   var horasCell = document.createElement("td");
-  horasCell.textContent = "El agente encargado fija las horas trabajadas";
+  horasCell.textContent = "El agente encargado fija los minutos trabajados";
 
   var imagenCell = document.createElement("td");
   imagenCell.textContent = "El agente encargado sube la imagen de la solución";
@@ -1281,7 +1281,7 @@ function makePdf(
           Hecho por: ${activity.agente_actividad_nombre}.
           ${
             razonSocial != nombreEmpresaSolicitante
-              ? `Horas trabajadas por el agente: ${activity.horasTrabajadas} horas.
+              ? `Minutos trabajados por el agente: ${activity.minutosTrabajados} minutos.
               FIS: ${activity.fechainicio} FFS: ${activity.fechafinal}.`
               : ""
           }
