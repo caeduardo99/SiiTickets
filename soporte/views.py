@@ -2215,6 +2215,7 @@ def editar_tareas_soporte(request):
 
         for actividad, task in zip(actividades, tasks):
             actividad.idestado = EstadosTicket.objects.get(id=4)
+            actividad.descripcion = task.get("descripcion")
             actividad.fechafinal = task.get("fechaFinalizacion")
             actividad.minutosTrabajados = task.get("minutos")
             actividad.imagen_actividades = task.get("imagen")

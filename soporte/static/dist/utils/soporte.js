@@ -505,17 +505,21 @@ function tabular(resultadosProyectos, orderByFunc) {
               const cellTarea = document.createElement("td");
 
               if (
-                tarea.descripcion == "" &&
                 idUsuario == tarea.idAgente_id &&
                 (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
               ) {
-                var inputDescripcion = document.createElement("input");
-                inputDescripcion.type = "text";
-                inputDescripcion.classList = "form-control form-control-sm";
-                inputDescripcion.id = "descripcionActividad";
-                inputDescripcion.placeholder =
-                  "Descripción de la actividad a realizar";
-                cellTarea.appendChild(inputDescripcion);
+                if(tarea.idestado_id == 2){
+                  var inputDescripcion = document.createElement("input");
+                  inputDescripcion.type = "text";
+                  inputDescripcion.classList = "form-control form-control-sm";
+                  inputDescripcion.id = "descripcionActividad";
+                  inputDescripcion.placeholder =
+                    "Descripción de la actividad a realizar";
+                  inputDescripcion.value = tarea.descripcion
+                  cellTarea.appendChild(inputDescripcion);
+                }else{
+                  cellTarea.textContent = tarea.descripcion;
+                }
               } else {
                 if (tarea.descripcion == "") {
                   cellTarea.textContent =
@@ -524,6 +528,7 @@ function tabular(resultadosProyectos, orderByFunc) {
                   cellTarea.textContent = tarea.descripcion;
                 }
               }
+
               const cellEstado = document.createElement("td");
               cellEstado.textContent = tarea.estado_actividad;
 
@@ -611,6 +616,7 @@ function tabular(resultadosProyectos, orderByFunc) {
                     if (event.target.checked) {
                       arrayTasks.push({
                         id: checkboxId,
+                        descripcion: inputDescripcion.value,
                         fechaFinalizacion: inputFecha.value,
                         minutos: inputMinutos.value,
                         imagen: base64Image,
@@ -656,6 +662,41 @@ function tabular(resultadosProyectos, orderByFunc) {
                     }
                   });
                   cellAcciones.appendChild(checkBoxFinishTask);
+                }
+                if(tarea.idestado_id == 2){
+                  var buttonTrash = document.createElement("button");
+                  buttonTrash.className = "btn btn-sm btn-danger";
+                  buttonTrash.type = "button";
+                  cellAcciones.disabled = "false";
+                  buttonTrash.textContent = "Borrar";
+                  buttonTrash.disabled = false;
+                  buttonTrash.style.marginLeft = "2px"
+
+                  buttonTrash.addEventListener("click", function () {
+                    var deletTarea = {
+                      descripcion: tarea.descripcion,
+                    };
+                
+                    // Enviar la solicitud POST
+                    fetch(`/eliminar_tarea/${numTicketSoporte}`, {
+                      method: "POST",
+                      body: JSON.stringify(deletTarea),
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    })
+                      .then((response) => response.json())
+                      .then((data) => {
+                        toastr.warning(data.status, "Tarea eliminada correctamente");
+                        // Eliminar la fila actual
+                        var row = buttonTrash.parentElement.parentElement;
+                        row.parentNode.removeChild(row);
+                      })
+                      .catch((error) => {
+                        console.error("Error al eliminar tareas:", error);
+                      });
+                  });
+                  cellAcciones.appendChild(buttonTrash);
                 }
               } else {
                 btnNewTask.style.display = "none";
