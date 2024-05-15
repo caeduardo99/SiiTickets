@@ -900,9 +900,9 @@ def getInfoReport(request, id_ticket):
 
 def getInfoReportSoport(request, id_ticket):
     consulta_general = """
-    SELECT st.id as idTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.comentario as comentarioTicket,
+    SELECT st.id as idTicket, st.fechaCreacion as fechaCreacion, st.asunto , st.fechaInicio, st.comentario,
 	st.prioridad, st.facturar, st.causaerror, st.imagenes as imagenProblema, st.fechaFinalizacion as fechaFinalizacionTicket,
-	st.fechaFinalizacionReal as fechaFinalizacionRealTicket, 
+	st.fechaFinalizacionReal as fechaFinalizacionRealTicket,st.facturar, 
 	au.id as idAgenteAdministrador, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
 	ss.id as idSolicitante, ss.ruc as Ruc, ss.nombreApellido as NombreCompletoSolicitante, ss.correo as mailSolicitante,
 	se.id as idEmpresaSolicitante, se.nombreEmpresa as NombreEmpresaSolicitante,
@@ -916,7 +916,7 @@ def getInfoReportSoport(request, id_ticket):
     """
     consulta_actividades = """
     SELECT st.id as idTicket, sa.id as idActividad, sa.descripcion as descripcionActividad, sa.imagen_actividades, sa.fechainicio,
-	sa.fechafinal, 
+	sa.fechafinal, sa.minutosTrabajados,
 	sa.idAgente_id as idAgenteActividad, au.first_name as NombreAgenteActividad, au.last_name as ApellidoAgenteActividad,
 	se.id as idEstadoActividad, se.descripcion as estadoActividad
 	FROM soporte_ticketsoporte st 
@@ -967,8 +967,8 @@ def getInfoReportSoport(request, id_ticket):
     horas_agente = list(agrupado_por_agente.values())
 
     context = {
-        "infoGeneralProject": resultados_info_general[0],
-        "tasksMain": resultados_info_actividades[0],
+        "ticket": resultados_info_general,
+        "actividades": resultados_info_actividades,
         "hourWorkAgent": horas_agente,
     }
     return JsonResponse(context, safe=False)

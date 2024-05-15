@@ -44,7 +44,6 @@ urlpatterns = [
     path('ticketsoportescreadosid/<int:ticket_id>/', views.ticketsoportescreadosid, name='ticketsoportescreadosid'),
     path('crear_ticket_soporte/', views.crear_ticket_soporte, name='crear_ticket_soporte'),
     path('editar_ticket_soporte/<int:ticket_id>/', views.editar_ticket_soporte, name='editar_ticket_soporte'),
-
     path('ticketsActualizacionCreados/', views.ticketsActualizacionCreados, name='ticketsActualizacionCreados'),
     path('crear_ticket_actualizacion/', views.crear_ticket_actualizacion, name='crear_ticket_actualizacion'),
     path('detalles_actualizacion/', views.detalles_actualizacion, name='detalles_actualizacion'),
@@ -58,6 +57,7 @@ urlpatterns = [
     path('crear_ticket_desarrollo/', views.crear_ticket_desarrollo, name='crear_ticket_desarrollo'),
     path('crear_ticket_soporte_agente/', views.crear_ticket_soporte_agente, name='crear_ticket_soporte_agente'),
     path('detalleTicketDesarrollo/<int:ticket_id>/', views.detalleTicketDesarrollo, name='detalleTicketDesarrollo'),
+    path('getInfoReportSoport/<int:id_ticket>', views.getInfoReportSoport, name='getInfoReportSoport'),
     path('detalleTicketActualizacion/<int:ticket_id>/', views.detalleTicketActualizacion, name='detalleTicketActualizacion'),
     path('getInfoReport/<int:id_ticket>/', views.getInfoReport, name='getInfoReport'),
     path('getInfoActualizacionReport/<int:id_ticket>/', views.getInfoActualizacionReport, name='getInfoActualizacionReport'),
