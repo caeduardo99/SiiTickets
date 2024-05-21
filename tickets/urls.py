@@ -58,6 +58,7 @@ urlpatterns = [
     path('crear_ticket_soporte_agente/', views.crear_ticket_soporte_agente, name='crear_ticket_soporte_agente'),
     path('detalleTicketDesarrollo/<int:ticket_id>/', views.detalleTicketDesarrollo, name='detalleTicketDesarrollo'),
     path('getInfoReportSoport/<int:id_ticket>', views.getInfoReportSoport, name='getInfoReportSoport'),
+    path('update_file_extra/<int:id_ticket>', views.update_file_extra, name='update_file_extra'),
     path('detalleTicketActualizacion/<int:ticket_id>/', views.detalleTicketActualizacion, name='detalleTicketActualizacion'),
     path('getInfoReport/<int:id_ticket>/', views.getInfoReport, name='getInfoReport'),
     path('getInfoActualizacionReport/<int:id_ticket>/', views.getInfoActualizacionReport, name='getInfoActualizacionReport'),

@@ -2234,6 +2234,17 @@ def editar_tareas_soporte(request):
             status=400,
         )
 
+@require_POST
+@csrf_exempt
+def update_file_extra(request, id_ticket):
+    file_extra = request.FILES.get("fileExtra")
+    if file_extra:
+        ticket = TicketSoporte.objects.get(id=id_ticket)
+        ticket.archivo = file_extra
+        ticket.save()
+        return JsonResponse({"status": "success", "message": "Archivo guardado con éxito"})
+    else:
+        return JsonResponse({"status": "error", "message": "No se ha subido ningún archivo"})
 
 @csrf_exempt
 def finalizar_tareas_soporte(request):

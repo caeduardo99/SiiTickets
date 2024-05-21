@@ -62,6 +62,7 @@ const inputEditSoporte = document.getElementById("inputEditSoporte");
 const textAreaComentarioEdit = document.getElementById(
   "textAreaComentarioEdit"
 );
+const inputFileExtraModal = document.getElementById("inputFileExtraModal");
 const imageError2 = document.getElementById("imageError2");
 const prioridadSelectAgent = document.getElementById("prioridadSelectAgent");
 const prioridadSelect = document.getElementById("prioridadSelect");
@@ -78,7 +79,7 @@ const btnFileExtra = document.getElementById("btnFileExtra");
 const selectEditAgenteSolicitado = document.getElementById(
   "selectEditAgenteSolicitado"
 );
-const inputFileExtraModal = document.getElementById("inputFileExtraModal");
+const rowInputFileExtra = document.getElementById("rowInputFileExtra");
 const imageError = document.getElementById("imageError");
 const tbodyListTask = document.getElementById("tbodyListTask");
 const datosElemento = document.getElementById("datos");
@@ -320,6 +321,7 @@ function tabular(resultadosProyectos, orderByFunc) {
       btnAsignarAgente.style.display = "none";
       arrayTasks = [];
       infoGeneraTicket = [];
+      rowInputFileExtra.style.display = "none"
       infoTareas = [];
       rowTableTaskEdit.style.display = "none";
       btnNullTicket.style.display = "none";
@@ -350,10 +352,10 @@ function tabular(resultadosProyectos, orderByFunc) {
           archivoAdicional = infoGeneraTicket[0].archivo;
           if(archivoAdicional == "" || archivoAdicional == null){
             btnFileExtra.style.display = "none"
-            if(idUsuario == 2){
-              inputFileExtraModal.style.display = ""
+            if(idUsuario == 2 && infoGeneraTicket[0] != 6){
+              rowInputFileExtra.style.display = ""
             }else{
-              inputFileExtraModal.style.display = "none"
+              rowInputFileExtra.style.display = "none"
             }
           }else{
             btnFileExtra.style.display = ""
@@ -1488,6 +1490,7 @@ btnCreateTicketAgent.addEventListener("click", function () {
     .catch((error) => {
       console.error("Error:", error);
     });
+  });
 
   // Función para obtener el token CSRF de las cookies
   function getCookie(name) {
@@ -1505,7 +1508,6 @@ btnCreateTicketAgent.addEventListener("click", function () {
     }
     return cookieValue;
   }
-});
 
 btnNotificarSolicitante.addEventListener("click", function () {
   const phoneNumber = String(numeroSolicitante);
@@ -1696,3 +1698,36 @@ prioridadSelect.addEventListener("change", function () {
 prioridadSelectAgent.addEventListener("change", function () {
   btnCreateTicketAgent.disabled = false;
 });
+
+// Funcionalidad de la subida 
+inputFileExtraModal.addEventListener("change", function(){
+  var file = this.files[0];
+  var formData = new FormData();
+  formData.append("fileExtra", file);
+  
+  fetch(`update_file_extra/${numTicketSoporte}`, {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}",
+    },
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status == "success") {
+        toastr.success("Archivo agregado con exito");
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        toastr.error("Error al subir el archivo extra");
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      }
+    })
+    .catch((error) => {
+      toastr.error("Error al subir el Archivo Extra");
+      console.error("Error al enviar la imagen:", error);
+    });
+})
