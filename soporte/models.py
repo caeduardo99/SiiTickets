@@ -94,6 +94,7 @@ class TicketSoporte(models.Model):
     chat = models.CharField(max_length=255, blank=True, null=True)
     trabajoRealizado = models.TextField(null=True, blank=True)  # Campo para describir el trabajo realizado
     imagenes = models.ImageField(upload_to='ticket_images/', null=True, blank=True)
+    archivo = models.FileField(upload_to='ticket_files/', null=True, blank=True)
 
 class ActividadPrincipalActualizacion(models.Model):
     id = models.AutoField(primary_key=True)

@@ -21,6 +21,7 @@ let resultadosProyectos,
   phoneSelected,
   textAgente,
   asunto,
+  archivoAdicional,
   orderList,
   orderByDescending = false,
   ticketsCompletos = false;
@@ -73,9 +74,11 @@ const fechaFinalizacionEdit = document.getElementById("fechaFinalizacionEdit");
 const fechaFinalizacionRealEdit = document.getElementById(
   "fechaFinalizacionRealEdit"
 );
+const btnFileExtra = document.getElementById("btnFileExtra");
 const selectEditAgenteSolicitado = document.getElementById(
   "selectEditAgenteSolicitado"
 );
+const inputFileExtraModal = document.getElementById("inputFileExtraModal");
 const imageError = document.getElementById("imageError");
 const tbodyListTask = document.getElementById("tbodyListTask");
 const datosElemento = document.getElementById("datos");
@@ -106,6 +109,8 @@ const verticketsCompletos = document.getElementById("verticketsCompletos-tab");
 const vertickets = document.getElementById("vertickets-tab");
 const btnStateAwaitComplete = document.getElementById("btnStateAwaitComplete");
 const buscarSolicitanteCompleto = document.getElementById("buscarSolicitanteCompleto");
+const rowArchivoAdicional = document.getElementById("rowArchivoAdicional");
+const inputFileExtra = document.getElementById("inputFileExtra");
 
 // Funcionalidad en caso de que sea cliente o agente
 if (mostrarCampo == "True") {
@@ -148,6 +153,7 @@ verticketsCompletos.addEventListener("click", function () {
     .catch((error) => console.error("Error:", error));
   console.log(ticketsCompletos);
 });
+
 vertickets.addEventListener("click", function () {
   ticketsCompletos = false;
   // Consulta a la base para la obtencion de todos los tickets disponibles
@@ -300,8 +306,10 @@ function tabular(resultadosProyectos, orderByFunc) {
 
     // Funcionalidad del boton ver
     btnVer.addEventListener("click", function () {
+      archivoAdicional = ""
       btnFinishTicket.style.display = "none";
       btnGenerarReporte.style.display = "none";
+      btnFileExtra.style.display = "none";
       btnNewTask.style.display = "none";
       textAreaCausaError.disabled = true;
       numTicketSoporte = proyecto.NumTicket;
@@ -337,6 +345,19 @@ function tabular(resultadosProyectos, orderByFunc) {
           textAreaComentarioEdit.textContent = infoGeneraTicket[0].comentario;
           idEstadoGeneralTicket = infoGeneraTicket[0].idestado_id;
           empresa;
+
+          // Condicion para poder ver el archivo adicional
+          archivoAdicional = infoGeneraTicket[0].archivo;
+          if(archivoAdicional == "" || archivoAdicional == null){
+            btnFileExtra.style.display = "none"
+            if(idUsuario == 2){
+              inputFileExtraModal.style.display = ""
+            }else{
+              inputFileExtraModal.style.display = "none"
+            }
+          }else{
+            btnFileExtra.style.display = ""
+          }
 
           // Si el estado del ticket es 4 se debe aparecer el boton
           if (infoGeneraTicket[0].idestado_id == 4 && idUsuario == 2) {
@@ -821,14 +842,21 @@ function mostrarNombreArchivo(client, agent) {
       input.setAttribute("value", nombreArchivo);
       colSolicitanteAgente.style.display = "";
       colRequerimientoAgente.style.display = "";
+      rowArchivoAdicional.style.display = "";
     } else {
       label.innerHTML = "Sube una imagen del problema que presentas";
       input.setAttribute("value", "");
       colSolicitanteAgente.style.display = "none";
       colRequerimientoAgente.style.display = "none";
+      rowArchivoAdicional.style.display = "none";
     }
   }
 }
+
+// Boton para la ver el archivoGuardado
+btnFileExtra.addEventListener("click", function(){
+  window.open(`/media/${archivoAdicional}`, '_blank');
+});
 
 // Funcionalidad para el envio del mensaje
 function enviarMensajeWhatsApp(creacionVer) {
@@ -1422,13 +1450,15 @@ btnCreateTicketAgent.addEventListener("click", function () {
   var solicitante = solicitanteAgent.value;
   var prioridad = prioridadSelectAgent.value;
   var file = document.getElementById("inputFileAgent").files[0];
+  var fileExtra = document.getElementById("inputFileExtra").files[0];
   var data = new FormData();
   data.append("asuntoTicketAgente", asunto);
   data.append("textAreaProblemaAgent", problema);
   data.append("solicitanteAgent", solicitante);
   data.append("prioridadSelectAgent", prioridad);
-  data.append("file", file); // Agregar el archivo adjunto al FormData
-
+  data.append("file", file);
+  data.append("fileExtra", fileExtra)
+  
   // Enviar la solicitud al servidor
   fetch("crear_ticket_soporte_agente/", {
     method: "POST",

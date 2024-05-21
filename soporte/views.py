@@ -1149,6 +1149,7 @@ def ticketsoportescreadosid(request, ticket_id):
     SELECT 
         st.id,
         st.fechaCreacion,
+        st.archivo,
         st.fechaInicio,
         st.fechaFinalizacion,
         st.fechaFinalizacionReal,
@@ -1868,6 +1869,7 @@ def crear_ticket_soporte_agente(request):
         solicitante = request.POST.get("solicitanteAgent")
         prioridad = request.POST.get("prioridadSelectAgent")
         files = request.FILES.get("file")
+        files_extra = request.FILES.get("fileExtra", None)
         fecha_creacion = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")
         fecha_inicio = None
         fecha_finalizacion = None
@@ -1903,6 +1905,7 @@ def crear_ticket_soporte_agente(request):
             chat=chat,
             trabajoRealizado=trabajo_realizado,
             imagenes=url_imagen,
+            archivo=files_extra,
         )
 
         nuevo_ticket.save()

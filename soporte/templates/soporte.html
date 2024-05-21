@@ -150,6 +150,16 @@
                                               </select>
                                         </div>
                                     </div>
+                                    <div class="row g-1" id= "rowArchivoAdicional" style="display: none;">
+                                        <div class="col-md-12">
+                                            <div class="custom-file">
+                                                <br>
+                                                <input type="file" class="custom-file-input" id="inputFileExtra">
+                                                <label class="custom-file-label" for="inputFileExtra">Subir archivo extra</label>
+                                                <br>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="row g-1">
                                         <div class="col-md-12">
                                             <button type="submit" id="btnCreateTicketAgent" class="btn btn-success btn-block"
@@ -331,6 +341,14 @@
                                   <label class="custom-file-label" for="inputNewImage2">Agregar otra imagen</label>
                                 </div>
                             </div>
+                            <br>
+                            <button class="btn btn-dark btn-sm btn-block" id="btnFileExtra" type="button" style="display:none">Ver archivo adicional</button>
+                            <br>
+                            <div class="input-group" id="rowInputFileExtra" style="display:none">
+                                <input type="file" class="custom-file-input" id="inputFileExtraModal">
+                                <label class="custom-file-label" for="inputFileExtraModal">Subir archivo extra</label>
+                                <br>
+                            </div>
                         </div>
                     </div>
                     <hr>
@@ -377,7 +395,8 @@
         </div>
       </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
+    
+      <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js"></script>
     <script type="text/javascript">
         // Incorporar datos directamente en el script
