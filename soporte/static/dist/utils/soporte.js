@@ -152,7 +152,6 @@ verticketsCompletos.addEventListener("click", function () {
       }
     })
     .catch((error) => console.error("Error:", error));
-  console.log(ticketsCompletos);
 });
 
 vertickets.addEventListener("click", function () {
@@ -185,7 +184,6 @@ vertickets.addEventListener("click", function () {
       }
     })
     .catch((error) => console.error("Error:", error));
-  console.log(ticketsCompletos);
 });
 
 function orderByEstadoDesc(a, b) {

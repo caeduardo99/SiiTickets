@@ -27,7 +27,13 @@ $(document).ready(function () {
     );
     const tableBodyFilterSoportes = document.getElementById('tableBodyFilterSoportes');
     const tableBodyActualizaciones = document.getElementById('tableBodyActualizaciones');
+    const titleAgent = document.getElementById("titleAgent");
+    const numTicketHechos = document.getElementById("numTicketHechos");
+    const rowGraficTicketSoporte = document.getElementById("rowGraficTicketSoporte");
+    const listAgenteHoras = document.getElementById("listAgenteHoras");
     var nombreUsuario = document.getElementById("nombreUsuario").value;
+    let nombreAgente,
+    myBarChart = null
     var masNuevos = true;
     var masAntiguos = false;
 
@@ -41,7 +47,8 @@ $(document).ready(function () {
             (selectStateTicket.value == 1 ||
                 selectStateTicket.value == 2 ||
                 selectStateTicket.value == 4 ||
-                selectStateTicket.value == 5)
+                selectStateTicket.value == 5 || selectStateTicket.value == 0
+            || selectStateTicket.value == 6)
         ) {
             optionTimeTickets.style.display = "";
             optionsAgentPeriodo.style.display = "";
@@ -61,7 +68,7 @@ $(document).ready(function () {
             (selectStateTicket.value == 1 ||
                 selectStateTicket.value == 2 ||
                 selectStateTicket.value == 4 ||
-                selectStateTicket.value == 5)
+                selectStateTicket.value == 5 || selectStateTicket.value == 0 || selectStateTicket.value == 6)
         ) {
             optionTimeTickets.style.display = "";
             optionsAgentPeriodo.style.display = "";
@@ -250,8 +257,11 @@ $(document).ready(function () {
     $("#agentesolicitado").on("change", function () {
         if (agentesolicitado.value != "") {
             colFechaInicio.style.display = "";
+            var selectedOption = agentesolicitado.options[agentesolicitado.selectedIndex];
+            nombreAgente = selectedOption.text;
         } else {
             colFechaInicio.style.display = "none";
+            nombreAgente = "Todos"
         }
     });
 
@@ -268,9 +278,113 @@ $(document).ready(function () {
         }
     }
 
-    function generateTablaReport(arrayDb, table) {
+    // Funcion para sumar las horas por agentes
+    function agruparYSumarMinutos(arrayDb) {
+        const agrupados = arrayDb.reduce((acc, curr) => {
+            if (acc[curr.idAgenteActividad]) {
+                acc[curr.idAgenteActividad].minutosTrabajados += curr.minutosTrabajados;
+            } else {
+                acc[curr.idAgenteActividad] = { 
+                    idAgenteActividad: curr.idAgenteActividad, 
+                    nombreAgente: curr.NombreAgente,
+                    minutosTrabajados: curr.minutosTrabajados 
+                };
+            }
+            return acc;
+        }, {});
+        // Convertir el objeto resultante en un arreglo de objetos
+        const resultadosAgrupados = Object.values(agrupados);
+        return resultadosAgrupados;
+    }
+    // Listar los horas por agentes
+    function listarAgenteHoras(resultados) {
+        resultados.forEach(result => {
+            const tr = document.createElement('tr');
+            const tdAgente = document.createElement('td');
+            const tdMinutos = document.createElement('td');
+
+            tdAgente.textContent = result.nombreAgente;
+            tdMinutos.textContent = `(${result.minutosTrabajados}) minutos trabajados.`;
+
+            tr.appendChild(tdAgente);
+            tr.appendChild(tdMinutos);
+            listAgenteHoras.appendChild(tr);
+        });
+    }
+    
+    // Generar el reporte para Soporte
+    function generateTablaReport(arrayDb, table, tituloAgente, numeroTickets) {
         table.innerHTML = '';
-        arrayDb.forEach(function (item) {
+        tituloAgente.innerHTML = '';
+        numeroTickets.innerHTML = '';
+        listAgenteHoras.innerHTML = '';
+        
+        var horasAgente = agruparYSumarMinutos(arrayDb)
+        horasAgente = horasAgente.filter(item => item.idAgenteActividad != null);
+        listarAgenteHoras(horasAgente)
+        const mapaAgrupado = new Map();
+        const mapaAgrupadoMinutos = new Map();
+        arrayDb.forEach((proyecto) => {
+            const numTicket = proyecto.id;
+            if (!mapaAgrupado.has(numTicket)) {
+              mapaAgrupado.set(numTicket, proyecto);
+            }
+        });
+        arrayDb.forEach((ticket) => {
+            const numActividad = ticket.idActividad;
+            if(!mapaAgrupadoMinutos.has(numActividad)){
+                mapaAgrupadoMinutos.set(numActividad, ticket)
+            }
+        })
+        const resultadosAgrupados = Array.from(mapaAgrupado.values());
+        let agentCount = {};
+        // Creacion de grafico
+        resultadosAgrupados.forEach(obj => {
+            if (agentCount[obj.Nombre]) {
+                agentCount[obj.Nombre]++;
+            } else {
+                agentCount[obj.Nombre] = 1;
+            }
+        });
+        
+        let agentNames = Object.keys(agentCount);
+        let agentValues = Object.values(agentCount);
+        
+        var barChartCanvas = $('#barChart').get(0).getContext('2d')
+        var barChartData = {
+            labels: agentNames,
+            datasets: [{
+                label: 'Ticket en los que se participa',
+                data: agentValues,
+                backgroundColor: 'rgba(60,141,188,0.9)'
+            }]
+        }
+        
+        var barChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            datasetFill: false
+        }
+
+        if (myBarChart) {
+            myBarChart.destroy();
+        }
+        
+        myBarChart = new Chart(barChartCanvas, {
+            type: 'bar',
+            data: barChartData,
+            options: barChartOptions
+        })
+
+        // Agregar informacion en la card
+        if (nombreAgente == "Todos" || nombreAgente == undefined){
+            tituloAgente.textContent = `Todos los agentes.`
+            numeroTickets.textContent = `Hasta la fecha se han realizado ${resultadosAgrupados.length} tickets. `;
+        }else{
+            tituloAgente.textContent = `El agente ${nombreAgente}.`
+            numeroTickets.textContent = `Ha realizado hasta la fecha ${resultadosAgrupados.length} tickets.`;
+        }
+        resultadosAgrupados.forEach(function (item) {
             var row = table.insertRow();
             var cellId = row.insertCell(0);
             cellId.innerHTML = `000-0${item.id}`;
@@ -404,9 +518,10 @@ $(document).ready(function () {
         rowTableTickets.style.display = "none";
         rowTableTicketsSoporte.style.display = "none";
         rowTableTicketsActualizacion.style.display = "none";
+        rowGraficTicketSoporte.style.display = "none";
+        titleAgent.innerHTML = "";
 
         // FUNCIONAMIENTO DE LA CONSULTA DE LOS RESPORTES
-        console.log(`generateReport/?tipo_ticket=${selectTypeTicket.value}&estado_ticket=${selectStateTicket.value}&recientes=${masNuevos}&antiguos=${masAntiguos}&agente=${agentesolicitado.value}&fechaInicio=${inputDateStar.value}&fechaFin=${inputDateEnd.value}`)
         $.ajax({
             type: "GET",
             url: `generateReport/?tipo_ticket=${selectTypeTicket.value}&estado_ticket=${selectStateTicket.value}&recientes=${masNuevos}&antiguos=${masAntiguos}&agente=${agentesolicitado.value}&fechaInicio=${inputDateStar.value}&fechaFin=${inputDateEnd.value}`,
@@ -425,7 +540,9 @@ $(document).ready(function () {
                 if (selectTypeTicket.value == 1) {
                     if (data.length != 0) {
                         rowTableTicketsSoporte.style.display = "";
-                        generateTablaReport(data, tableBodyFilterSoportes)
+                        rowGraficTicketSoporte.style.display = "";
+
+                        generateTablaReport(data, tableBodyFilterSoportes, titleAgent, numTicketHechos)
                     } else {
                         toastr.error("No se han encontrado datos del reporte seleccionado.");
                     }

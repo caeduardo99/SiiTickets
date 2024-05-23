@@ -698,9 +698,15 @@ def generateReport(request):
 
     if tipo_ticket == "1":
         consulta = """
-        select st.id,st.comentario,se.descripcion as Estado, st.fechafinalizacion as fechaFinalizacionEstimada , st.fechacreacion as fechaCreacion ,au.first_name as Nombre, au.last_name as Apellido  from soporte_ticketsoporte st
-        INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
-        INNER JOIN auth_user au ON au.id = st.idAgente_id
+        select st.id,st.comentario,se.descripcion as Estado, st.fechafinalizacion as fechaFinalizacionEstimada, st.idAgente_id as idAgenteAdministrador,st.fechacreacion as fechaCreacion,
+                au.first_name as Nombre, au.last_name as Apellido,
+                sa.id as idActividad, sa.descripcion as actividad, sa.minutosTrabajados,
+                au2.id as idAgenteActividad, au2.first_name as NombreAgente, au2.last_name as ApellidoAgente
+                from soporte_ticketsoporte st
+        LEFT JOIN soporte_estadosticket se ON se.id = st.idestado_id
+        LEFT JOIN auth_user au ON au.id = st.idAgente_id
+        LEFT JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
+        LEFT JOIN auth_user au2 ON au2.id = sa.idAgente_id
         """
     elif tipo_ticket == "2":
         consulta = """
@@ -716,10 +722,13 @@ def generateReport(request):
         """
 
     if estado_ticket is not None and estado_ticket != "":
-        consulta += f" WHERE st.idestado_id = {estado_ticket}"
+        if estado_ticket == "0":
+            consulta += f"WHERE (st.idestado_id = 1  OR st.idestado_id = 2 OR st.idestado_id = 3 OR st.idestado_id = 4 OR st.idestado_id = 5 OR st.idestado_id = 6)"
+        else:
+            consulta += f" WHERE st.idestado_id = {estado_ticket}"
 
     if idAgente != "":
-        consulta += f" AND st.idAgente_id = {idAgente}"
+        consulta += f" AND sa.idAgente_id = {idAgente}"
 
     if fechaInicio != "" and fechaFin == "":
         consulta += f" AND DATE(st.fechaCreacion) = '{fechaInicio}'"
@@ -737,13 +746,12 @@ def generateReport(request):
         consulta += f" ORDER BY st.fechaCreacion"
 
     connection = connections["default"]
-
+    
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
         cursor.execute(consulta)
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
     return JsonResponse(resultados, safe=False)
 
 
