@@ -133,3 +133,18 @@ class ActividadPrincipalSoporte(models.Model):
     fechainicio = models.DateTimeField(null=True, blank=True)
     fechafinal = models.DateTimeField(null=True, blank=True)
     minutosTrabajados = models.IntegerField(default=0)
+
+# Modelo para el tipo de acceso
+class tipoAcceso(models.Model):
+    id = models.AutoField(primary_key=True)
+    descripcion = models.CharField(max_length=255)
+
+# Modelo para los accesos
+class accesoEmpresas(models.Model):
+    id = models.AutoField(primary_key=True)
+    idEmpresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='id_empresa', default=0)
+    nombreEquipo = models.CharField(max_length=255)
+    idTipoAcceso = models.ForeignKey(tipoAcceso, on_delete=models.CASCADE, related_name='accesos_empresa')
+    direccion = models.CharField(max_length=255)
+    usuario = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)

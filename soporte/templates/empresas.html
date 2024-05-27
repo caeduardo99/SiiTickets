@@ -91,6 +91,7 @@
         </div>
     </div>
 </div>
+
 <!-- Modal para Detalles de la Empresa -->
 <div class="modal fade" id="detalleEmpresaModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
     aria-hidden="true">
@@ -104,40 +105,108 @@
             </div>
             <div class="modal-body">
                 <form id="editarEmpresaForm">
-                    <div class="form-group">
-                        <label for="modalNumEmpresa">Número de Empresa:</label>
-                        <input type="number" class="form-control" id="modalNumEmpresa" readonly></input>
-                    </div>
-                    <div class="form-group">
-                        <label for="nombreEmpresa">Nombre Empresa:</label>
-                        <input type="text" class="form-control" id="editNombreEmpresa" name="editNombreEmpresa">
-                    </div>
-                    <div class="form-group">
-                        <label for="direccion">Dirección Empresa:</label>
-                        <input type="text" class="form-control" id="editDireccion" name="editDireccion">
-                    </div>
-                    <div class="form-group">
-                        <label for="telefono">Teléfono Empresa:</label>
-                        <input type="text" class="form-control" id="editTelefono" name="editTelefono">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Correo Empresa:</label>
-                        <input type="text" class="form-control" id="editEmail" name="editEmail">
-                    </div>
                     <div class="row">
-                        <div class="col-md-4" style="margin-top: 5px;">
-                            <button type="button" id="btnSaveChange" class="btn btn-dark btn-sm btn-block"
-                                onclick="guardarCambiosEmpresa()">Guardar
-                                Cambios
-                            </button>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="modalNumEmpresa">Número de Empresa:</label>
+                                <input type="number" class="form-control" id="modalNumEmpresa" readonly></input>
+                            </div>
+                            <div class="form-group">
+                                <label for="nombreEmpresa">Nombre Empresa:</label>
+                                <input type="text" class="form-control" id="editNombreEmpresa" name="editNombreEmpresa">
+                            </div>
+                            <div class="form-group">
+                                <label for="direccion">Dirección Empresa:</label>
+                                <input type="text" class="form-control" id="editDireccion" name="editDireccion">
+                            </div>
+                            <div class="form-group">
+                                <label for="telefono">Teléfono Empresa:</label>
+                                <input type="text" class="form-control" id="editTelefono" name="editTelefono">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Correo Empresa:</label>
+                                <input type="text" class="form-control" id="editEmail" name="editEmail">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4" style="margin-top: 5px;">
+                                    <button type="button" id="btnSaveChange" class="btn btn-dark btn-sm btn-block"
+                                        onclick="guardarCambiosEmpresa()">Guardar
+                                        Cambios
+                                    </button>
+                                </div>
+                                <div class="col-md-4" style="margin-top: 5px;">
+                                    <button type="button" id="btnSendAccess" class="btn btn-dark btn-sm btn-block">Enviar
+                                        credenciales</button>
+                                </div>
+                                <div class="col-md-4" style="margin-top: 5px;">
+                                    <button class="btn btn-sm btn-dark btn-block" id="btnEnviarManual" type="button">Enviar
+                                        Manual</button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-4" style="margin-top: 5px;">
-                            <button type="button" id="btnSendAccess" class="btn btn-dark btn-sm btn-block">Enviar
-                                credenciales</button>
-                        </div>
-                        <div class="col-md-4" style="margin-top: 5px;">
-                            <button class="btn btn-sm btn-dark btn-block" id="btnEnviarManual" type="button">Enviar
-                                Manual</button>
+                        <div class="col-md-6">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <h3>Credenciales</h3>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="credencialesEmpresa">
+                                        <!-- Aqui van las parte de los credenciales -->
+                                        <div class="table-responsive" style="overflow-y: auto; max-height: 200px;">
+                                            <table class="table table-sm table-striped">
+                                                <thead>
+                                                    <tr>
+                                                      <th scope="col">#</th>
+                                                      <th scope="col">Nombre Equipo</th>
+                                                      <th scope="col">Tipo acceso</th>
+                                                      <th scope="col">Dirección</th>
+                                                      <th scope="col">Acciones</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbodyCredenciales">
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <button id="newCredenciales" type="button" class="btn btn-sm btn-dark btn-block">Agregar nuevas credenciales</button>
+                                    <br>
+                                    <div id="createNewCredenciales" style="display: none;">
+                                        <h3>Agregar nuevas credenciales</h3>
+                                        <div class="form-group">
+                                            <label for="modalNombreMaquina">Nombre del equipo:</label>
+                                            <input type="text" class="form-control form-control-sm" id="modalNombreMaquina" name="modalNombreMaquina">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="modalDireccionEquipo">Direccion del equipo:</label>
+                                            <input type="text" class="form-control form-control-sm" id="modalDireccionEquipo" name="modalDireccionEquipo">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="modalUsuario">Usuario:</label>
+                                            <input type="text" class="form-control form-control-sm" id="modalUsuario" name="modalUsuario">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="modalPassword">contraseña:</label>
+                                            <input type="text" class="form-control form-control-sm" id="modalPassword" name="modalPassword">
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                  <label class="input-group-text" for="selectTipoAccesoModal">Tipo de acceso</label>
+                                                </div>
+                                                <select class="custom-select" id="selectTipoAccesoModal">
+                                                  <option selected>Escoger el tipo de acceso</option>
+                                                  <option value="1">Conexión a Escritorio Remoto</option>
+                                                  <option value="2">AnyDesk</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-dark btn-sm btn-block" type="button" id="btnNewAccess">Crear nuevo acceso</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -161,6 +230,17 @@
     let btnSaveChange = document.getElementById('btnSaveChange');
     const buscarSolicitanteEmpresa = document.getElementById("buscarSolicitanteEmpresa");
     const tbodyEmpresas = document.getElementById("tbodyEmpresas");
+    const credencialesEmpresa = document.getElementById("credencialesEmpresa");
+    const tbodyCredenciales = document.getElementById("tbodyCredenciales");
+    const newCredenciales = document.getElementById("newCredenciales");
+    const createNewCredenciales = document.getElementById("createNewCredenciales");
+    const btnNewAccess = document.getElementById("btnNewAccess");
+    let idEmpresa
+
+
+    newCredenciales.addEventListener("click", function(){
+        createNewCredenciales.style.display = ""
+    })
 
     function cargarTablaTickets() {
         $.ajax({
@@ -191,7 +271,11 @@
         });
     }
 
+
     function verEmpresa(numEmpresa) {
+        idEmpresa = numEmpresa
+        tbodyCredenciales.innerHTML = ""
+        createNewCredenciales.style.display = "none"
         // Realizar la solicitud AJAX para obtener los detalles de la empresa
         $.ajax({
             url: '{% url "detalles_empresa" %}',
@@ -205,8 +289,79 @@
                 $('#editDireccion').val(empresa[0].direccion);
                 $('#editTelefono').val(empresa[0].telefono);
                 $('#editEmail').val(empresa[0].email);
+
+                // Iteracion para la tabla
+                empresa.forEach((registro) =>{
+                    if(registro.idAcceso !=null){
+                        var rowModal = document.createElement("tr");
+
+                    var cellId = document.createElement("td");
+                    cellId.textContent = registro.idAcceso;
+
+                    var cellNombreEquipo = document.createElement("td");
+                    cellNombreEquipo.textContent = registro.nombreEquipo;
+
+                    var cellTipoAcceso = document.createElement("td");
+                    cellTipoAcceso.textContent = registro.tipoAcceso;
+
+                    var cellDireccion = document.createElement("td");
+                    cellDireccion.textContent = registro.direccionMaquina;
+
+                    var cellAcciones = document.createElement("td");
+                    var buttonCopy = document.createElement("button");
+                    buttonCopy.type = "button";
+                    buttonCopy.className = "btn btn-sm btn-outline-light";
+                    cellAcciones.style.textAlign = "center"
+                    buttonCopy.innerHTML = `
+                    <svg id="svgCopy" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" with="20px" height="20px">
+                        <path d="M208 0H332.1c12.7 0 24.9 5.1 33.9 14.1l67.9 67.9c9 9 14.1 21.2 14.1 33.9V336c0 26.5-21.5 48-48 48H208c-26.5 0-48-21.5-48-48V48c0-26.5 21.5-48 48-48zM48 128h80v64H64V448H256V416h64v48c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V176c0-26.5 21.5-48 48-48z"/>
+                        </svg>
+                        `;
+                    // Funcionalidad para copiar el boton
+                    buttonCopy.addEventListener("click", function(){
+                        let informacion = `Nombre del equipo: ${registro.nombreEquipo}, Tipo de Acceso: ${registro.tipoAcceso},Direccion del Equipo: ${registro.direccion},Usuario: ${registro.usuario}, Contraseña: ${registro.password}`
+                        
+                        toastr.success(informacion, null, {
+                            onclick: function() {
+                                // Crear un elemento temporal para copiar el texto
+                                var tempInput = document.createElement("textarea");
+                                tempInput.style = "position: absolute; left: -1000px; top: -1000px";
+                                tempInput.value = informacion.toString();
+                                document.body.appendChild(tempInput);
+
+                                // Seleccionar y copiar el texto
+                                tempInput.select();
+                                document.execCommand("copy");
+
+                                // Eliminar el elemento temporal
+                                document.body.removeChild(tempInput);
+
+                                // Mostrar mensaje de éxito
+                                toastr.success("Copiado correctamente");
+                            }
+                        });
+                    })
+                        
+                    cellAcciones.appendChild(buttonCopy)
+                    rowModal.appendChild(cellId)
+                    rowModal.appendChild(cellNombreEquipo)
+                    rowModal.appendChild(cellTipoAcceso)
+                    rowModal.appendChild(cellDireccion)
+                    rowModal.appendChild(cellAcciones)
+                    tbodyCredenciales.appendChild(rowModal)
+                    }else{
+                        var rowModal = document.createElement("tr")
+                        var cellMessage = document.createElement("td")
+                        cellMessage.textContent = "No hay credenciales"
+                        cellMessage.style.textAlign = "center"
+                        cellMessage.setAttribute("colspan", "5");
+                        rowModal.appendChild(cellMessage)
+                        tbodyCredenciales.appendChild(rowModal)
+                    }
+                })
                 // Mostrar el modal
                 $('#detalleEmpresaModal').modal('show');
+
             },
             error: function (error) {
                 console.log('Error al obtener detalles de la empresa:', error);
@@ -220,6 +375,7 @@
         var direccion = $('#editDireccion').val();
         var telefono = $('#editTelefono').val();
         var email = $('#editEmail').val();
+
         toastr.info('Se estan realizando cambios en la información', 'Guardando...');
         btnSaveChange.disabled = true;
         $.ajax({
@@ -397,5 +553,42 @@
             }
         });
     });
+
+    btnNewAccess.addEventListener("click", function(e){
+        e.preventDefault();
+
+        var nombreMaquina = $('#modalNombreMaquina').val();
+        var direccionEquipo = $('#modalDireccionEquipo').val();
+        var usuario = $('#modalUsuario').val();
+        var contrasena = $('#modalPassword').val();
+        var tipoAcceso = $('#selectTipoAccesoModal').val();
+        
+        $.ajax({
+            url: '{% url "create_acces_empresa" %}',
+            method: 'POST',
+            data: {
+                'modalNombreMaquina': nombreMaquina,
+                'modalDireccionEquipo': direccionEquipo,
+                'modalUsuario': usuario,
+                'modalPassword': contrasena,
+                'selectTipoAccesoModal': tipoAcceso,
+                'idEmpresa': idEmpresa
+            },
+            success: function(response){
+                if(response.status === 'success'){
+                    toastr.success("Acceso creado exitosamente", "Acceso creado")
+                    setTimeout(function () {
+                            window.location.reload();
+                        }, 2000);
+                } else {
+                    toastr.error("Error al crear el acceso, verifique el tipo de acceso", "Error en el acceso")
+                }
+            },
+            error: function(response){
+                toastr.error("Error al crear el acceso, verifique el tipo de acceso", "Error en el acceso")
+            }
+        });
+    })
+
 </script>
 {% endblock %}

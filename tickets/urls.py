@@ -80,6 +80,7 @@ urlpatterns = [
     path('moduloscreados/', views.moduloscreados, name='moduloscreados'),
     path('crear_empresa/', views.crear_empresa, name='crear_empresa'),
     path('crear_modulo/', views.crear_modulo, name='crear_modulo'),
+    path('create_acces_empresa/', views.create_acces_empresa, name='create_acces_empresa'),
     path('crear_usuario_empresa/', views.crear_usuario_empresa, name='crear_usuario_empresa'),
     path('detalles_empresa/', views.detalles_empresa, name='detalles_empresa'),
     path('detalles_modulo/', views.detalles_modulo, name='detalles_modulo'),

@@ -18,6 +18,8 @@ from .models import (
     ActividadSecundaria,
     ActividadPrincipalSoporte,
     ActividadPrincipalActualizacion,
+    tipoAcceso,
+    accesoEmpresas
 )
 from datetime import datetime, date
 from django.contrib.auth.models import User, Group
@@ -2785,8 +2787,12 @@ def detalles_empresa(request):
 
     # Construir la consulta SQL con filtrado por numModulo
     consulta_sql = """
-        SELECT se.id as NumEmpresa, se.nombreEmpresa, se.direccion, se.telefono, se.email
+        SELECT se.id as NumEmpresa, se.nombreEmpresa, se.direccion, se.telefono, se.email,
+		sac.id as idAcceso, sac.nombreEquipo, sac.direccion as direccionMaquina, sac.usuario, sac.password,
+		sta.id as idTipoAcceso, sta.descripcion as tipoAcceso
         FROM soporte_empresa se
+        LEFT JOIN soporte_accesoempresas sac ON sac.idEmpresa_id = se.id
+        LEFT JOIN soporte_tipoacceso sta ON sta.id = sac.idTipoAcceso_id
         WHERE se.id = %s
     """
 
@@ -2800,6 +2806,28 @@ def detalles_empresa(request):
 
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
+
+@csrf_exempt
+def create_acces_empresa(request):
+    if request.method == 'POST':
+        nombre_maquina = request.POST.get('modalNombreMaquina')
+        direccion_equipo = request.POST.get('modalDireccionEquipo')
+        usuario = request.POST.get('modalUsuario')
+        contrasena = request.POST.get('modalPassword')
+        tipo_acceso = request.POST.get('selectTipoAccesoModal')
+        idEmpresa = request.POST.get('idEmpresa')
+
+        nuevo_acceso = accesoEmpresas(
+            nombreEquipo=nombre_maquina,
+            direccion=direccion_equipo,
+            usuario=usuario,
+            password=contrasena,
+            idTipoAcceso=tipoAcceso.objects.get(id=tipo_acceso),
+            idEmpresa=Empresa.objects.get(id=idEmpresa)
+        )
+        nuevo_acceso.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
 
 
 def detalles_modulo(request):
