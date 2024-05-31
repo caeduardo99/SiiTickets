@@ -1822,6 +1822,7 @@ def crear_ticket_soporte(request):
         imagen_problema = request.FILES.get("inputGroupFile03", None)
         prioridad = request.POST.get("prioridadSelect", "")
         solicitante = request.POST.get("solicitante", "")
+        numRemoto = request.POST.get("numeroRemoto", "")
         url_imagen = "ticket_images/" + str(imagen_problema)
         fecha_inicio = None
         fecha_finalizacion = None
@@ -1829,7 +1830,7 @@ def crear_ticket_soporte(request):
         causa_error = " "
         factura = None
         chat = None
-        trabajo_realizado = None
+        trabajo_realizado = numRemoto
         idAgente = 2
         idEstado = 1
 

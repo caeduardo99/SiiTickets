@@ -49,11 +49,16 @@
                                     </div>
                                     <br>
                                     <div class="row g-1" id="rowPoblema" style="display: none;">
-                                        <div class="col-md-12">
+                                        <div class="col-md-6">
                                             <div class="mb-3">
                                                 <label for="exampleFormControlTextarea1" class="form-label">Detalle su problema</label>
                                                 <textarea class="form-control" name="exampleFormControlTextarea1" id="exampleFormControlTextarea1" rows="3"></textarea>
                                             </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="numeroRemoto" class="form-label">Número de Remoto/Anydesk</label>
+                                            <input type="text"
+                                            id="numeroRemoto" name="numeroRemoto" class="form-control" placeholder="Número de Remoto">
                                         </div>
                                     </div>
                                     <div class="row g-1">
@@ -331,6 +336,8 @@
                             <textarea class="form-control" id="textAreaCausaError" rows="3" disabled></textarea>
                         </div>
                         <div class="col-md-5">
+                            <h6 id="numRemotoLabel"></h6>
+                            <br>
                             <img class="img-fluid" id="imageError" style="width: 250px;height: auto;" alt=" Imagen o Video adjunto (Click para ver)">
                             <br>
                             <img class="img-fluid" id="imageError2" style="width: 250px;height: auto;" alt="Imagen o Video adjunto (Click para ver)">

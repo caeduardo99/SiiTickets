@@ -75,6 +75,7 @@ const fechaFinalizacionEdit = document.getElementById("fechaFinalizacionEdit");
 const fechaFinalizacionRealEdit = document.getElementById(
   "fechaFinalizacionRealEdit"
 );
+const numRemotoLabel = document.getElementById("numRemotoLabel");
 const btnFileExtra = document.getElementById("btnFileExtra");
 const selectEditAgenteSolicitado = document.getElementById(
   "selectEditAgenteSolicitado"
@@ -173,6 +174,7 @@ vertickets.addEventListener("click", function () {
 
         tabular(resultadosProyectos);
       } else {
+        tBodyTicketSoporte.innerHTML = ""
         var row = document.createElement("tr");
         var cell = document.createElement("td");
         cell.textContent =
@@ -323,6 +325,7 @@ function tabular(resultadosProyectos, orderByFunc) {
       infoTareas = [];
       rowTableTaskEdit.style.display = "none";
       btnNullTicket.style.display = "none";
+      numRemotoLabel.innerHTML = "";
 
       // Consulta para los detalles del Ticket
       fetch(`ticketsoportescreadosid/${numTicketSoporte}/`)
@@ -345,6 +348,8 @@ function tabular(resultadosProyectos, orderByFunc) {
           textAreaComentarioEdit.textContent = infoGeneraTicket[0].comentario;
           idEstadoGeneralTicket = infoGeneraTicket[0].idestado_id;
           empresa;
+          
+          numRemotoLabel.textContent = infoGeneraTicket[0].trabajoRealizado == "" ? "No hay remotos adjuntados/AnyDesk" : "Remoto: "+infoGeneraTicket[0].trabajoRealizado
 
           // Condicion para poder ver el archivo adicional
           archivoAdicional = infoGeneraTicket[0].archivo;
