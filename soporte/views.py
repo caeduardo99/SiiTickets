@@ -599,7 +599,7 @@ def ticketsoportescreados(request):
     nombre = request.user.first_name if request.user.is_authenticated else None
 
     consulta_sql = """"""
-    if id_usuario == 2 or id_usuario == 1:
+    if id_usuario == 2 or id_usuario == 1 or id_usuario == 126:
         consulta_sql += """
         select st.id as NumTicket, st.comentario, st.asunto, st.chat, st.facturar, st.causaerror, st.fechaCreacion as fechaCreacionTicket, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacion as fechaFinalizacionTicket, st.fechaFinalizacionReal as fechaFinalizacionRealTicket, st.prioridad,
         au.id as idAgente, au.first_name as NombreAgente, au.last_name as ApellidoAgente,
@@ -662,7 +662,7 @@ select st.id as NumTicket, st.comentario, st.asunto, st.chat, st.facturar, st.ca
 
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
-        if id_usuario == 2 or id_usuario == 1:
+        if id_usuario == 2 or id_usuario == 1 or id_usuario == 126:
             cursor.execute(consulta_sql, [nombre_usuario])
         else:
             cursor.execute(consulta_sql, [id_usuario, nombre_usuario])

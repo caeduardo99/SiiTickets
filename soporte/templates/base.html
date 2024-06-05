@@ -263,21 +263,10 @@
                         </li>
                         <li class="nav-header">Configuraciones</li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link">
-                                <i class="nav-icon fas fa-window-close"></i>
-                                <p>
-                                    Salir
-                                    <i class="right fas fa-angle-left"></i>
-                                </p>
+                            <a href="{% url 'logout' %}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Cerrar Sesion</p>
                             </a>
-                            <ul class="nav nav-treeview">
-                                <li class="nav-item">
-                                    <a href="{% url 'logout' %}" class="nav-link active">
-                                        <i class="far fa-circle nav-icon"></i>
-                                        <p>Cerrar Sesion</p>
-                                    </a>
-                                </li>
-                            </ul>
                         </li>
                         {% endfor %}
 

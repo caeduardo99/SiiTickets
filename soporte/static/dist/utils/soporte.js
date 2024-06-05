@@ -125,6 +125,7 @@ if (mostrarCampo == "True") {
 
 verticketsCompletos.addEventListener("click", function () {
   ticketsCompletos = true;
+  toastr.info("Cargando tickets", "Espere ...")
   // Consulta a la base para la obtencion de todos los tickets disponibles
   fetch("ticketsoportescreados/")
     .then((response) => response.json())
@@ -157,6 +158,7 @@ verticketsCompletos.addEventListener("click", function () {
 
 vertickets.addEventListener("click", function () {
   ticketsCompletos = false;
+  toastr.info("Cargando tickets", "Espere ...")
   // Consulta a la base para la obtencion de todos los tickets disponibles
   fetch("ticketsoportescreados/")
     .then((response) => response.json())
@@ -201,6 +203,7 @@ function toggleOrder() {
 
 // Funcion para tabular
 function tabular(resultadosProyectos, orderByFunc) {
+  toastr.success("Tickets listos", "Todo listo")
   resultadosProyectos.sort(orderByFunc);
   tBodyTicketSoporte.innerHTML = "";
   resultadosProyectos.forEach((proyecto) => {
@@ -355,7 +358,7 @@ function tabular(resultadosProyectos, orderByFunc) {
           archivoAdicional = infoGeneraTicket[0].archivo;
           if(archivoAdicional == "" || archivoAdicional == null){
             btnFileExtra.style.display = "none"
-            if(idUsuario == 2 && infoGeneraTicket[0] != 6){
+            if((idUsuario == 2 || idUsuario == 126) && infoGeneraTicket[0] != 6){
               rowInputFileExtra.style.display = ""
             }else{
               rowInputFileExtra.style.display = "none"
@@ -365,7 +368,7 @@ function tabular(resultadosProyectos, orderByFunc) {
           }
 
           // Si el estado del ticket es 4 se debe aparecer el boton
-          if (infoGeneraTicket[0].idestado_id == 4 && idUsuario == 2) {
+          if (infoGeneraTicket[0].idestado_id == 4 && (idUsuario == 2 || idUsuario == 126)) {
             btnFinishTicket.style.display = "";
             btnRegresarEstado.style.display = "";
           } else {
@@ -473,7 +476,7 @@ function tabular(resultadosProyectos, orderByFunc) {
           if (
             (infoGeneraTicket[0].idestado_id == 1 ||
               infoGeneraTicket[0].idestado_id == 3) &&
-            nombreUsuario == "mafer"
+            (nombreUsuario == "mafer" || nombreUsuario == "joselo")
           ) {
             selectEditAgenteSolicitado.disabled = false;
             textAreaComentarioAdicional.disabled = false;
@@ -486,7 +489,7 @@ function tabular(resultadosProyectos, orderByFunc) {
 
           // Condicion en caso de que sea mafer  y su estado sea 5 para el boton de notificacion del agente para el cliente
           if (
-            (nombreUsuario == "mafer" &&
+            ((nombreUsuario == "mafer" || nombreUsuario == "joselo") &&
               (infoGeneraTicket[0].idestado_id == 5 ||
                 infoGeneraTicket[0].idestado_id == 4)) ||
             infoGeneraTicket[0].idAgente_id == idUsuario
@@ -507,7 +510,8 @@ function tabular(resultadosProyectos, orderByFunc) {
           if (
             infoGeneraTicket[0].idAgente_id == idUsuario &&
             nombreUsuario != "mafer" &&
-            nombreUsuario != "superadmin"
+            nombreUsuario != "superadmin" &&
+            nombreUsuario != "joselo"
           ) {
             if (
               infoGeneraTicket[0].causaerror == " " &&
@@ -532,7 +536,7 @@ function tabular(resultadosProyectos, orderByFunc) {
 
               if (
                 idUsuario == tarea.idAgente_id &&
-                (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
+                (nombreUsuario != "mafer" || nombreUsuario != "superadmin" || nombreUsuario != "joselo")
               ) {
                 if(tarea.idestado_id == 2){
                   var inputDescripcion = document.createElement("input");
@@ -569,7 +573,7 @@ function tabular(resultadosProyectos, orderByFunc) {
               if (
                 tarea.fechafinal == null &&
                 idUsuario == tarea.idAgente_id &&
-                (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
+                (nombreUsuario != "mafer" || nombreUsuario != "superadmin" || nombreUsuario != "joselo")
               ) {
                 var inputFecha = document.createElement("input");
                 inputFecha.className = "form-control form-control-sm";
@@ -630,7 +634,7 @@ function tabular(resultadosProyectos, orderByFunc) {
               }
               //Funcionalidad de la columna de acciones, en caso de que sea asignado debo agregar la información,los checks
               const cellAcciones = document.createElement("td");
-              if (nombreUsuario != "mafer" && nombreUsuario != "superadmin") {
+              if (nombreUsuario != "mafer" && nombreUsuario != "superadmin" && nombreUsuario != "joselo") {
                 // En caso de que yo sienod un usuario normal, osea no admin sea seleccionado
                 if (tarea.idestado_id == 2 && tarea.idAgente_id == idUsuario) {
                   var checkBox = document.createElement("input");
@@ -742,7 +746,7 @@ function tabular(resultadosProyectos, orderByFunc) {
             // En caso de que no haya tareas se ejecutara el siguiente codigo, donde hay un boton que genera una tabla
             if (
               infoGeneraTicket[0].idestado_id == 2 &&
-              (nombreUsuario != "mafer" || nombreUsuario != "superadmin")
+              (nombreUsuario != "mafer" || nombreUsuario != "superadmin" || nombreUsuario != "joselo")
             ) {
               if (idUsuario == infoGeneraTicket[0].idAgente_id) {
                 btnNewTask.style.display = "";
