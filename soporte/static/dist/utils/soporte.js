@@ -513,17 +513,22 @@ function tabular(resultadosProyectos, orderByFunc) {
             nombreUsuario != "superadmin" &&
             nombreUsuario != "joselo"
           ) {
+            console.log(infoGeneraTicket[0])
             if (
-              infoGeneraTicket[0].causaerror == " " &&
               infoGeneraTicket[0].fechaFinalizacion == null
             ) {
-              textAreaCausaError.disabled = false;
               fechaFinalizacionEdit.disabled = false;
               selectFacturacion.disabled = false;
             } else {
-              textAreaCausaError.disabled = true;
               fechaFinalizacionEdit.disabled = true;
               selectFacturacion.disabled = true;
+            }
+            if(infoGeneraTicket[0].idestado_id != 5){
+              textAreaCausaError.disabled = false;
+              console.log("debe dejarme cambiar")
+            }else{
+              textAreaCausaError.disabled = true;
+              console.log("No debe dejarme cambiar")
             }
           }
           // Iteracion para la tabulacion de las tareas en  caso de que hayan tareas en los tickets

@@ -615,7 +615,6 @@ def ticketsoportescreados(request):
         LEFT JOIN soporte_empresa se3 ON se3.id = ss.idEmpresa_id 
         LEFT JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
         LEFT JOIN soporte_estadosticket se2 ON se2.id = sa.idestado_id
-        where au.username = %s OR se.id <> 1
         """
     else:
         consulta_sql += """
@@ -663,7 +662,7 @@ select st.id as NumTicket, st.comentario, st.asunto, st.chat, st.facturar, st.ca
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
         if id_usuario == 2 or id_usuario == 1 or id_usuario == 126:
-            cursor.execute(consulta_sql, [nombre_usuario])
+            cursor.execute(consulta_sql)
         else:
             cursor.execute(consulta_sql, [id_usuario, nombre_usuario])
 
