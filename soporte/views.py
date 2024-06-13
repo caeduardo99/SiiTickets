@@ -1461,7 +1461,7 @@ def info_panel_contro(request):
     id_usuario = request.user.id if request.user.is_authenticated else None
     nombre_usuario = request.user.first_name if request.user.is_authenticated else None
 
-    if id_usuario == 2 or id_usuario == 1:
+    if id_usuario == 2 or id_usuario == 1 or id_usuario == 126:
         fecha_actual = date.today()
         fecha_actual_time = datetime.now()
         fecha_actual_con_hora = datetime.combine(
@@ -1489,6 +1489,18 @@ def info_panel_contro(request):
         consult_admin_all_dev = """
         SELECT * FROM soporte_ticketdesarrollo st 
         """
+        consult_panel_work = """
+        SELECT st.id as idTicket, st.asunto, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacionReal as fechaFinalizacionTicket, st.fechaFinalizacion as fechaFinalizacionEspTicket,
+			sa.id as idActividad, sa.descripcion as descripcionActividad, sa.fechainicio as fechaInicioActividad, sa.fechafinal as fechaFinalActividad, sa.minutosTrabajados as minutosActividad,
+			au.id as idAgenteTicket, au.first_name as nombreAgenteTicket, au.last_name as apellidoAgenteTicket,
+			au2.id as idAgenteActividad, au2.first_name as nombreAgenteActividad, au2.last_name as apellidoAgenteActividad
+			FROM soporte_ticketsoporte st 
+			INNER JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
+			INNER JOIN auth_user au ON au.id = st.idAgente_id
+			INNER JOIN auth_user au2 ON au2.id = sa.idAgente_id 
+			WHERE st.idestado_id <> 1 AND st.idestado_id <> 6
+        """
+
         connection = connections["default"]
 
         with connection.cursor() as cursor:
@@ -1530,6 +1542,13 @@ def info_panel_contro(request):
             resultados_admin_dev = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
             ]
+        # Consulta para el listado de trabajos
+        with connection.cursor() as cursor:
+            cursor.execute(consult_panel_work)
+            columns = [col[0] for col in cursor.description]
+            resultados_panel_list = [
+                dict(zip(columns, row)) for row in cursor.fetchall()
+            ]
 
     else:
         fecha_actual = date.today()
@@ -1559,6 +1578,19 @@ def info_panel_contro(request):
         consult_admin_all_dev = """
         SELECT * FROM soporte_ticketdesarrollo st WHERE st.idAgente_id = %s
         """
+
+        consult_panel_work = """
+            SELECT st.id as idTicket, st.asunto, st.fechaInicio as fechaInicioTicket, st.fechaFinalizacionReal as fechaFinalizacionTicket, st.fechaFinalizacion as fechaFinalizacionEspTicket,
+			sa.id as idActividad, sa.descripcion as descripcionActividad, sa.fechainicio as fechaInicioActividad, sa.fechafinal as fechaFinalActividad, sa.minutosTrabajados as minutosActividad,
+			au.id as idAgenteTicket, au.first_name as nombreAgenteTicket, au.last_name as apellidoAgenteTicket,
+			au2.id as idAgenteActividad, au2.first_name as nombreAgenteActividad, au2.last_name as apellidoAgenteActividad
+			FROM soporte_ticketsoporte st 
+			INNER JOIN soporte_actividadprincipalsoporte sa ON sa.idTicketSoporte_id = st.id 
+			INNER JOIN auth_user au ON au.id = st.idAgente_id
+			INNER JOIN auth_user au2 ON au2.id = sa.idAgente_id 
+			WHERE st.idestado_id <> 1 AND st.idestado_id <> 6 AND sa.idAgente_id = %s
+        """
+
         connection = connections["default"]
 
         with connection.cursor() as cursor:
@@ -1598,6 +1630,13 @@ def info_panel_contro(request):
             cursor.execute(consult_admin_all_dev, [id_usuario])
             columns = [col[0] for col in cursor.description]
             resultados_admin_dev = [
+                dict(zip(columns, row)) for row in cursor.fetchall()
+            ]
+
+        with connection.cursor() as cursor:
+            cursor.execute(consult_panel_work, [id_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultados_panel_list = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
             ]
 
@@ -1807,6 +1846,7 @@ def info_panel_contro(request):
         "timeDifUpdate": time_update,
         "timeDifDev": time_dev,
         "infoTicketComplete": resultados_hoy,
+        "panel_list_worked": resultados_panel_list
     }
 
     return JsonResponse(context, safe=False)

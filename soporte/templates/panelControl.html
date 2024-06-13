@@ -135,10 +135,42 @@
             </div>
         </div>
     </div>
+    <div class="row" id="cargaTrabajoCompañeros">
+        <div class="col-md-12">
+            <div class="card">
+                    <div class="card-body">
+                        <h2>Carga de trabajo</h2>
+                        <br>
+                        <!-- Informacion de la Card -->
+                        <div id="listCards">
+                            
+                        </div>
+                        <!-- Informacion de la carga laboral de Agente -->
+                        <div id="infoAgente"  style="display: none;">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <button class="btn btn-sm btn-secondary" id="btnReturnListAgent"> < </button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <br>
+                                    <h3 id="agenteEncargado"></h3>
+                                    <div id='calendar'></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+
 <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="../static/dist/utils/controlPanel.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.14/index.global.min.js'></script>
 <script>
     // Coloca la información del usuario en una variable global accesible para el JavaScript
     var infoUsuario = {{ info_user| safe }};
