@@ -32,7 +32,7 @@ $(document).ready(function () {
     .then((response) => response.json())
     .then((data) => {
         var panel_worked = data.panel_list_worked
-        console.log(panel_worked)
+        
         numTicketsComplete.textContent = `${data.numDayliTicketComplete} Tickets completos (Hoy)`;
         numTickestCompleteTotals.textContent = idUsuario.value == 2 ? `${data.numTicketsComplete} Tickets completados por los colaboradores hasta la fecha` :  `${data.numTicketsComplete} Tickets completados por/para este usuario hasta la fecha`;
         numTickestAwaitTotals.textContent = idUsuario.value == 2 ? `${data.numTicketAwait} Tickets pendientes de asignar a la fecha` : `${data.numTicketAwait} Tickets en espera del agente.`;
@@ -53,43 +53,42 @@ $(document).ready(function () {
         }, {});
         const result_agent = Object.values(groupedByAgent);
 
-        // Agrupacion por fechas 
+        // Agrupacion por fechas (Formatear las fechas)
         const updatedPanelWorked = panel_worked.map(obj => ({
             ...obj,
-            fechaInicioActividad: obj.fechaInicioActividad.split('T')[0] // Extraemos solo la fecha
+            fechaInicioActividad: obj.fechaInicioActividad.split('T')[0],
+            fechaFinalActividadFormat: obj.fechaFinalActividad == null ? obj.fechaFinalizacionEspTicket.split('T')[0] : obj.fechaFinalActividad.split('T')[0]
           }));
-
-        const groupedData = updatedPanelWorked.reduce((acc, obj) => {
-            const key = `${obj.fechaInicioActividad}-${obj.idAgenteActividad}`;
           
+        const groupedData = updatedPanelWorked.reduce((acc, obj) => {
+            const key = `${obj.fechaFinalActividadFormat}-${obj.idAgenteActividad}`;
+
             if (!acc[key]) {
               acc[key] = {
                 fechaInicioActividad: obj.fechaInicioActividad,
-                idAgenteActividad: obj.idAgenteActividad,
                 nombreAgenteActividad: obj.nombreAgenteActividad,
                 apellidoAgenteActividad: obj.apellidoAgenteActividad,
                 descripcionActividad: obj.descripcionActividad,
                 fechaFinalizacionEspTicket: obj.fechaFinalizacionEspTicket,
                 fechaFinalActividad: obj.fechaFinalActividad,
                 fechaFinalizacionTicket: obj.fechaFinalizacionTicket,
-                fechaInicioActividad: obj.fechaInicioActividad,
                 fechaInicioTicket: obj.fechaInicioTicket,
                 idActividad: obj.idActividad,
                 idAgenteActividad: obj.idAgenteActividad,
+                fechaFinalActividadFormat: obj.fechaFinalActividadFormat,
                 minutosActividad: 0
               };
             }
-          
             acc[key].minutosActividad += obj.minutosActividad;
-          
             return acc;
           }, {});
         const result_fecha_agente = Object.values(groupedData);
         
         const today = new Date().toISOString().split('T')[0];
-        const todayData = result_fecha_agente.filter(obj => obj.fechaInicioActividad == today);
+        const todayData = result_fecha_agente.filter(obj => obj.fechaFinalActividadFormat == today);
+        console.log(todayData)
         const maxMinutesDay = 480
-
+        
         const combinedData = result_agent.map(agent => {
             const agentData = todayData.find(data => data.idAgenteActividad === agent.idAgenteActividad);
             const minutosActividad = agentData ? agentData.minutosActividad : 0;
