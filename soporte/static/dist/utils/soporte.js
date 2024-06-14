@@ -924,6 +924,7 @@ document
   .addEventListener("submit", function (event) {
     creacionVer = false;
     event.preventDefault();
+    btnCreateTicket.disabled = true;
     var formData = new FormData(this);
     fetch("crear_ticket_soporte/", {
       method: "POST",
@@ -1457,7 +1458,7 @@ btnEditarDatos.addEventListener("click", function () {
 // Funcionalidad del boton para crear un nuevo ticket con los agentes
 btnCreateTicketAgent.addEventListener("click", function () {
   event.preventDefault();
-
+  
   var csrftoken = getCookie("csrftoken");
   var asunto = asuntoTicketAgente.value;
   var problema = textAreaProblemaAgent.value;
@@ -1472,6 +1473,7 @@ btnCreateTicketAgent.addEventListener("click", function () {
   data.append("prioridadSelectAgent", prioridad);
   data.append("file", file);
   data.append("fileExtra", fileExtra)
+  btnCreateTicketAgent.disabled = true;
   
   // Enviar la solicitud al servidor
   fetch("crear_ticket_soporte_agente/", {
