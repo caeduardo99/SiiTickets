@@ -396,13 +396,17 @@ function tabular(resultadosProyectos, orderByFunc) {
           valAgenteAsignadoDefault = $("#selectEditAgenteSolicitado").val();
 
           // Condicion en caso de que el ticket tenga estado 6 = anulacion
-          if(infoGeneraTicket[0].idestado_id == 6 && infoGeneraTicket[0].motivoAnulacion != ""){
-            modalInfoMotivoAnulacion.style.display = ""
-            modalInfoTicketLabel.style.display= "none";
-            modalInfoMotivoAnulacion.textContent = ` Motivo de anulación: ${infoGeneraTicket[0].motivoAnulacion}`;
+          if(infoGeneraTicket[0].idestado_id == 6){
+            modalInfoTicketLabel.style.display = "";
+            if(infoGeneraTicket[0].motivoAnulacion != ""){
+              modalInfoMotivoAnulacion.style.display = "";
+              modalInfoMotivoAnulacion.textContent = ` | ${infoGeneraTicket[0].motivoAnulacion}`;
+            }else{
+              modalInfoMotivoAnulacion.textContent = ` | Sin motivo de anulacion especificado`;
+            }
           }else{
             modalInfoTicketLabel.style.display = "";
-            modalInfoMotivoAnulacion.textContent = "Sin motivo especificado"
+            modalInfoMotivoAnulacion.style.display = "none";
           }
 
           // Datos para el envio  de Whatsapp
