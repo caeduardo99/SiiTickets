@@ -485,7 +485,7 @@ def agentesjson(request):
     SELECT au.id, au.first_name || ' ' || au.last_name AS full_name, aug.group_id 
     FROM auth_user au 
     INNER JOIN auth_user_groups aug ON aug.user_id = au.id
-    WHERE aug.group_id <> 1 AND au.id <> 2 AND au.id <> 1
+    WHERE aug.group_id <> 1 AND au.id <> 2 AND au.id <> 1 AND au.id <> 126
     """
     connection = connections["default"]
 
@@ -494,7 +494,7 @@ def agentesjson(request):
         cursor.execute(consulta_sql)
         columns = [col[0] for col in cursor.description]
         resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
+        
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
