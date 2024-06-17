@@ -1176,6 +1176,7 @@ def ticketsoportescreadosid(request, ticket_id):
         ss.telefonoSolicitante,
         st.imagenes,
         st.trabajoRealizado,
+        st.motivoAnulacion,
         se.nombreEmpresa,
         se2.descripcion as estadoTicket
     FROM 
@@ -3306,11 +3307,13 @@ def null_ticket(request, id_ticket):
     try:
         fecha_actual = datetime.now()
         fecha_finalizacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
+        data = json.loads(request.body)
+        motivo = data.get('motivo', '')
 
         ticket = TicketSoporte.objects.get(id=id_ticket)
-        print(ticket)
         ticket.idestado_id = 6
         ticket.fechaFinalizacionReal = fecha_finalizacion
+        ticket.motivoAnulacion = motivo
         ticket.save()
 
         return JsonResponse(

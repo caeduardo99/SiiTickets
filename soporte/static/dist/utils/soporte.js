@@ -62,6 +62,7 @@ const inputEditSoporte = document.getElementById("inputEditSoporte");
 const textAreaComentarioEdit = document.getElementById(
   "textAreaComentarioEdit"
 );
+const modalInfoMotivoAnulacion = document.getElementById("modalInfoMotivoAnulacion");
 const inputFileExtraModal = document.getElementById("inputFileExtraModal");
 const imageError2 = document.getElementById("imageError2");
 const prioridadSelectAgent = document.getElementById("prioridadSelectAgent");
@@ -394,6 +395,16 @@ function tabular(resultadosProyectos, orderByFunc) {
             .trigger("change");
           valAgenteAsignadoDefault = $("#selectEditAgenteSolicitado").val();
 
+          // Condicion en caso de que el ticket tenga estado 6 = anulacion
+          if(infoGeneraTicket[0].idestado_id == 6 && infoGeneraTicket[0].motivoAnulacion != ""){
+            modalInfoMotivoAnulacion.style.display = ""
+            modalInfoTicketLabel.style.display= "none";
+            modalInfoMotivoAnulacion.textContent = ` Motivo de anulación: ${infoGeneraTicket[0].motivoAnulacion}`;
+          }else{
+            modalInfoTicketLabel.style.display = "";
+            modalInfoMotivoAnulacion.textContent = "Sin motivo especificado"
+          }
+
           // Datos para el envio  de Whatsapp
           numeroSolicitante = infoGeneraTicket[0].telefonoSolicitante;
           nombreCompletoSolicitante = infoGeneraTicket[0].nombreApellido;
@@ -513,7 +524,6 @@ function tabular(resultadosProyectos, orderByFunc) {
             nombreUsuario != "superadmin" &&
             nombreUsuario != "joselo"
           ) {
-            console.log(infoGeneraTicket[0])
             if (
               infoGeneraTicket[0].fechaFinalizacion == null
             ) {
@@ -1640,39 +1650,50 @@ inputNewImage2.addEventListener("change", function () {
     });
 });
 
-// Funcionalidad del boton de anular
-btnNullTicket.addEventListener("click", function () {
-  fetch(`null_ticket/${numTicketSoporte}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({}),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.status == "success") {
-        toastr.success(
-          "El ticket ha sido anulado correctamente.",
-          data.message
-        );
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
+// Funcion alerta
+function mostrarAlerta() {
+  var razonAnulacion = prompt('Agregar motivo de anulación: ');
+  if (razonAnulacion !== null) {
+    alert('Ticket anulado por el siguiente motivo: ' + razonAnulacion);
+    fetch(`null_ticket/${numTicketSoporte}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ motivo: razonAnulacion }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status == "success") {
+          toastr.success(
+            "El ticket ha sido anulado correctamente.",
+            data.message
+          );
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        } else {
+          toastr.error(
+            "Error al anular el ticket, revise el servicio",
+            data.message
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error al anular el ticket, revise el servicio:", error);
         toastr.error(
           "Error al anular el ticket, revise el servicio",
           data.message
         );
-      }
-    })
-    .catch((error) => {
-      console.error("Error al anular el ticket, revise el servicio:", error);
-      toastr.error(
-        "Error al anular el ticket, revise el servicio",
-        data.message
-      );
-    });
+      });
+  }else{
+    btnNullTicket.disabled = false
+  }
+}
+// Funcionalidad del boton de anular
+btnNullTicket.addEventListener("click", function () {
+  btnNullTicket.disabled = true;
+  mostrarAlerta()
 });
 
 // Funcionalidad para llenar la informacion de los tickets

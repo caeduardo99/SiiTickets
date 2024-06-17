@@ -95,6 +95,7 @@ class TicketSoporte(models.Model):
     trabajoRealizado = models.TextField(null=True, blank=True)  # Campo para describir el trabajo realizado
     imagenes = models.ImageField(upload_to='ticket_images/', null=True, blank=True)
     archivo = models.FileField(upload_to='ticket_files/', null=True, blank=True)
+    motivoAnulacion = models.CharField(max_length=200, default='')
 
 class ActividadPrincipalActualizacion(models.Model):
     id = models.AutoField(primary_key=True)
