@@ -386,6 +386,20 @@ function tabular(resultadosProyectos, orderByFunc) {
             btnGenerarReporte.style.display = "none";
           }
 
+          // Condicion para el cambio de select para el boton de agregar cambios
+          if(idUsuario == 2 || idUsuario == 126){
+            if(infoGeneraTicket[0].idestado_id != 5 && infoGeneraTicket[0].idestado_id != 6){
+              selectFacturacion.disabled = false;
+              selectFacturacion.addEventListener("change", function(){
+                btnEditarDatos.style.display = ""
+              })
+            }else{
+              btnEditarDatos.style.display = "none";
+            }
+          }else{
+            btnEditarDatos.style.display = "none";
+          }
+
           textAreaCausaError.value = infoGeneraTicket[0].causaerror;
 
           // Llenar el select con los datos de resultados_agentes_data
@@ -539,10 +553,8 @@ function tabular(resultadosProyectos, orderByFunc) {
             }
             if(infoGeneraTicket[0].idestado_id != 5){
               textAreaCausaError.disabled = false;
-              console.log("debe dejarme cambiar")
             }else{
               textAreaCausaError.disabled = true;
-              console.log("No debe dejarme cambiar")
             }
           }
           // Iteracion para la tabulacion de las tareas en  caso de que hayan tareas en los tickets
