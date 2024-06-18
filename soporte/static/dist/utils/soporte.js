@@ -114,6 +114,7 @@ const btnStateAwaitComplete = document.getElementById("btnStateAwaitComplete");
 const buscarSolicitanteCompleto = document.getElementById("buscarSolicitanteCompleto");
 const rowArchivoAdicional = document.getElementById("rowArchivoAdicional");
 const inputFileExtra = document.getElementById("inputFileExtra");
+const numberEnterprise = document.getElementById("numberEnterprise");
 
 // Funcionalidad en caso de que sea cliente o agente
 if (mostrarCampo == "True") {
@@ -401,6 +402,9 @@ function tabular(resultadosProyectos, orderByFunc) {
           }
 
           textAreaCausaError.value = infoGeneraTicket[0].causaerror;
+          // Mostrar el numero de la empresa
+          numberEnterprise.innerHTML = "";
+          numberEnterprise.textContent = `Teléfono: ${infoGeneraTicket[0].telefonoSolicitante}`
 
           // Llenar el select con los datos de resultados_agentes_data
           const idAgenteSeleccionado = infoGeneraTicket[0].idAgente_id;
