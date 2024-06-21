@@ -330,9 +330,10 @@ function tabular(resultadosProyectos, orderByFunc) {
 
     // Funcionalidad del boton de nueva pagina para ver los tickets con mas facilidad y distribucion
     btnNewPage.addEventListener("click", function(){
+      const baseUrl = window.location.origin;
       numTicketSoporte = proyecto.NumTicket;
       // Abre una nueva ventana
-      var newWindow = window.open(`http://192.168.1.156:97/ticketsoportescreadosid_new_page/${numTicketSoporte}`, "_blank");
+      var newWindow = window.open(`${baseUrl}/ticketsoportescreadosid_new_page/${numTicketSoporte}`, "_blank");
       if (newWindow) {
           // La nueva ventana se abrió correctamente
       } else {
@@ -587,7 +588,7 @@ function tabular(resultadosProyectos, orderByFunc) {
               fechaFinalizacionEdit.disabled = true;
               selectFacturacion.disabled = true;
             }
-            if(infoGeneraTicket[0].idestado_id != 5 && ticket[0].idestado_id != 6){
+            if(infoGeneraTicket[0].idestado_id != 5 && infoGeneraTicket[0].idestado_id != 6){
               textAreaCausaError.disabled = false;
             }else{
               textAreaCausaError.disabled = true;
@@ -1087,6 +1088,15 @@ btnAsignarAgente.addEventListener("click", function () {
     },
   });
 });
+
+// Funcionalidad de activacion para el comentario adicional
+textAreaComentarioAdicional.addEventListener("input", function(){
+  if(textAreaComentarioAdicional.value == textAreaComentarioAdicional.value){
+    btnEditarDatos.style.display = ""
+  }else{
+    btnEditarDatos.style.display = "none"
+  }
+})
 
 // Funcionamiento del boton agregar nueva tarea
 btnNewTask.addEventListener("click", function () {
