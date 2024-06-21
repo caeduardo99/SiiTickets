@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% load static %}
+{% block content %}
+
+<div class="content" id="contenidoVista"
+    data-nombre-usuario="{{ nombre_usuario }}"
+    data-mostrar-campo="{{ mostrar_campo }}"
+    data-ticket="{{ ticket }}"
+    data-actividades="{{ actividades }}"
+    data-full-name="{{ fullName }}">
+    <input type="hidden" id="nombreUsuario" value="{{ user.username }}">
+    <input type="hidden" id="idUsuario" value="{{ user.id }}">
+    <input type="hidden" id="razonSocial" value="{{ user.first_name }}">
+    <br>
+    <h2 id="titleTicketDetail"></h2>
+    <hr>
+    <div class="card">
+        <div class="card-body">
+            <form class="form">
+                <div class="row g-1">
+                    <div class="col-md-12">
+                        <label for="asuntoTicket" class="form-label">Asunto</label>
+                        <input type="text" name="asuntoTicketAgenteEdit" id="asuntoTicketAgenteEdit" class="form-control" disabled>
+                    </div>
+                </div>
+                <div class="row g-1">
+                    <div class="col-md-12">
+                        <label for="textAreaComentarioEdit" class="form-label">Comentario</label>
+                        <textarea class="form-control" id="textAreaComentarioEdit" rows="3" disabled></textarea>
+                    </div>
+                </div>
+                <br>
+                <div class="row g-1">
+                    <div class="col-md-6">
+                        <label>Agente encargado</label>
+                            <select class="select2" id="selectEditAgenteSolicitado" style="width: 100%;"
+                                name="selectEditAgenteSolicitado" disabled>
+                                <option value="">Seleccione Agente</option>
+                                {% for agente in resultados_agentes_data %}
+                                <option value="{{ agente.id }}">
+                                    {{ agente.full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="solicitante">Solicitante:</label>
+                        <select class="select2" id="selectSolicitante" style="width: 100%;" name="selectSolicitante" disabled>
+                            <option value="">Seleccione Solicitante</option>
+                            {% for solicitante in all_solicitantes %}
+                            <option value="{{ solicitante.id }}" data-empresa="{{ solicitante.nombreEmpresa }}">
+                                {{ solicitante.nombreApellido }} - {{ solicitante.nombreEmpresa }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <h6 id="numberEnterprise"></h6>
+                    </div>
+                </div>
+                <br>
+                <div class="row g-1">
+                    <div class="col-md-4">
+                        <label for="datetimeInput">Fecha Creación:</label>
+                        <input type="datetime-local" id="fechaCreacionEdit" name="fechaCreacionEdit" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="datetimeInput">Fecha Finalización estimada:</label>
+                        <input type="datetime-local" id="fechaFinalizacionEdit" name="fechaFinalizacionEdit" class="form-control" disabled>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="datetimeInput">Fecha de cierre del Ticket:</label>
+                        <input type="datetime-local" id="fechaFinalizacionRealEdit" name="fechaFinalizacionRealEdit" class="form-control" disabled>
+                    </div>
+                </div>
+                <br>
+                <div class="row g-1">
+                    <div class="col-md-7">
+                        <label for="textAreaComentarioAdicional" class="form-label">Comentario adicional:</label>
+                        <textarea class="form-control" id="textAreaComentarioAdicional" rows="3" disabled></textarea>
+                        <br>
+                        <label for="textAreaCausaError" class="form-label">El requerimiento necesita facturación ?</label>
+                        <select class="custom-select" id="selectFacturacion" disabled>
+                            <option selected>El requerimiento se factura ?</option>
+                            <option value="true">Si</option>
+                            <option value="false">No</option>
+                        </select>
+                        <br>
+                        <label for="textAreaCausaError" class="form-label">Causa del error:</label>
+                        <textarea class="form-control" id="textAreaCausaError" rows="3" disabled></textarea>
+                    </div>
+                    <div class="col-md-5">
+                        <h6 id="numRemotoLabel"></h6>
+                        <br>
+                        <img class="img-fluid" id="imageError" style="width: 250px;height: auto;" alt=" Imagen o Video adjunto (Click para ver)">
+                        <br>
+                        <img class="img-fluid" id="imageError2" style="width: 250px;height: auto;" alt="Imagen o Video adjunto (Click para ver)">
+                        <br>
+                        <div class="input-group" id="rowInputImg2">
+                            <div class="custom-file">
+                              <input type="file" class="custom-file-input" id="inputNewImage2" aria-describedby="inputGroupFileAddon04">
+                              <label class="custom-file-label" for="inputNewImage2">Agregar otra imagen</label>
+                            </div>
+                        </div>
+                        <br>
+                        <button class="btn btn-dark btn-sm btn-block" id="btnFileExtra" type="button" style="display:none">Ver archivo adicional</button>
+                        <br>
+                        <div class="input-group" id="rowInputFileExtra" style="display:none">
+                            <input type="file" class="custom-file-input" id="inputFileExtraModal">
+                            <label class="custom-file-label" for="inputFileExtraModal">Subir archivo extra</label>
+                            <br>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row g-1">
+                    <div class="col-md-12">
+                        <button type="button" id="btnNewTask" class="btn btn-success btn-block"disabled>Agregar nueva tarea + </button>
+                    </div>
+                </div>
+                <div class="table-responsive" style="display: none;" id="rowTableTaskEdit">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                          <tr>
+                            <th scope="col">Descripcion</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Agente</th>
+                            <th scope="col">Fecha finalización</th>
+                            <th scope="col">Minutos trabajados</th>
+                            <th scope="col">Imagen del requerimiento solucionado</th>
+                            <th scope="col">Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody id="tbodyListTask">
+                          
+                        </tbody>
+                      </table>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-danger btn-sm" id="btnGenerarReporte" style="display: none;">Generar Reporte</button>
+            <button class="btn btn-success btn-sm" id="btnFinisTasks" style="display: none;">Finalizar Tareas</button>
+            <button class="btn btn-warning btn-sm" id="btnTerminarTareas" style="display: none;">Enviar Tareas</button>
+            <button class="btn btn-info btn-sm" id="btnAsignarAgente" style="display: none;">Asignar Agente</button>
+            <button class="btn btn-success btn-sm" id="btnFinishTicket">Cerrar el ticket</button>
+            <button class="btn btn-dark btn-sm" id="btnNotificar" style="display: none;">Notificar al Administrador</button>
+            <button class="btn btn-dark btn-sm" id="btnNotificarSolicitante" style="display: none;">Notificar al solicitante</button>
+            <button class="btn btn-warning btn-sm" id="btnEditarDatos" style="display: none;">Editar datos</button>
+            <button class="btn btn-danger btn-sm" id="btnRegresarEstado" style="display: none;">Solicitud adicional</button>
+            <button class="btn btn-danger btn-sm" id="btnNullTicket" style="display: none;">Anular ticket</button>
+        </div>
+      </div>
+</div>
+
+<script src="../../static/dist/utils/detail_tickets.js"></script>
+<script type="text/javascript">
+    // Incorporar datos directamente en el script
+    window.resultados_agentes_data = [
+        {% for agente in resultados_agentes_data %}
+            {
+                id: "{{ agente.id }}",
+                full_name: "{{ agente.full_name }}"
+            },
+        {% endfor %}
+    ];
+
+    window.resultados_solicitantes_data = [
+        {% for agente in resultados_solicitantes_data %}
+            {
+                id: "{{ agente.id }}",
+                full_name: "{{ agente.full_name }}"
+            },
+        {% endfor %}
+    ];
+
+</script>
+{% endblock %}

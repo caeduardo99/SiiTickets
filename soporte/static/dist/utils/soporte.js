@@ -305,10 +305,41 @@ function tabular(resultadosProyectos, orderByFunc) {
 
     var cellAcciones = document.createElement("td");
     var btnVer = document.createElement("button");
-    btnVer.textContent = "Ver";
     btnVer.className = "btn btn-info btn-sm";
+    btnVer.title = "Ver informacion rapida"
+    btnVer.type = "button";
     btnVer.dataset.toggle = "modal";
     btnVer.dataset.target = "#modalInfoTicket";
+    btnVer.style.marginRight = "5px";
+    btnVer.style.marginBottom = "2px";
+    btnVer.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" style="width: 1em; height: 1em; fill: white;">
+        <path d="M288 80c-65.2 0-118.8 29.6-159.9 67.7C89.6 183.5 63 226 49.4 256c13.6 30 40.2 72.5 78.6 108.3C169.2 402.4 222.8 432 288 432s118.8-29.6 159.9-67.7C486.4 328.5 513 286 526.6 256c-13.6-30-40.2-72.5-78.6-108.3C406.8 109.6 353.2 80 288 80zM95.4 112.6C142.5 68.8 207.2 32 288 32s145.5 36.8 192.6 80.6c46.8 43.5 78.1 95.4 93 131.1c3.3 7.9 3.3 16.7 0 24.6c-14.9 35.7-46.2 87.7-93 131.1C433.5 443.2 368.8 480 288 480s-145.5-36.8-192.6-80.6C48.6 356 17.3 304 2.5 268.3c-3.3-7.9-3.3-16.7 0-24.6C17.3 208 48.6 156 95.4 112.6zM288 336c44.2 0 80-35.8 80-80s-35.8-80-80-80c-.7 0-1.3 0-2 0c1.3 5.1 2 10.5 2 16c0 35.3-28.7 64-64 64c-5.5 0-10.9-.7-16-2c0 .7 0 1.3 0 2c0 44.2 35.8 80 80 80zm0-208a128 128 0 1 1 0 256 128 128 0 1 1 0-256z"></path>
+    </svg>
+    `;
+
+    var btnNewPage = document.createElement("button");
+    btnNewPage.className = "btn btn-info btn-sm";
+    btnNewPage.title = "Abrir en otra pagina";
+    btnNewPage.type = "button"
+    btnNewPage.innerHTML = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" style="width: 1em; height: 1em; fill: white;">
+      <path d="M352 224H305.5c-45 0-81.5 36.5-81.5 81.5c0 22.3 10.3 34.3 19.2 40.5c6.8 4.7 12.8 12 12.8 20.3c0 9.8-8 17.8-17.8 17.8h-2.5c-2.4 0-4.8-.4-7.1-1.4C210.8 374.8 128 333.4 128 240c0-79.5 64.5-144 144-144h80V34.7C352 15.5 367.5 0 386.7 0c8.6 0 16.8 3.2 23.2 8.9L548.1 133.3c7.6 6.8 11.9 16.5 11.9 26.7s-4.3 19.9-11.9 26.7l-139 125.1c-5.9 5.3-13.5 8.2-21.4 8.2H384c-17.7 0-32-14.3-32-32V224zM80 96c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16H400c8.8 0 16-7.2 16-16V384c0-17.7 14.3-32 32-32s32 14.3 32 32v48c0 44.2-35.8 80-80 80H80c-44.2 0-80-35.8-80-80V112C0 67.8 35.8 32 80 32h48c17.7 0 32 14.3 32 32s-14.3 32-32 32H80z"/>
+    </svg>
+    `;
+
+    // Funcionalidad del boton de nueva pagina para ver los tickets con mas facilidad y distribucion
+    btnNewPage.addEventListener("click", function(){
+      numTicketSoporte = proyecto.NumTicket;
+      // Abre una nueva ventana
+      var newWindow = window.open(`http://192.168.1.156:97/ticketsoportescreadosid_new_page/${numTicketSoporte}`, "_blank");
+      if (newWindow) {
+          // La nueva ventana se abrió correctamente
+      } else {
+          // No se pudo abrir la nueva ventana
+          console.error('No se pudo abrir la nueva ventana');
+      }
+    });
 
     // Funcionalidad del boton ver
     btnVer.addEventListener("click", function () {
@@ -389,7 +420,8 @@ function tabular(resultadosProyectos, orderByFunc) {
 
           // Condicion para el cambio de select para el boton de agregar cambios
           if(idUsuario == 2 || idUsuario == 126){
-            if(infoGeneraTicket[0].idestado_id != 5 && infoGeneraTicket[0].idestado_id != 6){
+            console.log(infoGeneraTicket[0].idestado_id)
+            if(infoGeneraTicket[0].idestado_id != 5 && infoGeneraTicket[0].idestado_id != 6 && infoGeneraTicket[0].idestado_id != 1){
               selectFacturacion.disabled = false;
               selectFacturacion.addEventListener("change", function(){
                 btnEditarDatos.style.display = ""
@@ -555,7 +587,7 @@ function tabular(resultadosProyectos, orderByFunc) {
               fechaFinalizacionEdit.disabled = true;
               selectFacturacion.disabled = true;
             }
-            if(infoGeneraTicket[0].idestado_id != 5){
+            if(infoGeneraTicket[0].idestado_id != 5 && ticket[0].idestado_id != 6){
               textAreaCausaError.disabled = false;
             }else{
               textAreaCausaError.disabled = true;
@@ -791,7 +823,9 @@ function tabular(resultadosProyectos, orderByFunc) {
           }
         });
     });
+
     cellAcciones.appendChild(btnVer);
+    cellAcciones.appendChild(btnNewPage);
 
     row.appendChild(cellNumTicket);
     row.appendChild(cellEmpresa);
@@ -1141,7 +1175,7 @@ btnNewTask.addEventListener("click", function () {
   // Funcionalidad para el boton de eliminar la tarea
   buttonTrash.addEventListener("click", function () {
     var deletTarea = {
-      descripcion: descripcion.value,
+      descripcion: textActividad.value,
     };
 
     // Enviar la solicitud POST
@@ -1452,7 +1486,8 @@ function makePdf(
 // Funcionalidad para editar ciertos datos del campo
 btnEditarDatos.addEventListener("click", function () {
   var causaError = textAreaCausaError.value;
-  var fechaFinal = fechaFinalizacionEdit.value;
+  var fechaFinal = fechaFinalizacionEdit.value == "" ? null : fechaFinalizacionEdit.value;
+  console.log(fechaFinal)
   var facturacion = selectFacturacion.value;
 
   fetch(`/editar_ticket_soporte/${numTicketSoporte}/`, {
@@ -1470,7 +1505,7 @@ btnEditarDatos.addEventListener("click", function () {
     .then((data) => {
       if (data.status == "success") {
         toastr.success(
-          "Datos enviados correctamente",
+          "Datos enviados",
           "Datos enviados correctamente"
         );
         setTimeout(() => {

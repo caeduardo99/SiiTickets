@@ -42,6 +42,7 @@ urlpatterns = [
     path('modulojson/', views.modulojson, name='modulojson'),
     path('ticketsoportescreados/', views.ticketsoportescreados, name='ticketsoportescreados'),
     path('ticketsoportescreadosid/<int:ticket_id>/', views.ticketsoportescreadosid, name='ticketsoportescreadosid'),
+    path('ticketsoportescreadosid_new_page/<int:ticket_id>/', views.ticketsoportescreadosid_new_page, name='ticketsoportescreadosid_new_page'),
     path('crear_ticket_soporte/', views.crear_ticket_soporte, name='crear_ticket_soporte'),
     path('editar_ticket_soporte/<int:ticket_id>/', views.editar_ticket_soporte, name='editar_ticket_soporte'),
     path('ticketsActualizacionCreados/', views.ticketsActualizacionCreados, name='ticketsActualizacionCreados'),

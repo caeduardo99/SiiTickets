@@ -453,7 +453,7 @@ def solicitantesjson(request):
             cursor.execute(consulta_sql.replace("WHERE se.nombreEmpresa = %s", ""))
             columns = [col[0] for col in cursor.description]
             resultados = [dict(zip(columns, row)) for row in cursor.fetchall()]
-
+    
     # Devolver la respuesta JSON
     return JsonResponse(resultados, safe=False)
 
@@ -1242,6 +1242,135 @@ def ticketsoportescreadosid(request, ticket_id):
     return JsonResponse(
         {"ticket": resultados_ticket, "actividades": resultados_actividades}, safe=False
     )
+
+# Servicio que incluye el template
+def ticketsoportescreadosid_new_page(request, ticket_id):
+    nombre_usuario = request.user.username if request.user.is_authenticated else None
+    usuarios_grupo_1 = User.objects.filter(groups__id=1).values_list(
+        "username", flat=True
+    )
+    nombre = request.user.first_name if request.user.is_authenticated else None
+    apellido = request.user.last_name if request.user.is_authenticated else None
+    full_name = nombre + " " + apellido
+
+    if nombre_usuario in usuarios_grupo_1:
+        # No mostrar el campo en este caso
+        mostrar_campo = False
+    else:
+        # Mostrar el campo
+        mostrar_campo = True
+
+    resultados_agentes = agentesjson(request)
+    resultados_agentes_data = json.loads(resultados_agentes.content)
+    
+    resultados_allSolicitantes = allSolicitnates(request)
+    resultados_allSolicitantes = json.loads(resultados_allSolicitantes.content)
+
+
+    # Construir la consulta SQL para obtener la información del ticket principal
+    consulta_sql_ticket = """
+    SELECT 
+        st.id,
+        st.fechaCreacion,
+        st.archivo,
+        st.fechaInicio,
+        st.fechaFinalizacion,
+        st.fechaFinalizacionReal,
+        st.comentario,
+        st.asunto,
+        st.causaerror,
+        st.facturar,
+        st.idAgente_id,
+        au.first_name || ' ' || au.last_name AS agente_nombre, au.phone,
+        st.idSolicitante_id,
+        st.idestado_id,
+        st.chat,
+        st.prioridad,
+        ss.nombreApellido,
+        ss.telefonoSolicitante,
+        st.imagenes,
+        st.trabajoRealizado,
+        st.motivoAnulacion,
+        se.nombreEmpresa,
+        se2.descripcion as estadoTicket
+    FROM 
+        soporte_ticketsoporte st
+    LEFT JOIN 
+        auth_user au ON au.id = st.idAgente_id
+    LEFT JOIN
+        soporte_solicitante ss ON ss.id = st.idSolicitante_id
+    LEFT JOIN 
+        soporte_empresa se ON se.id = ss.idEmpresa_id 
+    LEFT JOIN 
+    	soporte_estadosticket se2 ON se2.id = st.idestado_id 
+    """
+
+    # Agregar un filtro por ID si se proporciona el parámetro "id"
+    if ticket_id is not None:
+        consulta_sql_ticket += f" WHERE st.id = {ticket_id}"
+
+    # Construir la consulta SQL para obtener las actividades principales del ticket
+    consulta_sql_actividades = f"""
+    SELECT
+        aps.id,
+        aps.descripcion,
+        aps.idAgente_id,
+        au_aps.first_name || ' ' || au_aps.last_name AS agente_actividad_nombre,
+        aps.idestado_id,
+        est.descripcion AS estado_actividad,
+        aps.imagen_actividades,
+        aps.fechainicio,
+        aps.fechafinal,
+        aps.minutosTrabajados
+    FROM
+        soporte_actividadprincipalsoporte aps
+    LEFT JOIN
+        auth_user au_aps ON au_aps.id = aps.idAgente_id
+    LEFT JOIN
+        soporte_estadosticket est ON est.id = aps.idestado_id
+    LEFT JOIN
+    	soporte_estadosticket se ON se.id = aps.id 
+    WHERE
+        aps.idTicketSoporte_id = {ticket_id}
+    """
+
+    connection = connections["default"]
+
+    # Ejecutar la consulta SQL para obtener la información del ticket principal
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql_ticket)
+        columns_ticket = [col[0] for col in cursor.description]
+        resultados_ticket = [
+            dict(zip(columns_ticket, [
+                val if not isinstance(val, datetime) else val.isoformat()
+                for val in row
+            ])) for row in cursor.fetchall()
+        ]
+    resultados_ticket = json.dumps(resultados_ticket)
+
+    # Ejecutar la consulta SQL para obtener las actividades principales del ticket
+    with connection.cursor() as cursor:
+        cursor.execute(consulta_sql_actividades)
+        columns_actividades = [col[0] for col in cursor.description]
+        resultados_actividades = [
+            dict(zip(columns_actividades, [
+                val if not isinstance(val, datetime) else val.isoformat()
+                for val in row
+            ])) for row in cursor.fetchall()
+        ]
+    resultados_actividades = json.dumps(resultados_actividades)
+
+    context = {
+        "nombre_usuario": nombre_usuario,
+        "mostrar_campo": mostrar_campo,
+        "ticket": resultados_ticket,
+        "actividades": resultados_actividades,
+        "fullName": full_name,
+        "resultados_agentes_data": resultados_agentes_data,
+        "all_solicitantes": resultados_allSolicitantes
+    }
+    # Devolver la respuesta JSON con ambos conjuntos de resultados
+    return render(request, 'detail_ticket.html', context)
 
 
 def ticketDesarrolloCreados(request):
@@ -2289,6 +2418,7 @@ def editar_tareas_soporte(request):
 @csrf_exempt
 def update_file_extra(request, id_ticket):
     file_extra = request.FILES.get("fileExtra")
+    print(file_extra)
     if file_extra:
         ticket = TicketSoporte.objects.get(id=id_ticket)
         ticket.archivo = file_extra
@@ -2418,21 +2548,36 @@ def editar_ticket_soporte(request, ticket_id):
     try:
         data = json.loads(request.body)
         causa_error = data.get("causaError")
-        fecha_finalizacion = data.get("fechaFinalizacion")
+        fecha_finalizacion = data.get("fechaFinalizacion", None)
         facturacion = data.get("facturacion")
-
+        comentario = data.get("comentario", "")
+        idEstado = data.get("idEstado", "")
+        
         # Buscar el ticket por su ID
         ticket = TicketSoporte.objects.get(id=ticket_id)
 
-        # Actualizar las propiedades
         ticket.causaerror = causa_error
-        ticket.idestado_id = 2
         ticket.fechaFinalizacion = fecha_finalizacion
+        ticket.comentario = comentario
 
-        if facturacion == "true":
-            ticket.facturar = True
+        # Actualizar las propiedades para revisar las condiciones
+        if fecha_finalizacion == None or facturacion == "":
+            estado = EstadosTicket.objects.get(id=idEstado)
+            ticket.idestado = estado
         else:
-            ticket.facturar = False
+            if idEstado == 4:
+                estado = EstadosTicket.objects.get(id=idEstado)
+                ticket.idestado = estado
+            else:
+                estado = EstadosTicket.objects.get(id=2)
+                ticket.idestado = estado
+
+        # Condicion en caso de que llegue de alguna forma la facturacion
+        if facturacion == "true":
+            facturacion = True
+        else:
+            facturacion = False
+        ticket.facturar = facturacion
 
         # Guardar los cambios
         ticket.save()
