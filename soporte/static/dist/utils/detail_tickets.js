@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnNotificarSolicitante = document.getElementById(
     "btnNotificarSolicitante"
   );
+  const numberEnterprise = document.getElementById("numberEnterprise");
   const btnEditarDatos = document.getElementById("btnEditarDatos");
   const btnRegresarEstado = document.getElementById("btnRegresarEstado");
   const btnNullTicket = document.getElementById("btnNullTicket");
@@ -75,13 +76,15 @@ document.addEventListener("DOMContentLoaded", function () {
     ticket[0].asunto == ""
       ? "No se ha especificado el asunto"
       : ticket[0].asunto;
-  console.log(ticket[0])
+      
   titleTicketDetail.textContent = `Ticket: 000-${numTicket} | ${ticket[0].estadoTicket} ${ticket[0].motivoAnulacion == "" ? "" : "| " + ticket[0].motivoAnulacion}`;
   titleView.textContent = `SiiTikets | ${numTicket} | ${ticket[0].nombreEmpresa}`;
   asuntoTicketAgenteEdit.value = asunto;
   textAreaComentarioEdit.textContent = ticket[0].comentario;
   selectEditAgenteSolicitado.disabled = true;
-
+  
+  numberEnterprise.textContent = `Teléfono: ${ticket[0].telefonoSolicitante}`
+  console.log(ticket[0])
   // Llenar el select con los datos de resultados_agentes_data
   const idAgenteSeleccionado = ticket[0].idAgente_id;
   $("#selectEditAgenteSolicitado").val(idAgenteSeleccionado).trigger("change");
@@ -137,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Agregar informacion para el comentario
-  textAreaComentarioAdicional.textContent = ticket[0].comentario;
+  textAreaComentarioAdicional.textContent = ticket[0].chat;
   numeroSolicitante = ticket[0].telefonoSolicitante;
   idEstadoGeneralTicket = ticket[0].idestado_id;
   detalleTicket = ticket[0].comentario;
@@ -155,6 +158,7 @@ document.addEventListener("DOMContentLoaded", function () {
       selectFacturacion.addEventListener("change", function () {
         btnEditarDatos.style.display = "";
       });
+      textAreaComentarioEdit.disabled = false;
     } else {
       btnEditarDatos.style.display = "none";
     }
@@ -881,6 +885,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var fechaFinal = fechaFinalizacionEdit.value == "" ? null : fechaFinalizacionEdit.value;
     var facturacion = selectFacturacion.value;
     var idEstado = idEstadoGeneralTicket
+    var comentario = textAreaComentarioEdit.value;
     
     var comentarioAdicional = textAreaComentarioAdicional.value;
     const baseUrl = window.location.origin;
@@ -892,8 +897,9 @@ document.addEventListener("DOMContentLoaded", function () {
         causaError: causaError,
         fechaFinalizacion: fechaFinal,
         facturacion: facturacion,
-        comentario: comentarioAdicional,
-        idEstado: idEstado
+        comentarioAdicional: comentarioAdicional,
+        idEstado: idEstado,
+        comentario: comentario
       }),
       headers: {
         "Content-Type": "application/json",
@@ -1006,6 +1012,15 @@ document.addEventListener("DOMContentLoaded", function () {
   // Funcionalidad de activacion para el comentario adicional
   textAreaComentarioAdicional.addEventListener("input", function(){
     if(textAreaComentarioAdicional.value == textAreaComentarioAdicional.value){
+      btnEditarDatos.style.display = ""
+    }else{
+      btnEditarDatos.style.display = "none"
+    }
+  })
+
+  // Funcionalidad para editar el comentario
+  textAreaComentarioEdit.addEventListener("input", function(){
+    if(textAreaComentarioEdit.value != ticket[0].comentario){
       btnEditarDatos.style.display = ""
     }else{
       btnEditarDatos.style.display = "none"

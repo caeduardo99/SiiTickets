@@ -2550,14 +2550,16 @@ def editar_ticket_soporte(request, ticket_id):
         causa_error = data.get("causaError")
         fecha_finalizacion = data.get("fechaFinalizacion", None)
         facturacion = data.get("facturacion")
-        comentario = data.get("comentario", "")
+        comentarioAdicional = data.get("comentarioAdicional", "")
         idEstado = data.get("idEstado", "")
+        comentario = data.get("comentario", "")
         
         # Buscar el ticket por su ID
         ticket = TicketSoporte.objects.get(id=ticket_id)
 
         ticket.causaerror = causa_error
         ticket.fechaFinalizacion = fecha_finalizacion
+        ticket.chat = comentarioAdicional
         ticket.comentario = comentario
 
         # Actualizar las propiedades para revisar las condiciones
