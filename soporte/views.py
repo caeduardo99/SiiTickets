@@ -699,7 +699,7 @@ def generateReport(request):
 
     if tipo_ticket == "1":
         consulta = """
-        select st.id,st.comentario,se.descripcion as Estado, st.fechafinalizacion as fechaFinalizacionEstimada, st.idAgente_id as idAgenteAdministrador,st.fechacreacion as fechaCreacion,
+        select st.id, st.asunto, st.comentario, se.id as idEstado,se.descripcion as Estado, st.fechafinalizacion as fechaFinalizacionEstimada, st.fechaFinalizacionReal as fechaFinalizacion, st.idAgente_id as idAgenteAdministrador,st.fechacreacion as fechaCreacion, st.facturar,
                 au.first_name as Nombre, au.last_name as Apellido,
                 sa.id as idActividad, sa.descripcion as actividad, sa.minutosTrabajados,
                 au2.id as idAgenteActividad, au2.first_name as NombreAgente, au2.last_name as ApellidoAgente
@@ -711,13 +711,13 @@ def generateReport(request):
         """
     elif tipo_ticket == "2":
         consulta = """
-        SELECT st.*, se.descripcion as Estado, au.first_name as Nombre, au.last_name as Apellido FROM soporte_ticketactualizacion st 
+        SELECT st.*, se.id as idEstado, se.descripcion as Estado, au.first_name as Nombre, au.last_name as Apellido FROM soporte_ticketactualizacion st 
         INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
         INNER JOIN auth_user au ON au.id = st.idAgente_id
         """
     elif tipo_ticket == "3":
         consulta = """
-        SELECT st.*, se.descripcion as Estado, au.first_name as Nombre, au.last_name as Apellido FROM soporte_ticketdesarrollo st 
+        SELECT st.*, se.id as idEstado, se.descripcion as Estado, au.first_name as Nombre, au.last_name as Apellido FROM soporte_ticketdesarrollo st 
         INNER JOIN soporte_estadosticket se ON se.id = st.idestado_id
         INNER JOIN auth_user au ON au.id = st.idAgente_id
         """

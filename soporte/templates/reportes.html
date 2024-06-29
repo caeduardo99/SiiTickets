@@ -95,14 +95,27 @@
                     </div>
                     <br>
                     <div class="row g-1" id="rowGenerateReport" style="display: none;">
-                        <button class="btn btn-block btn-dark" id="btnGenerateReport">Generar reporte</button>
+                        <div class="col-md-4">
+                            <button class="btn btn-block btn-dark" id="btnGenerateReport">Generar reporte</button>
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-block btn-success" id="btnGenerateExcel" style="display: none;">Generar excel <svg xmlns="http://www.w3.org/2000/svg" style="fill: white; width:  17px; height:  17px;" viewBox="0 0 384 512"><path d="M64 0C28.7 0 0 28.7 0 64V448c0 35.3 28.7 64 64 64H320c35.3 0 64-28.7 64-64V160H256c-17.7 0-32-14.3-32-32V0H64zM256 0V128H384L256 0zM155.7 250.2L192 302.1l36.3-51.9c7.6-10.9 22.6-13.5 33.4-5.9s13.5 22.6 5.9 33.4L221.3 344l46.4 66.2c7.6 10.9 5 25.8-5.9 33.4s-25.8 5-33.4-5.9L192 385.8l-36.3 51.9c-7.6 10.9-22.6 13.5-33.4 5.9s-13.5-22.6-5.9-33.4L162.7 344l-46.4-66.2c-7.6-10.9-5-25.8 5.9-33.4s25.8-5 33.4 5.9z"/></svg></button>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group mb-3" id="fileGroup" style="display: none;">
+                                <div class="custom-file">
+                                  <input type="file" class="custom-file-input" id="inputFileExcel">
+                                  <label class="custom-file-label" for="inputFileExcel" aria-describedby="inputGroupFileAddon02">Escoger excel</label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <br>
                     <hr>
                     <div class="row g-1" id="rowTableTickets" style="display: none;">
                         <div class="col-md-12">
                             <div class="table-responsive" id="tableResponsiveTickets"
-                                style="overflow-y: auto; max-height: 240px;">
+                                style="overflow-y: auto; max-height: 300px;">
                                 <table class="table table-sm table-hover">
                                     <thead>
                                         <tr>
@@ -192,4 +205,6 @@
 <script src="https://code.jquery.com/jquery-3.6.4.slim.min.js"></script>
 <script src="../static/dist/utils/reportes.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 {% endblock %}
