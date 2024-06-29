@@ -940,7 +940,6 @@ $(document).ready(function () {
     // Funcionalidad de boton para generar el archivo excel
     btnGenerateExcel.addEventListener("click", function(){
         const grupedData = responseData
-        .filter(obj => obj.idEstado == 5)
         .reduce((acc, obj) => {
             const { idAgenteActividad, id } = obj
             
@@ -980,21 +979,22 @@ $(document).ready(function () {
                 const objDatesFinalization = formatDate(firstTicket.fechaFinalizacion);
                 dataArray.push({
                   IdAgente: firstTicket.idAgenteActividad,
-                  NombreAgente: `${firstTicket.NombreAgente} ${firstTicket.ApellidoAgente}`,
+                  NombreAgente: `${firstTicket.NombreAgente == null ? firstTicket.Nombre : firstTicket.NombreAgente} ${firstTicket.ApellidoAgente == null ? firstTicket.Apellido : firstTicket.ApellidoAgente}`,
                   NumTicket: firstTicket.id,
                   DescripcioTicket: firstTicket.asunto,
                   FechaSolicitud: objDatesCreation.fechaCompleta,
                   HoraSolicitud: objDatesCreation.fullTime,
                   FechaFinalizacion: objDatesFinalization.fechaCompleta,
                   HoraFinalizacion: objDatesFinalization.fullTime,
-                  HorasTotalesTrabajadas: horasTotales,
+                  HorasTotalesTrabajadas: horasTotales == 0 ? 'Sin actividades aun' : horasTotales,
+                  Estado: firstTicket.Estado,
                   Facturado: firstTicket.facturar == true ? "Si" : "No",
                   Cancelado: ""
                 });
             }
             const horasTotalesAgente = convertirMinutosHoras(totalMinutosPorAgente[agentId]);
             dataArray.push({
-                IdAgente: agentId,
+                IdAgente: agentId == 'null' ? 'Sin actividades asignadas' : agentId,
                 NombreAgente: "",
                 NumTicket: "",
                 DescripcioTicket: "Total Horas Trabajadas", // Propiedad de la sumatoria
@@ -1002,7 +1002,7 @@ $(document).ready(function () {
                 HoraSolicitud: "",
                 FechaFinalizacion: "",
                 HoraFinalizacion: "",
-                HorasTotalesTrabajadas: horasTotalesAgente,
+                HorasTotalesTrabajadas: horasTotalesAgente == '0 horas 0 minutos' ? 'Sin actividades' : horasTotalesAgente,
                 Facturado: "",
                 Cancelado: ""
             });
