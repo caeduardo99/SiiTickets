@@ -159,6 +159,7 @@ document.addEventListener("DOMContentLoaded", function () {
         btnEditarDatos.style.display = "";
       });
       textAreaComentarioEdit.disabled = false;
+      textAreaComentarioAdicional.disabled = false;
     } else {
       btnEditarDatos.style.display = "none";
     }
