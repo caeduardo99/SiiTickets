@@ -158,7 +158,6 @@ document.addEventListener("DOMContentLoaded", function () {
       selectFacturacion.addEventListener("change", function () {
         btnEditarDatos.style.display = "";
       });
-      textAreaComentarioEdit.disabled = false;
       textAreaComentarioAdicional.disabled = false;
     } else {
       btnEditarDatos.style.display = "none";
