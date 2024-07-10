@@ -940,6 +940,7 @@ $(document).ready(function () {
     // Funcionalidad de boton para generar el archivo excel
     btnGenerateExcel.addEventListener("click", function(){
         const grupedData = responseData
+        .filter(obj => obj.idEstado == 5)
         .reduce((acc, obj) => {
             const { idAgenteActividad, id } = obj
             
@@ -955,16 +956,6 @@ $(document).ready(function () {
 
             return acc;
         }, {})
-
-        const totalMinutosPorAgente = {};
-        for (const agentId in grupedData) {
-            totalMinutosPorAgente[agentId] = 0;
-            for (const groupId in grupedData[agentId]) {
-                grupedData[agentId][groupId].forEach(obj => {
-                    totalMinutosPorAgente[agentId] += obj.minutosTrabajados;
-                });
-            }
-        }
         
         const dataArray = []
         for (const agentId in grupedData) {
@@ -979,33 +970,18 @@ $(document).ready(function () {
                 const objDatesFinalization = formatDate(firstTicket.fechaFinalizacion);
                 dataArray.push({
                   IdAgente: firstTicket.idAgenteActividad,
-                  NombreAgente: `${firstTicket.NombreAgente == null ? firstTicket.Nombre : firstTicket.NombreAgente} ${firstTicket.ApellidoAgente == null ? firstTicket.Apellido : firstTicket.ApellidoAgente}`,
+                  NombreAgente: `${firstTicket.NombreAgente} ${firstTicket.ApellidoAgente}`,
                   NumTicket: firstTicket.id,
                   DescripcioTicket: firstTicket.asunto,
                   FechaSolicitud: objDatesCreation.fechaCompleta,
                   HoraSolicitud: objDatesCreation.fullTime,
                   FechaFinalizacion: objDatesFinalization.fechaCompleta,
                   HoraFinalizacion: objDatesFinalization.fullTime,
-                  HorasTotalesTrabajadas: horasTotales == 0 ? 'Sin actividades aun' : horasTotales,
-                  Estado: firstTicket.Estado,
+                  HorasTotalesTrabajadas: horasTotales,
                   Facturado: firstTicket.facturar == true ? "Si" : "No",
                   Cancelado: ""
                 });
             }
-            const horasTotalesAgente = convertirMinutosHoras(totalMinutosPorAgente[agentId]);
-            dataArray.push({
-                IdAgente: agentId == 'null' ? 'Sin actividades asignadas' : agentId,
-                NombreAgente: "",
-                NumTicket: "",
-                DescripcioTicket: "Total Horas Trabajadas", // Propiedad de la sumatoria
-                FechaSolicitud: "",
-                HoraSolicitud: "",
-                FechaFinalizacion: "",
-                HoraFinalizacion: "",
-                HorasTotalesTrabajadas: horasTotalesAgente == '0 horas 0 minutos' ? 'Sin actividades' : horasTotalesAgente,
-                Facturado: "",
-                Cancelado: ""
-            });
         }
         // Generar el archivo excel
         var workbook = XLSX.utils.book_new();
@@ -1068,6 +1044,7 @@ $(document).ready(function () {
         if (range.e.r > startRow2) {
             worksheet['!merges'].push({ s: { r: startRow2, c: 1 }, e: { r: range.e.r, c: 1 } });
         }
+        // Agrupacion para la tercera columna ----------------------------------------------------
         
 
         var wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
