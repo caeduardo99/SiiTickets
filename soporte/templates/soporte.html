@@ -361,13 +361,6 @@
                         </div>
                     </div>
                     <hr>
-                    <div class="row g-1">
-                        <div class="col-md-12">
-                            <button type="button" id="btnNewTask" class="btn btn-success btn-block"
-                                                disabled>Agregar nueva tarea +
-                                        </button>
-                        </div>
-                    </div>
                     <div class="table-responsive" style="display: none;" id="rowTableTaskEdit">
                         <table class="table table-hover table-sm">
                             <thead>
@@ -378,7 +371,6 @@
                                 <th scope="col">Fecha finalización</th>
                                 <th scope="col">Minutos trabajados</th>
                                 <th scope="col">Imagen del requerimiento solucionado</th>
-                                <th scope="col">Acciones</th>
                               </tr>
                             </thead>
                             <tbody id="tbodyListTask">
@@ -390,13 +382,9 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-danger btn-sm" id="btnGenerarReporte" style="display: none;">Generar Reporte</button>
-                <button class="btn btn-info btn-sm" id="btnAsignarAgente" style="display: none;">Asignar Agente</button>
-                <button class="btn btn-success btn-sm" id="btnFinishTicket">Cerrar el ticket</button>
                 <button class="btn btn-dark btn-sm" id="btnNotificar" style="display: none;">Notificar al Administrador</button>
                 <button class="btn btn-dark btn-sm" id="btnNotificarSolicitante" style="display: none;">Notificar al solicitante</button>
-                <button class="btn btn-warning btn-sm" id="btnEditarDatos" style="display: none;">Editar datos</button>
                 <button class="btn btn-danger btn-sm" id="btnRegresarEstado" style="display: none;">Solicitud adicional</button>
-                <button class="btn btn-danger btn-sm" id="btnNullTicket" style="display: none;">Anular ticket</button>
             </div>
           </div>
         </div>
