@@ -96,6 +96,7 @@ class TicketSoporte(models.Model):
     imagenes = models.ImageField(upload_to='ticket_images/', null=True, blank=True)
     archivo = models.FileField(upload_to='ticket_files/', null=True, blank=True)
     motivoAnulacion = models.CharField(max_length=200, default='')
+    idAgenteModificado = models.ForeignKey(User, on_delete=models.CASCADE, null=True, default=None, related_name='ticket_soporte_agente_modificado')
 
 class ActividadPrincipalActualizacion(models.Model):
     id = models.AutoField(primary_key=True)

@@ -212,7 +212,7 @@ document.addEventListener("DOMContentLoaded", function () {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ motivo: razonAnulacion }),
+        body: JSON.stringify({ motivo: razonAnulacion, idAgenteModificacion: idUsuario }),
       })
         .then((response) => response.json())
         .then((data) => {
@@ -899,7 +899,8 @@ document.addEventListener("DOMContentLoaded", function () {
         facturacion: facturacion,
         comentarioAdicional: comentarioAdicional,
         idEstado: idEstado,
-        comentario: comentario
+        comentario: comentario,
+        idAgenteModificacion: idUsuario
       }),
       headers: {
         "Content-Type": "application/json",
@@ -947,7 +948,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Ejecucion del post
         $.ajax({
-          url: `${baseUrl}/asign_admin_ticket_support/${valor_agente_select}/${numTicket}/`,
+          url: `${baseUrl}/asign_admin_ticket_support/${valor_agente_select}/${numTicket}/${idUsuario}/`,
           type: "GET", // Puedes ajustar esto según tu lógica
           dataType: "json",
           data: {
@@ -1039,7 +1040,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Funcionamiento del boton para cerrar el ticket
   btnFinishTicket.addEventListener("click", function () {
     const baseUrl = window.location.origin;
-    const url = `${baseUrl}/cerrar_ticket/${numTicket}`;
+    const url = `${baseUrl}/cerrar_ticket/${numTicket}/${idUsuario}/`;
     fetch(url, {
       method: "POST",
       headers: {

@@ -2184,7 +2184,7 @@ def send_manual(request):
         return JsonResponse({"status": "error"}, status=405)
 
 
-def asign_admin_ticket_support(request, id_agente, id_ticket):
+def asign_admin_ticket_support(request, id_agente, id_ticket, id_user_modified):
     try:
         fecha_actual = datetime.now()
         fechaAsignacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
@@ -2195,6 +2195,7 @@ def asign_admin_ticket_support(request, id_agente, id_ticket):
         # Cambio de estado a en proceso
         ticket.idestado_id = 3
         ticket.fechaInicio = fechaAsignacion
+        ticket.idAgenteModificado = User.objects.get(id=id_user_modified)
         ticket.chat = comentario_adicional
         ticket.save()
         # Devolver la respuesta JSON
@@ -2461,7 +2462,7 @@ def finalizar_tareas_soporte(request):
 
 
 @csrf_exempt
-def cerrar_ticket(request, id_ticket):
+def cerrar_ticket(request, id_ticket, id_usuario_modified):
     try:
         fecha_actual = datetime.now()
         fecha_finalizacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
@@ -2469,6 +2470,7 @@ def cerrar_ticket(request, id_ticket):
         ticket = TicketSoporte.objects.get(id=id_ticket)
         ticket.idestado_id = 5
         ticket.fechaFinalizacionReal = fecha_finalizacion
+        ticket.idAgenteModificado = User.objects.get(id=id_usuario_modified)
         ticket.save()
 
         return JsonResponse(
@@ -2553,6 +2555,7 @@ def editar_ticket_soporte(request, ticket_id):
         comentarioAdicional = data.get("comentarioAdicional", "")
         idEstado = data.get("idEstado", "")
         comentario = data.get("comentario", "")
+        idAgenteModificacion = data.get("idAgenteModificacion", None)
         
         # Buscar el ticket por su ID
         ticket = TicketSoporte.objects.get(id=ticket_id)
@@ -2561,6 +2564,7 @@ def editar_ticket_soporte(request, ticket_id):
         ticket.fechaFinalizacion = fecha_finalizacion
         ticket.chat = comentarioAdicional
         ticket.comentario = comentario
+        ticket.idAgenteModificado = User.objects.get(id=idAgenteModificacion)
 
         # Actualizar las propiedades para revisar las condiciones
         if fecha_finalizacion == None or facturacion == "":
@@ -3456,11 +3460,13 @@ def null_ticket(request, id_ticket):
         fecha_finalizacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
         data = json.loads(request.body)
         motivo = data.get('motivo', '')
+        idAgenteMotivo = data.get('idAgenteModificacion', None)
 
         ticket = TicketSoporte.objects.get(id=id_ticket)
         ticket.idestado_id = 6
         ticket.fechaFinalizacionReal = fecha_finalizacion
         ticket.motivoAnulacion = motivo
+        ticket.idAgenteModificado = User.objects.get(id=idAgenteMotivo)
         ticket.save()
 
         return JsonResponse(
