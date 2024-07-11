@@ -1291,6 +1291,9 @@ def ticketsoportescreadosid_new_page(request, ticket_id):
         st.imagenes,
         st.trabajoRealizado,
         st.motivoAnulacion,
+        st.idAgenteModificado_id,
+        au2.first_name as NombreAgenteModificacion,
+        au2.last_name as ApellidoAgenteMoficacion,
         se.nombreEmpresa,
         se2.descripcion as estadoTicket
     FROM 
@@ -1302,7 +1305,9 @@ def ticketsoportescreadosid_new_page(request, ticket_id):
     LEFT JOIN 
         soporte_empresa se ON se.id = ss.idEmpresa_id 
     LEFT JOIN 
-    	soporte_estadosticket se2 ON se2.id = st.idestado_id 
+    	soporte_estadosticket se2 ON se2.id = st.idestado_id
+    LEFT JOIN 
+    	auth_user au2 ON au2.id = st.idAgenteModificado_id 
     """
 
     # Agregar un filtro por ID si se proporciona el parámetro "id"

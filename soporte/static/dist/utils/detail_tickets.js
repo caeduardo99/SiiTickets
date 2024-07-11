@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Json de la informacion general de ticket principal
   var ticketString = content.getAttribute("data-ticket");
   var ticket = JSON.parse(ticketString);
-
+  
   // Variables reutilizables globales
   var numTicket = 0;
   numTicket = ticket[0].id;
@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "selectEditAgenteSolicitado"
   );
   const selectSolicitante = document.getElementById("selectSolicitante");
+  const textAgentModified = document.getElementById("textAgentModified");
   const fechaCreacionEdit = document.getElementById("fechaCreacionEdit");
   const fechaFinalizacionEdit = document.getElementById(
     "fechaFinalizacionEdit"
@@ -77,14 +78,13 @@ document.addEventListener("DOMContentLoaded", function () {
       ? "No se ha especificado el asunto"
       : ticket[0].asunto;
       
-  titleTicketDetail.textContent = `Ticket: 000-${numTicket} | ${ticket[0].estadoTicket} ${ticket[0].motivoAnulacion == "" ? "" : "| " + ticket[0].motivoAnulacion}`;
+  titleTicketDetail.textContent = `Ticket: 000-${numTicket} | ${ticket[0].estadoTicket} ${ticket[0].motivoAnulacion == "" ? "" : "| " + ticket[0].motivoAnulacion + ", anulado por " + ticket[0].NombreAgenteModificacion + ticket[0].ApellidoAgenteMoficacion}`;
   titleView.textContent = `SiiTikets | ${numTicket} | ${ticket[0].nombreEmpresa}`;
   asuntoTicketAgenteEdit.value = asunto;
   textAreaComentarioEdit.textContent = ticket[0].comentario;
   selectEditAgenteSolicitado.disabled = true;
   
   numberEnterprise.textContent = `Teléfono: ${ticket[0].telefonoSolicitante}`
-  console.log(ticket[0])
   // Llenar el select con los datos de resultados_agentes_data
   const idAgenteSeleccionado = ticket[0].idAgente_id;
   $("#selectEditAgenteSolicitado").val(idAgenteSeleccionado).trigger("change");
@@ -105,6 +105,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
   const idSolicitanteSeleccionado = ticket[0].idSolicitante_id;
   $("#selectSolicitante").val(idSolicitanteSeleccionado).trigger("change");
+
+  // Agregar informacion del agente
+  textAgentModified.textContent = `${ticket[0].idAgenteModificado_id == null ? `Aún sin datos` : `Último modificación hecha por: ${ticket[0].NombreAgenteModificacion} ${ticket[0].ApellidoAgenteMoficacion}`}`
 
   // Agregar la fecha de creacion en el DOM
   var fechaCreacion = ticket[0].fechaCreacion;
