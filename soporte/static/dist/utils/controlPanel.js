@@ -16,6 +16,7 @@ $(document).ready(function () {
   const infoAgenteDiv = document.getElementById("infoAgente");
   const btnReturnListAgent = document.getElementById("btnReturnListAgent");
   const agenteEncargado = document.getElementById("agenteEncargado");
+  const cardTicketsProcess = document.getElementById("cardTicketsProcess");
 
   var calendarEl = document.getElementById('calendar');
 
@@ -252,6 +253,10 @@ $(document).ready(function () {
     });
 
     cardTicketsCompletos.addEventListener('click', function(){
+        window.location.href = '/soporte';
+    })
+
+    cardTicketsProcess.addEventListener('click', function(){
         window.location.href = '/soporte';
     })
 
