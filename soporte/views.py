@@ -319,7 +319,7 @@ def views_reports(request):
 
     # ESTADO DE LOS TICKETS
     consulta_estado = """
-    SELECT * from soporte_estadosticket se WHERE se.id <> 3
+    SELECT * from soporte_estadosticket se
     """
     connection = connections["default"]
 

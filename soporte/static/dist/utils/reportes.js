@@ -49,8 +49,10 @@ $(document).ready(function () {
                 selectTypeTicket.value == 3) &&
             (selectStateTicket.value == 1 ||
                 selectStateTicket.value == 2 ||
+                selectStateTicket.value == 3 ||
                 selectStateTicket.value == 4 ||
-                selectStateTicket.value == 5 || selectStateTicket.value == 0
+                selectStateTicket.value == 5 || 
+                selectStateTicket.value == 0
             || selectStateTicket.value == 6)
         ) {
             optionTimeTickets.style.display = "";
@@ -71,7 +73,10 @@ $(document).ready(function () {
             (selectStateTicket.value == 1 ||
                 selectStateTicket.value == 2 ||
                 selectStateTicket.value == 4 ||
-                selectStateTicket.value == 5 || selectStateTicket.value == 0 || selectStateTicket.value == 6)
+                selectStateTicket.value == 3 ||
+                selectStateTicket.value == 5 || 
+                selectStateTicket.value == 0 || 
+                selectStateTicket.value == 6)
         ) {
             optionTimeTickets.style.display = "";
             optionsAgentPeriodo.style.display = "";
