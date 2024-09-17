@@ -935,141 +935,50 @@ $(document).ready(function () {
         return jsonResponse
     }
 
-    // Funcionalidad como transformar minutos a horas
-    function convertirMinutosHoras(minutos){
-        const horas = Math.floor(minutos / 60);
-        const minutosRestantes = minutos % 60;
-        return `${horas} horas ${minutosRestantes} minutos`;
-    }
-
     // Funcionalidad de boton para generar el archivo excel
     btnGenerateExcel.addEventListener("click", function(){
-        const grupedData = responseData
-        .filter(obj => obj.idEstado == 5)
-        .reduce((acc, obj) => {
-            const { idAgenteActividad, id } = obj
+        var data = responseData
+        // Texto del Select
+        var selectedTextState = selectStateTicket.options[selectStateTicket.selectedIndex].text;
+        // Agrupar por agente que realizó la actividad
+        var groupedDataAgentActivity = data.reduce(function(result, currentItem) {
+            var id = currentItem.idAgenteActividad;
+            if (!result[id]) {
+                result[id] = [];
+            }
+            result[id].push(currentItem);
             
-            if(!acc[idAgenteActividad]){
-                acc[idAgenteActividad] = {}
-            }
-
-            if (!acc[idAgenteActividad][id]){
-                acc[idAgenteActividad][id] = []
-            }
-
-            acc[idAgenteActividad][id].push(obj)
-
-            return acc;
-        }, {})
-        
-        const dataArray = []
-        for (const agentId in grupedData) {
-            for (const groupId in grupedData[agentId]) {
-                let totalMinutos = 0;
-                grupedData[agentId][groupId].forEach(obj => {
-                    totalMinutos += obj.minutosTrabajados
+            return result;
+        }, {});
+        var excelData = [];
+        Object.keys(groupedDataAgentActivity).forEach(function(idAgenteActividad) {
+            var totalMinutos = groupedDataAgentActivity[idAgenteActividad].reduce(function(sum, item) {
+                return sum + (item.minutosTrabajados || 0);
+            }, 0);
+            excelData.push({
+                idAgenteActividad: idAgenteActividad == 'null' || idAgenteActividad == "" ? 'Actividades sin asignar' : `Id agente asignado: ${idAgenteActividad}`,
+                minutosTrabajados: `Horas totales: ${totalMinutos}`,
+            });
+            groupedDataAgentActivity[idAgenteActividad].forEach(function(item) {
+                var formatDateFinaEsti = formatDate(item.fechaFinalizacionEstimada);
+                var fechaFin = formatDate(item.fechaFinalizacion);
+                var fechaCrea = formatDate(item.fechaCreacion);
+                excelData.push({
+                    ...item,
+                    fechaFinalizacionEstimada: `${formatDateFinaEsti.fechaCompleta} ${formatDateFinaEsti.fullTime}`,
+                    fechaFinalizacion: `${fechaFin.fechaCompleta} ${fechaFin.fullTime}`,
+                    fechaCreacion: `${fechaCrea.fechaCompleta} ${fechaCrea.fullTime}`
                 });
-                let horasTotales = convertirMinutosHoras(totalMinutos)
-                const firstTicket = grupedData[agentId][groupId][0]; 
-                const objDatesCreation = formatDate(firstTicket.fechaCreacion);
-                const objDatesFinalization = formatDate(firstTicket.fechaFinalizacion);
-                dataArray.push({
-                  IdAgente: firstTicket.idAgenteActividad,
-                  NombreAgente: `${firstTicket.NombreAgente} ${firstTicket.ApellidoAgente}`,
-                  NumTicket: firstTicket.id,
-                  DescripcioTicket: firstTicket.asunto,
-                  FechaSolicitud: objDatesCreation.fechaCompleta,
-                  HoraSolicitud: objDatesCreation.fullTime,
-                  FechaFinalizacion: objDatesFinalization.fechaCompleta,
-                  HoraFinalizacion: objDatesFinalization.fullTime,
-                  HorasTotalesTrabajadas: horasTotales,
-                  Facturado: firstTicket.facturar == true ? "Si" : "No",
-                  Cancelado: ""
-                });
-            }
-        }
-        // Generar el archivo excel
-        var workbook = XLSX.utils.book_new();
-        const worksheet = XLSX.utils.json_to_sheet(dataArray);
-
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Agrupacion por agentes");
-        var range = XLSX.utils.decode_range(worksheet['!ref']);
-        for (var C = range.s.c; C <= range.e.c; ++C) {
-            var colWidth = 0;
-            for (var R = range.s.r; R <= range.e.r; ++R) {
-                var cell = worksheet[XLSX.utils.encode_cell({ r: R, c: C })];
-                if (cell && cell.v) {
-                    var cellTextLength = cell.v.toString().length;
-                    colWidth = Math.max(colWidth, cellTextLength);
-                }
-            }
-            if (colWidth > 0) {
-                worksheet['!cols'] = worksheet['!cols'] || [];
-                worksheet['!cols'][C] = { width: colWidth + 1 };
-            }
-        }
-        
-        worksheet['!merges'] = worksheet['!merges'] || [];
-        // Agrupacion para la primera columna ---------------------------------------------------
-        let startRow = 1;
-        let prevValue = worksheet[XLSX.utils.encode_cell({ r: startRow, c: 0 })].v;
-        for (let R = startRow + 1; R <= range.e.r; ++R) {
-            let cell = worksheet[XLSX.utils.encode_cell({ r: R, c: 0 })];
-            if (cell.v === prevValue) {
-                continue;
-            } else {
-                // Si el valor cambia, agrupar las celdas anteriores si son más de una
-                if (R - 1 > startRow) {
-                    worksheet['!merges'].push({ s: { r: startRow, c: 0 }, e: { r: R - 1, c: 0 } });
-                }
-                startRow = R;
-                prevValue = cell.v;
-            }
-        }
-        if (range.e.r > startRow) {
-            worksheet['!merges'].push({ s: { r: startRow, c: 0 }, e: { r: range.e.r, c: 0 } });
-        }
-        // Agrupacion para la segunda columna ----------------------------------------------------
-        let startRow2 = range.s.r + 1;
-        let prevValue2 = worksheet[XLSX.utils.encode_cell({ r: startRow2, c: 1 })]?.v;
-        for (let R = startRow2 + 1; R <= range.e.r; ++R) {
-            let cell = worksheet[XLSX.utils.encode_cell({ r: R, c: 1 })];
-            if (cell?.v === prevValue2) {
-                // Si el valor es el mismo que el anterior, continuar
-                continue;
-            } else {
-                // Si el valor cambia, agrupar las celdas anteriores si son más de una
-                if (R - 1 > startRow2) {
-                    worksheet['!merges'].push({ s: { r: startRow2, c: 1 }, e: { r: R - 1, c: 1 } });
-                }
-                startRow2 = R;
-                prevValue2 = cell?.v;
-            }
-        }
-        if (range.e.r > startRow2) {
-            worksheet['!merges'].push({ s: { r: startRow2, c: 1 }, e: { r: range.e.r, c: 1 } });
-        }
-        // Agrupacion para la tercera columna ----------------------------------------------------
-        
-
-        var wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'binary' });
-
-        function s2ab(s) {
-            var buf = new ArrayBuffer(s.length);
-            var view = new Uint8Array(buf);
-            for (var i = 0; i < s.length; i++) view[i] = s.charCodeAt(i) & 0xFF;
-            return buf;
-        }
-        // Informacion para la fecha 
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        const seconds = String(date.getSeconds()).padStart(2, '0');
-        const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        // Guardar archivo
-        saveAs(new Blob([s2ab(wbout)], { type: "application/octet-stream" }), `Reporte de horas agente (${formattedDate}).xlsx`);
-    })
+            });
+            excelData.push({
+                idAgenteActividad: '',
+                minutosTrabajados: '',
+            });
+        });
+        var wb = XLSX.utils.book_new();
+        var ws = XLSX.utils.json_to_sheet(excelData);
+        XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+        var fileName = "Reporte de horas Agentes (" + selectedTextState + ").xlsx";
+        XLSX.writeFile(wb, fileName);
+    });
 });
