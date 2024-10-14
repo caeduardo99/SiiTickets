@@ -17,10 +17,12 @@ $(document).ready(function () {
   const btnReturnListAgent = document.getElementById("btnReturnListAgent");
   const agenteEncargado = document.getElementById("agenteEncargado");
   const cardTicketsProcess = document.getElementById("cardTicketsProcess");
+  const tbodyDiarioTrabajo = document.getElementById("tbodyDiarioTrabajo");
+  const btnCompleteDailyWork = document.getElementById("btnCompleteDailyWork");
 
   var calendarEl = document.getElementById('calendar');
 
-  let changeDiv = false
+  let changeDiv = false, selectedInfoDaily = []
 
 
   textBienvenida.textContent =
@@ -32,6 +34,79 @@ $(document).ready(function () {
   fetch("info_panel_contro/")
     .then((response) => response.json())
     .then((data) => {
+        // Llenar la informacion para el diario de trabajo
+        var getInfoDailyWork = data.consult_diario_trabajo;
+        console.log(getInfoDailyWork)
+        getInfoDailyWork.forEach(item => {
+            const row = document.createElement("tr");
+            const cellNumTicket = document.createElement("td");
+            cellNumTicket.textContent = item.numTicket;
+
+            const cellSolicitante = document.createElement("td");
+            cellSolicitante.textContent = `${item.fullnameSolicitante}/${item.nombreEmpresa}`;
+
+            const cellMotivoSoli = document.createElement("td");
+            cellMotivoSoli.textContent = item.motivoSolicitud;
+
+            const cellFechaInicio = document.createElement("td");
+            const fechaInicio = new Date(item.fechaCreacionTicket);
+            const fechaFormateada = fechaInicio.toISOString().replace("T", " ").substring(0, 19);
+            cellFechaInicio.textContent = fechaFormateada;
+
+            const cellFechaFin = document.createElement("td");
+            const fechaFin = new Date(item.fechaFinalizacionEsperada);
+            const fechaFinFormat = fechaFin.toISOString().replace("T", " ").substring(0, 19);
+            cellFechaFin.textContent = fechaFinFormat;
+
+            const cellActividadDaily = document.createElement("td");
+            const inputActividadDaily = document.createElement("input");
+            inputActividadDaily.className = " form-control form-control-sm";
+            inputActividadDaily.type = "text";
+            // Funcionalidad del input
+            inputActividadDaily.addEventListener('input', function(){
+                let valorInputActivity = inputActividadDaily.value;
+                if(valorInputActivity.length >= 5){
+                    check.disabled = false
+                }else{
+                    check.disabled = true
+                }
+            })
+            cellActividadDaily.appendChild(inputActividadDaily);
+
+            const cellActions = document.createElement("td");
+            const check = document.createElement("input");
+            check.type = "checkbox";
+            check.disabled = true;
+            cellActions.appendChild(check);
+            // Funcionalidad del check para que aparezca el boton y se guarden las actividades realizadas durante el Día
+            check.addEventListener('change', function(){
+                if (event.target.checked) {
+                    const actividad = inputActividadDaily.value; 
+                    const itemWithActivity = { ...item, actividadRealizadaHoy: actividad }; 
+                    selectedInfoDaily.push(itemWithActivity);
+                } else {
+                    const index = selectedInfoDaily.findIndex(selectedItem => selectedItem.numTicket === item.numTicket);
+                    if (index !== -1) {
+                        selectedInfoDaily.splice(index, 1);
+                    }
+                }
+                if(selectedInfoDaily.length >= 1){
+                    btnCompleteDailyWork.style.display = ""
+                }else{
+                    btnCompleteDailyWork.style.display = "none"
+                }
+            });
+
+            row.appendChild(cellNumTicket)
+            row.appendChild(cellSolicitante)
+            row.appendChild(cellMotivoSoli)
+            row.appendChild(cellFechaInicio)
+            row.appendChild(cellFechaFin)
+            row.appendChild(cellActividadDaily)
+            row.appendChild(cellActions)
+            tbodyDiarioTrabajo.appendChild(row)
+        })
+
         var panel_worked = data.panel_list_worked
         
         numTicketsComplete.textContent = `${data.numDayliTicketComplete} Tickets completos (Hoy)`;
@@ -87,7 +162,7 @@ $(document).ready(function () {
         
         const today = new Date().toISOString().split('T')[0];
         const todayData = result_fecha_agente.filter(obj => obj.fechaFinalActividadFormat == today);
-        console.log(todayData)
+        
         const maxMinutesDay = 480
         
         const combinedData = result_agent.map(agent => {
@@ -270,5 +345,9 @@ $(document).ready(function () {
             listCards.style.display = 'none'
             infoAgenteDiv.style.display = ''
         }
+    })
+    // Funcionalidad del boton para agregar registros en el Diario de trabajo
+    btnCompleteDailyWork.addEventListener("click", function(){
+        console.log(selectedInfoDaily)
     })
 });

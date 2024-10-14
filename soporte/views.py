@@ -1595,6 +1595,7 @@ def infoAgenteSolicitado(request, id_agente):
 def info_panel_contro(request):
     id_usuario = request.user.id if request.user.is_authenticated else None
     nombre_usuario = request.user.first_name if request.user.is_authenticated else None
+    resultado_diario_trabajo = None
 
     if id_usuario == 2 or id_usuario == 1 or id_usuario == 126:
         fecha_actual = date.today()
@@ -1772,6 +1773,24 @@ def info_panel_contro(request):
             cursor.execute(consult_panel_work, [id_usuario])
             columns = [col[0] for col in cursor.description]
             resultados_panel_list = [
+                dict(zip(columns, row)) for row in cursor.fetchall()
+            ]
+
+        # Consulta para la tabla del ticket
+        consult_diario_trabajo = """
+        SELECT 
+        st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+        ss.nombreApellido as fullnameSolicitante,
+        se.id as idEmpresa, se.nombreEmpresa
+        FROM soporte_ticketsoporte st 
+        LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
+        LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
+        WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(consult_diario_trabajo, [id_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultado_diario_trabajo = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
             ]
 
@@ -1969,7 +1988,7 @@ def info_panel_contro(request):
         minutos_dev = 0
         segundos_dev = 0
         time_dev = ""
-
+    print(resultado_diario_trabajo)
     context = {
         "numTicketsComplete": numTicketsComplete,
         "numDayliTicketComplete": len(resultados_hoy),
@@ -1981,7 +2000,8 @@ def info_panel_contro(request):
         "timeDifUpdate": time_update,
         "timeDifDev": time_dev,
         "infoTicketComplete": resultados_hoy,
-        "panel_list_worked": resultados_panel_list
+        "panel_list_worked": resultados_panel_list,
+        "consult_diario_trabajo": resultado_diario_trabajo,
     }
 
     return JsonResponse(context, safe=False)
