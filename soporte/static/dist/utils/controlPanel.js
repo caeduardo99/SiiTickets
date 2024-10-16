@@ -19,6 +19,7 @@ $(document).ready(function () {
   const cardTicketsProcess = document.getElementById("cardTicketsProcess");
   const tbodyDiarioTrabajo = document.getElementById("tbodyDiarioTrabajo");
   const btnCompleteDailyWork = document.getElementById("btnCompleteDailyWork");
+  const rowDiarioTrabajo = document.getElementById("rowDiarioTrabajo");
 
   var calendarEl = document.getElementById('calendar');
 
@@ -36,76 +37,134 @@ $(document).ready(function () {
     .then((data) => {
         // Llenar la informacion para el diario de trabajo
         var getInfoDailyWork = data.consult_diario_trabajo;
-        console.log(getInfoDailyWork)
-        getInfoDailyWork.forEach(item => {
-            const row = document.createElement("tr");
-            const cellNumTicket = document.createElement("td");
-            cellNumTicket.textContent = item.numTicket;
-
-            const cellSolicitante = document.createElement("td");
-            cellSolicitante.textContent = `${item.fullnameSolicitante}/${item.nombreEmpresa}`;
-
-            const cellMotivoSoli = document.createElement("td");
-            cellMotivoSoli.textContent = item.motivoSolicitud;
-
-            const cellFechaInicio = document.createElement("td");
-            const fechaInicio = new Date(item.fechaCreacionTicket);
-            const fechaFormateada = fechaInicio.toISOString().replace("T", " ").substring(0, 19);
-            cellFechaInicio.textContent = fechaFormateada;
-
-            const cellFechaFin = document.createElement("td");
-            const fechaFin = new Date(item.fechaFinalizacionEsperada);
-            const fechaFinFormat = fechaFin.toISOString().replace("T", " ").substring(0, 19);
-            cellFechaFin.textContent = fechaFinFormat;
-
-            const cellActividadDaily = document.createElement("td");
-            const inputActividadDaily = document.createElement("input");
-            inputActividadDaily.className = " form-control form-control-sm";
-            inputActividadDaily.type = "text";
-            // Funcionalidad del input
-            inputActividadDaily.addEventListener('input', function(){
-                let valorInputActivity = inputActividadDaily.value;
-                if(valorInputActivity.length >= 5){
-                    check.disabled = false
-                }else{
-                    check.disabled = true
+        const filteredInfoDailyWork = getInfoDailyWork.reduce((acc, current) => {
+            const existingItemIndex = acc.findIndex(item => item.numTicket === current.numTicket);
+            if (existingItemIndex === -1) {
+                // Si no existe, agregar el objeto actual al acumulador
+                acc.push(current);
+            } else {
+                if (current.actividadRealizada !== null) {
+                    acc[existingItemIndex] = current;
                 }
-            })
-            cellActividadDaily.appendChild(inputActividadDaily);
-
-            const cellActions = document.createElement("td");
-            const check = document.createElement("input");
-            check.type = "checkbox";
-            check.disabled = true;
-            cellActions.appendChild(check);
-            // Funcionalidad del check para que aparezca el boton y se guarden las actividades realizadas durante el Día
-            check.addEventListener('change', function(){
-                if (event.target.checked) {
-                    const actividad = inputActividadDaily.value; 
-                    const itemWithActivity = { ...item, actividadRealizadaHoy: actividad }; 
-                    selectedInfoDaily.push(itemWithActivity);
-                } else {
-                    const index = selectedInfoDaily.findIndex(selectedItem => selectedItem.numTicket === item.numTicket);
-                    if (index !== -1) {
-                        selectedInfoDaily.splice(index, 1);
+            }
+            return acc;
+        }, []);
+        if(data.consult_diario_trabajo){
+            rowDiarioTrabajo.style.display = ""
+            if(getInfoDailyWork.length != 0){
+                filteredInfoDailyWork.forEach(item => {
+                    const row = document.createElement("tr");
+                    const cellNumTicket = document.createElement("td");
+                    cellNumTicket.textContent = item.numTicket;
+        
+                    const cellSolicitante = document.createElement("td");
+                    cellSolicitante.textContent = `${item.fullnameSolicitante}/${item.nombreEmpresa}`;
+        
+                    const cellMotivoSoli = document.createElement("td");
+                    cellMotivoSoli.textContent = item.motivoSolicitud;
+        
+                    const cellFechaInicio = document.createElement("td");
+                    const inputFechaInicio = document.createElement("input");
+                    if(item.actividadRealizada == null){
+                        inputFechaInicio.type = "datetime-local";
+                        inputFechaInicio.className = "form-control form-control-sm";
+                        cellFechaInicio.appendChild(inputFechaInicio);
+                    }else{
+                        const fechaInicio = new Date(item.fechaInicio);
+                        const fechaFormateada = fechaInicio.toISOString().replace("T", " ").substring(0, 19);
+                        cellFechaInicio.textContent = fechaFormateada;
                     }
-                }
-                if(selectedInfoDaily.length >= 1){
-                    btnCompleteDailyWork.style.display = ""
-                }else{
-                    btnCompleteDailyWork.style.display = "none"
-                }
-            });
-
-            row.appendChild(cellNumTicket)
-            row.appendChild(cellSolicitante)
-            row.appendChild(cellMotivoSoli)
-            row.appendChild(cellFechaInicio)
-            row.appendChild(cellFechaFin)
-            row.appendChild(cellActividadDaily)
-            row.appendChild(cellActions)
-            tbodyDiarioTrabajo.appendChild(row)
-        })
+        
+                    const cellFechaFin = document.createElement("td");
+                    const inputFechaFin = document.createElement("input");
+                    if(item.actividadRealizada == null){
+                        inputFechaFin.type = "datetime-local";
+                        inputFechaFin.className = "form-control form-control-sm";
+                        cellFechaFin.appendChild(inputFechaFin);
+                    }else{
+                        const fechaFin = new Date(item.fechaFin);
+                        const fechaFinFormat = fechaFin.toISOString().replace("T", " ").substring(0, 19);
+                        cellFechaFin.textContent = fechaFinFormat;
+                    }
+        
+                    const cellActividadDaily = document.createElement("td");
+                    const cellActions = document.createElement("td");
+                    // Condicion en caso de que venga NULL el motivo
+                    if(item.actividadRealizada == null){
+                        const inputActividadDaily = document.createElement("input");
+                        inputActividadDaily.className = " form-control form-control-sm";
+                        inputActividadDaily.type = "text";
+                        // Funcionalidad del input
+                        inputActividadDaily.addEventListener('input', function(){
+                            let valorInputActivity = inputActividadDaily.value;
+                            if(valorInputActivity.length >= 5){
+                                check.disabled = false
+                            }else{
+                                check.disabled = true
+                            }
+                        });
+                        cellActividadDaily.appendChild(inputActividadDaily);
+        
+                        const check = document.createElement("input");
+                        check.type = "checkbox";
+                        check.disabled = true;
+                        // Funcionalidad del check para que aparezca el boton y se guarden las actividades realizadas durante el Día
+                        check.addEventListener('change', function(){
+                            if (event.target.checked) {
+                                const actividad = inputActividadDaily.value; 
+                                const fechaInicio = inputFechaInicio.value;
+                                const fechaFin = inputFechaFin.value;
+                                const itemWithActivity = { ...item, actividadRealizada: actividad, fechaInicioActividad: fechaInicio, fechaFinActividad: fechaFin }; 
+                                selectedInfoDaily.push(itemWithActivity);
+                            } else {
+                                const index = selectedInfoDaily.findIndex(selectedItem => selectedItem.numTicket === item.numTicket);
+                                if (index !== -1) {
+                                    selectedInfoDaily.splice(index, 1);
+                                }
+                            }
+                            if(selectedInfoDaily.length >= 1){
+                                btnCompleteDailyWork.style.display = ""
+                            }else{
+                                btnCompleteDailyWork.style.display = "none"
+                            }
+                        });
+                        cellActions.appendChild(check);
+                    }else{
+                        cellActividadDaily.textContent = item.actividadRealizada;
+        
+                        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                        svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+                        svg.setAttribute("viewBox", "0 0 512 512");
+                        svg.setAttribute("width", "20");
+                        svg.setAttribute("height", "20");
+                        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                        path.setAttribute("d", "M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z");
+                        svg.appendChild(path);
+                        
+                        cellActions.appendChild(svg);
+                    }
+        
+                    row.appendChild(cellNumTicket)
+                    row.appendChild(cellSolicitante)
+                    row.appendChild(cellMotivoSoli)
+                    row.appendChild(cellFechaInicio)
+                    row.appendChild(cellFechaFin)
+                    row.appendChild(cellActividadDaily)
+                    row.appendChild(cellActions)
+                    tbodyDiarioTrabajo.appendChild(row)
+                })
+            }else{
+                const row = document.createElement("tr");
+                const cellInfo = document.createElement("td");
+                cellInfo.textContent = "El Usuario no tiene Ticket Asignados para resolver"
+                cellInfo.colSpan = "7";
+                cellInfo.style.textAlign = "center";
+                row.appendChild(cellInfo)
+                tbodyDiarioTrabajo.appendChild(row);
+            }
+        }else{
+            rowDiarioTrabajo.style.display = "none";
+        }
 
         var panel_worked = data.panel_list_worked
         
@@ -348,6 +407,58 @@ $(document).ready(function () {
     })
     // Funcionalidad del boton para agregar registros en el Diario de trabajo
     btnCompleteDailyWork.addEventListener("click", function(){
-        console.log(selectedInfoDaily)
+        btnCompleteDailyWork.disabled = true;
+        fetch("/create_daily_work/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(selectedInfoDaily),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                toastr["success"]("Registro de trabajo/s creado exitosamente en el diario de trabajos.", "Registro creado")
+                toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+                }
+            } else {
+                toastr["error"](data.message, "Error al registrar las tareas")
+                toastr.options = {
+                "closeButton": false,
+                "debug": false,
+                "newestOnTop": false,
+                "progressBar": false,
+                "positionClass": "toast-top-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "5000",
+                "extendedTimeOut": "1000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error al enviar los datos:", error);
+        });
     })
 });

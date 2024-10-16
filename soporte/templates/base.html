@@ -58,12 +58,9 @@
                         <span class="badge badge-warning navbar-badge" id="numberAlertTotalVenci"></span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-                        <span class="dropdown-item dropdown-header" id="notificacionesTotales"></span>
+                        <h6 class="dropdown-header">Actividades pendientes</h6>
                         <div class="dropdown-divider"></div>
-                        <a href="{% url 'desarrollo' %}" class="dropdown-item">
-                          <i class="fas fa-code mr-2"></i>
-                          <span id="noficicacionDesarrollo"></span>
-                        </a>
+                        <a class="dropdown-item" id="goToDayliView"></a>
                     </div>
                 </li>
             </ul>
@@ -289,7 +286,7 @@
             <strong>Copyright &copy; 2023-2024 <a href="https://ishidasoftware.com/">IshidaSoftware</a>.</strong>
             All rights reserved.
             <div class="float-right d-none d-sm-inline-block">
-                <b>Version</b> 2.0
+                <b>Version</b> 3.2
             </div>
         </footer>
         <!-- Scripts comunes -->
@@ -334,7 +331,34 @@
             "responsive": true, "lengthChange": false, "autoWidth": false,
         })
     });
+    // Traer la informacion
+    const numberAlertTotalVenci = document.getElementById("numberAlertTotalVenci");
+    const goToDayliView = document.getElementById("goToDayliView");
 
+    fetch("send_info_base/")
+    .then((response) => response.json())
+    .then((data) => {
+        const infoDayliWork = data.dayliwork;
+        const filteredInfoDailyWork = infoDayliWork.reduce((acc, current) => {
+            const existingItemIndex = acc.findIndex(item => item.numTicket === current.numTicket);
+            if (existingItemIndex === -1) {
+                // Si no existe, agregar el objeto actual al acumulador
+                acc.push(current);
+            } else {
+                if (current.actividadRealizada !== null) {
+                    acc[existingItemIndex] = current;
+                }
+            }
+            return acc;
+        }, []);
+        const filteredObjects = filteredInfoDailyWork.filter(item => 
+            (!item.actividadRealizada || item.actividadRealizada === "")
+        );
+        const numDayliNotification = filteredObjects.length;
+        numberAlertTotalVenci.innerHTML = numDayliNotification;
+        goToDayliView.href = "/view_control_panel";
+        goToDayliView.innerHTML = `<i class="fas fa-file mr-2"></i> Diario de trabajo <span class="float-right text-muted text-sm">${numDayliNotification} Actividades</span>`;
+    })
 
 </script>
 

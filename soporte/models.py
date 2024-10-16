@@ -141,6 +141,16 @@ class tipoAcceso(models.Model):
     id = models.AutoField(primary_key=True)
     descripcion = models.CharField(max_length=255)
 
+# Modelo para el diario de trabajo
+class diarioTrabajo(models.Model):
+    id = models.AutoField(primary_key=True)
+    numTicket = models.ForeignKey(TicketSoporte, on_delete=models.CASCADE, related_name='soporte_tickets_daily')
+    actividadRealizada = models.CharField(max_length=255)
+    fechaRegistro = models.DateTimeField(null=True, blank=True)
+    fechaInicio = models.DateTimeField(null=True, blank=True)
+    fechaFin = models.DateTimeField(null=True, blank=True)
+    idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_act_agente')
+
 # Modelo para los accesos
 class accesoEmpresas(models.Model):
     id = models.AutoField(primary_key=True)

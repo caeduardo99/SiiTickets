@@ -19,7 +19,8 @@ from .models import (
     ActividadPrincipalSoporte,
     ActividadPrincipalActualizacion,
     tipoAcceso,
-    accesoEmpresas
+    accesoEmpresas,
+    diarioTrabajo
 )
 from datetime import datetime, date
 from django.contrib.auth.models import User, Group
@@ -401,7 +402,7 @@ def view_control_panel(request):
     WHERE au.username = %s
     """
     connection = connections["default"]
-
+    
     # Ejecutar la consulta SQL y obtener los resultados
     with connection.cursor() as cursor:
         cursor.execute(consulta_info_agente, [nombre_usuario])
@@ -1686,6 +1687,28 @@ def info_panel_contro(request):
                 dict(zip(columns, row)) for row in cursor.fetchall()
             ]
 
+        fecha_hoy = datetime.now().date()
+        consult_diario_trabajo = """
+            SELECT 
+            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+            ss.nombreApellido as fullnameSolicitante,
+            se.id as idEmpresa, se.nombreEmpresa,
+            CASE
+                WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
+            END as actividadRealizada,
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio
+            FROM soporte_ticketsoporte st 
+            LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
+            LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
+            LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
+            WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
+            """
+        with connection.cursor() as cursor:
+            cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario])
+            columns = [col[0] for col in cursor.description]
+            resultado_diario_trabajo = [
+                dict(zip(columns, row)) for row in cursor.fetchall()
+                ]
     else:
         fecha_actual = date.today()
         fecha_actual_time = datetime.now()
@@ -1777,23 +1800,29 @@ def info_panel_contro(request):
             ]
 
         # Consulta para la tabla del ticket
+        fecha_hoy = datetime.now().date()
         consult_diario_trabajo = """
         SELECT 
         st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
         ss.nombreApellido as fullnameSolicitante,
-        se.id as idEmpresa, se.nombreEmpresa
+        se.id as idEmpresa, se.nombreEmpresa,
+        CASE
+        	WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
+        END as actividadRealizada,
+        sd.fechaRegistro, sd.fechaFin, sd.fechaInicio
         FROM soporte_ticketsoporte st 
         LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
         LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
+        LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
         WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
         """
         with connection.cursor() as cursor:
-            cursor.execute(consult_diario_trabajo, [id_usuario])
+            cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario])
             columns = [col[0] for col in cursor.description]
             resultado_diario_trabajo = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
             ]
-
+            
         # EN CASO DE QUE SEA CLIENTE EL USUARIO LOGEADO
         if (
             len(resultados_admin) == 0
@@ -1988,7 +2017,7 @@ def info_panel_contro(request):
         minutos_dev = 0
         segundos_dev = 0
         time_dev = ""
-    print(resultado_diario_trabajo)
+    
     context = {
         "numTicketsComplete": numTicketsComplete,
         "numDayliTicketComplete": len(resultados_hoy),
@@ -3502,3 +3531,82 @@ def null_ticket(request, id_ticket):
             {"status": "error", "message": f"Error al anular el ticket: {str(e)}"},
             status=400,
         )
+
+
+@csrf_exempt
+def create_daily_work(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            print(data)  # Imprime los datos para verificar en consola
+
+            # Crear un nuevo registro en el Diario
+            for item in data:
+                num_ticket = item.get("numTicket")
+                actividad_realizada = item.get("actividadRealizada")
+                id_agente = item.get("idAgente_id")
+                fechaInicio = item.get("fechaInicioActividad")
+                fechaFin = item.get("fechaFinActividad")
+
+                if not num_ticket or not actividad_realizada or not id_agente:
+                    return JsonResponse({"status": "error", "message": "Datos incompletos"}, status=400)
+                
+                try:
+                    ticket = TicketSoporte.objects.get(id=num_ticket)
+                except TicketSoporte.DoesNotExist:
+                    return JsonResponse({"status": "error", "message": f"Ticket con ID {num_ticket} no encontrado"}, status=400)
+                
+                try:
+                    agente = User.objects.get(id=id_agente)
+                except User.DoesNotExist:
+                    return JsonResponse({"status": "error", "message": f"Agente con ID {id_agente} no encontrado"}, status=400)
+                
+                diarioTrabajo.objects.create(
+                    numTicket=ticket,
+                    actividadRealizada=actividad_realizada,
+                    fechaRegistro=timezone.now(),
+                    idAgente=agente,
+                    fechaInicio=fechaFin,
+                    fechaFin=fechaInicio,
+                )
+
+            return JsonResponse({"status": "success", "message": "Registro creado correctamente"})
+        except json.JSONDecodeError as e:
+            return JsonResponse({"status": "error", "message": "JSON inválido"}, status=400)
+        except Exception as e:
+            return JsonResponse(
+                {"status": "error", "message": f"Error al crear el registro de actividades diarias: {str(e)}"},
+                status=400,
+            )
+    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
+
+def send_info_base(request):
+    # Consulta para las notificaciones del panel de control
+    id_usuario = request.user.id if request.user.is_authenticated else None
+    fecha_hoy = datetime.now().date()
+    consult_diario_trabajo = """
+        SELECT 
+        st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+        ss.nombreApellido as fullnameSolicitante,
+        se.id as idEmpresa, se.nombreEmpresa,
+        CASE
+        	WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
+        END as actividadRealizada,
+        sd.fechaRegistro, sd.fechaFin, sd.fechaInicio
+        FROM soporte_ticketsoporte st 
+        LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
+        LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
+        LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
+        WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
+        """
+    connection = connections["default"]
+    with connection.cursor() as cursor:
+        cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario])
+        columns = [col[0] for col in cursor.description]
+        resultado_diario_trabajo = [
+            dict(zip(columns, row)) for row in cursor.fetchall()
+            ]
+    resultados = {
+        "dayliwork": resultado_diario_trabajo
+    }
+    return JsonResponse(resultados, safe=False)

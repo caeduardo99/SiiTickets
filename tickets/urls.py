@@ -95,6 +95,8 @@ urlpatterns = [
     path('solicitantescreados/', views.solicitantescreados, name='solicitantescreados'),
     path('null_ticket/<int:id_ticket>', views.null_ticket, name='null_ticket'),
     path('consultatareas_view/', views.consultatareas_view, name='consultatareas_view'),
+    path('create_daily_work/', views.create_daily_work, name='create_daily_work'),
+    path('send_info_base/', views.send_info_base, name='send_info_base'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
