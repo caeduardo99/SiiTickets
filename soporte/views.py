@@ -3538,8 +3538,6 @@ def create_daily_work(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            print(data)  # Imprime los datos para verificar en consola
-
             # Crear un nuevo registro en el Diario
             for item in data:
                 num_ticket = item.get("numTicket")
@@ -3566,8 +3564,8 @@ def create_daily_work(request):
                     actividadRealizada=actividad_realizada,
                     fechaRegistro=timezone.now(),
                     idAgente=agente,
-                    fechaInicio=fechaFin,
-                    fechaFin=fechaInicio,
+                    fechaInicio=fechaInicio,
+                    fechaFin=fechaFin,
                 )
 
             return JsonResponse({"status": "success", "message": "Registro creado correctamente"})

@@ -46,6 +46,12 @@
             <h5>Diario de Trabajo</h5>
             <div class="card">
                 <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-dark btn-sm" id="btnConsultarDiasAnteriores">Consultar Días Anteriores</button>
+                        </div>
+                    </div>
+                    <br>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover">
                             <thead>
@@ -64,6 +70,7 @@
                             </tbody>
                         </table>
                         <button type="button" id="btnCompleteDailyWork" style="display: none;" class="btn btn-sm btn-dark">Completar Diario de Trabajo</button>
+                        <button type="button" id="btnGenerateDocuments" style="margin-left: 5px;" class="btn btn-sm btn-info">Generar PDF y Excel</button>
                     </div>
                 </div>
             </div>
@@ -239,6 +246,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="../static/dist/utils/controlPanel.js"></script>
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.14/index.global.min.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 <script>
     // Coloca la información del usuario en una variable global accesible para el JavaScript
     var infoUsuario = {{ info_user| safe }};

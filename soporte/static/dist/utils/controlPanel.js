@@ -20,10 +20,11 @@ $(document).ready(function () {
   const tbodyDiarioTrabajo = document.getElementById("tbodyDiarioTrabajo");
   const btnCompleteDailyWork = document.getElementById("btnCompleteDailyWork");
   const rowDiarioTrabajo = document.getElementById("rowDiarioTrabajo");
+  const btnGenerateDocuments = document.getElementById("btnGenerateDocuments");
 
   var calendarEl = document.getElementById('calendar');
 
-  let changeDiv = false, selectedInfoDaily = []
+  let changeDiv = false, selectedInfoDaily = [], filteredInfoDailyWork
 
 
   textBienvenida.textContent =
@@ -37,7 +38,7 @@ $(document).ready(function () {
     .then((data) => {
         // Llenar la informacion para el diario de trabajo
         var getInfoDailyWork = data.consult_diario_trabajo;
-        const filteredInfoDailyWork = getInfoDailyWork.reduce((acc, current) => {
+        filteredInfoDailyWork = getInfoDailyWork.reduce((acc, current) => {
             const existingItemIndex = acc.findIndex(item => item.numTicket === current.numTicket);
             if (existingItemIndex === -1) {
                 // Si no existe, agregar el objeto actual al acumulador
@@ -54,6 +55,7 @@ $(document).ready(function () {
             if(getInfoDailyWork.length != 0){
                 filteredInfoDailyWork.forEach(item => {
                     const row = document.createElement("tr");
+                    row.style.cursor = "pointer";
                     const cellNumTicket = document.createElement("td");
                     cellNumTicket.textContent = item.numTicket;
         
@@ -70,8 +72,8 @@ $(document).ready(function () {
                         inputFechaInicio.className = "form-control form-control-sm";
                         cellFechaInicio.appendChild(inputFechaInicio);
                     }else{
-                        const fechaInicio = new Date(item.fechaInicio);
-                        const fechaFormateada = fechaInicio.toISOString().replace("T", " ").substring(0, 19);
+                        const fechaInicio = item.fechaInicio;
+                        const fechaFormateada = fechaInicio.replace('T', ' ')
                         cellFechaInicio.textContent = fechaFormateada;
                     }
         
@@ -82,8 +84,8 @@ $(document).ready(function () {
                         inputFechaFin.className = "form-control form-control-sm";
                         cellFechaFin.appendChild(inputFechaFin);
                     }else{
-                        const fechaFin = new Date(item.fechaFin);
-                        const fechaFinFormat = fechaFin.toISOString().replace("T", " ").substring(0, 19);
+                        const fechaFin = item.fechaFin;
+                        const fechaFinFormat = fechaFin.replace("T", " ");
                         cellFechaFin.textContent = fechaFinFormat;
                     }
         
@@ -460,5 +462,66 @@ $(document).ready(function () {
         .catch(error => {
             console.error("Error al enviar los datos:", error);
         });
-    })
+    });
+    // Funcionalidad para generar un PDF y un Excel
+    btnGenerateDocuments.addEventListener("click", function(){
+        // Traer la fecha actual
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const currentDate = `${year}-${month}-${day}`;
+        const currentTime = `${hours}:${minutes}:${seconds}`;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+        // Título del documento
+        doc.setFontSize(18);
+        doc.text("Diario de Trabajo", 105, 20, null, null, 'center');
+        doc.setFontSize(11);
+        
+        doc.text(`Informe de Diario de Trabajo (${currentDate} ${currentTime}), Generado por: ${infoUsuario.Nombre} ${infoUsuario.Apellido}`, 10, 30);
+        // Convertir los datos del arreglo filteredInfoDailyWork en un formato adecuado para la tabla
+        const tableColumn = ["Ticket", "Solicitante / Empresa", "Motivo de la Solicitud" , "Desde", "Hasta" ,"Actividad Realizada"];
+        const tableRows = filteredInfoDailyWork.map(item => [
+            item.numTicket,
+            `${item.fullnameSolicitante} / ${item.nombreEmpresa}`,
+            item.motivoSolicitud,
+            item.fechaInicio || "S/F",
+            item.fechaFin || "S/F",
+            item.actividadRealizada || "Actividad aún sin registrar",
+        ]);
+        // Crear la tabla con autoTable
+        doc.autoTable({
+            startY: 40, // Comienza la tabla un poco más abajo del texto
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'grid', // Estilo de tabla
+            headStyles: { fillColor: [22, 160, 133] }, // Color de fondo para el encabezado
+            styles: { fontSize: 10 }, // Tamaño de fuente para la tabla
+            margin: { top: 10 }
+        });
+
+        // Crear el Excel
+        const worksheetData = filteredInfoDailyWork.map(item => ({
+            Ticket: item.numTicket,
+            "Solicitante / Empresa": `${item.fullnameSolicitante} / ${item.nombreEmpresa}`,
+            "Motivo de la Solicitud": item.motivoSolicitud,
+            Desde: item.fechaInicio || "S/F",
+            Hasta: item.fechaFin || "S/F",
+            "Actividad Realizada": item.actividadRealizada || "Actividad aún sin registrar",
+        }));
+        // Crear un libro de trabajo
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Diario de Trabajo");
+
+        // Guardar el PDF y Excel
+        XLSX.writeFile(workbook, `Diario de Trabajo ${infoUsuario.Nombre} ${infoUsuario.Apellido} (${currentDate}).xlsx`);
+        doc.save(`Diario de Trabajo ${infoUsuario.Nombre} ${infoUsuario.Apellido} (${currentDate}).pdf`);
+    });
+
 });
