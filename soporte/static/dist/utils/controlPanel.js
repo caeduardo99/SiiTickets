@@ -21,10 +21,17 @@ $(document).ready(function () {
   const btnCompleteDailyWork = document.getElementById("btnCompleteDailyWork");
   const rowDiarioTrabajo = document.getElementById("rowDiarioTrabajo");
   const btnGenerateDocuments = document.getElementById("btnGenerateDocuments");
+  const btnConsultarDiasAnteriores = document.getElementById("btnConsultarDiasAnteriores");
+  const tableResponsiveCreateDayliWork = document.getElementById("tableResponsiveCreateDayliWork");
+  const tableResponsiveSearchDayliWork = document.getElementById("tableResponsiveSearchDayliWork");
+  const btnBackRegistersActivities = document.getElementById("btnBackRegistersActivities");
+  const inputSearchDayliWork = document.getElementById("inputSearchDayliWork");
+  const tbodyBuscarDiarioTrabajo = document.getElementById("tbodyBuscarDiarioTrabajo");
+  const btnGenerateDocumentsSearch = document.getElementById("btnGenerateDocumentsSearch");
 
   var calendarEl = document.getElementById('calendar');
 
-  let changeDiv = false, selectedInfoDaily = [], filteredInfoDailyWork
+  let changeDiv = false, selectedInfoDaily = [], filteredInfoDailyWork, filteredWork;
 
 
   textBienvenida.textContent =
@@ -38,6 +45,8 @@ $(document).ready(function () {
     .then((data) => {
         // Llenar la informacion para el diario de trabajo
         var getInfoDailyWork = data.consult_diario_trabajo;
+        var getInfoAllDailyWork = data.resultado_diario_trabajo_all;
+        
         filteredInfoDailyWork = getInfoDailyWork.reduce((acc, current) => {
             const existingItemIndex = acc.findIndex(item => item.numTicket === current.numTicket);
             if (existingItemIndex === -1) {
@@ -164,9 +173,93 @@ $(document).ready(function () {
                 row.appendChild(cellInfo)
                 tbodyDiarioTrabajo.appendChild(row);
             }
+            
         }else{
             rowDiarioTrabajo.style.display = "none";
         }
+        // Para la tabla de busqueda
+        const rowSear = document.createElement("tr");
+        const cellSearchMain = document.createElement("td");
+        cellSearchMain.textContent = "Esperando consulta";
+        cellSearchMain.colSpan = "8";
+        cellSearchMain.style.textAlign = "center";
+        rowSear.appendChild(cellSearchMain);
+        tbodyBuscarDiarioTrabajo.appendChild(rowSear);
+        // Funcionamiento de input
+        inputSearchDayliWork.addEventListener("input", function () {
+          const searchTerm = inputSearchDayliWork.value.toLowerCase();
+          tbodyBuscarDiarioTrabajo.innerHTML = ""; 
+          filteredWork = getInfoAllDailyWork.filter((item) => {
+            return (
+              String(item.numTicket || "")
+                .toLowerCase()
+                .includes(searchTerm) ||
+              String(item.fullnameSolicitante || "")
+                .toLowerCase()
+                .includes(searchTerm) ||
+              String(item.nombreEmpresa || "")
+                .toLowerCase()
+                .includes(searchTerm) ||
+              String(item.motivoSolicitud || "")
+                .toLowerCase()
+                .includes(searchTerm) ||
+              String(item.fechaInicio || "")
+                .toLowerCase()
+                .includes(searchTerm) ||
+              String(item.fechaFin || "")
+                .toLowerCase()
+                .includes(searchTerm)
+            );
+          });
+          if (filteredWork.length === 0) {
+            btnGenerateDocumentsSearch.style.display = "none";
+            const noResultsRow = document.createElement("tr");
+            const noResultsCell = document.createElement("td");
+            noResultsCell.textContent = "No se encontraron resultados";
+            noResultsCell.colSpan = "8";
+            noResultsCell.style.textAlign = "center";
+            noResultsRow.appendChild(noResultsCell);
+            tbodyBuscarDiarioTrabajo.appendChild(noResultsRow);
+          } else {
+            // Mostrar las filas filtradas
+            filteredWork.forEach((item) => {
+                btnGenerateDocumentsSearch.style.display = "";
+              const resultsRow = document.createElement("tr");
+              const cellNumTicketSearch = document.createElement("td");
+              cellNumTicketSearch.textContent = item.numTicket;
+              resultsRow.appendChild(cellNumTicketSearch);
+
+              const cellSolicitanteEmpSearch = document.createElement("td");
+              cellSolicitanteEmpSearch.textContent = `${item.fullnameSolicitante}/ ${item.nombreEmpresa}`;
+              resultsRow.appendChild(cellSolicitanteEmpSearch);
+              
+              const cellMotivoSearch = document.createElement("td");
+              cellMotivoSearch.textContent = item.motivoSolicitud;
+              resultsRow.appendChild(cellMotivoSearch);
+
+              const cellFechaDesdeSearch = document.createElement("td");
+              var fechaInicio = item.fechaInicio;
+              cellFechaDesdeSearch.textContent = fechaInicio.replace('T', ' ');
+              resultsRow.appendChild(cellFechaDesdeSearch);
+
+              const cellFechaHastaSearch = document.createElement("td");
+              var fechaFin = item.fechaFin;
+              cellFechaHastaSearch.textContent = fechaFin.replace('T', ' ');
+              resultsRow.appendChild(cellFechaHastaSearch);
+
+              const cellAgenteSearch = document.createElement("td");
+              cellAgenteSearch.textContent = `${item.nombreAgente} ${item.apellidoAgente}`
+              resultsRow.appendChild(cellAgenteSearch)
+
+              const cellActividadDailySearch = document.createElement("td");
+              cellActividadDailySearch.textContent = item.actividadRealizada;
+              resultsRow.appendChild(cellActividadDailySearch);
+
+              tbodyBuscarDiarioTrabajo.appendChild(resultsRow);
+            });
+          }
+        });
+
 
         var panel_worked = data.panel_list_worked
         
@@ -438,6 +531,9 @@ $(document).ready(function () {
                 "showMethod": "fadeIn",
                 "hideMethod": "fadeOut"
                 }
+                setTimeout(function() {
+                    window.location.reload();
+                }, 3000);
             } else {
                 toastr["error"](data.message, "Error al registrar las tareas")
                 toastr.options = {
@@ -457,6 +553,9 @@ $(document).ready(function () {
                 "showMethod": "fadeIn",
                 "hideMethod": "fadeOut"
                 }
+                setTimeout(function() {
+                    window.location.reload();
+                }, 3000);
             }
         })
         .catch(error => {
@@ -522,6 +621,84 @@ $(document).ready(function () {
         // Guardar el PDF y Excel
         XLSX.writeFile(workbook, `Diario de Trabajo ${infoUsuario.Nombre} ${infoUsuario.Apellido} (${currentDate}).xlsx`);
         doc.save(`Diario de Trabajo ${infoUsuario.Nombre} ${infoUsuario.Apellido} (${currentDate}).pdf`);
+    });
+    // Boton para generar un reporte de los registros buscados
+    btnGenerateDocumentsSearch.addEventListener("click", function(){
+        // Traer la fecha actual
+        const now = new Date();
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const year = now.getFullYear();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const currentDate = `${year}-${month}-${day}`;
+        const currentTime = `${hours}:${minutes}:${seconds}`;
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+        // Título del documento
+        doc.setFontSize(18);
+        doc.text("Diario de Trabajo", 105, 20, null, null, 'center');
+        doc.setFontSize(11);
+        
+        doc.text(`Informe de Diario de Trabajo (${currentDate} ${currentTime}), Generado por: ${infoUsuario.Nombre} ${infoUsuario.Apellido}`, 10, 30);
+        // Convertir los datos del arreglo filteredWork en un formato adecuado para la tabla
+        const tableColumn = ["Ticket", "Solicitante / Empresa", "Motivo de la Solicitud" , "Desde", "Hasta", "Agente" ,"Actividad Realizada"];
+        const tableRows = filteredWork.map(item => [
+            item.numTicket,
+            `${item.fullnameSolicitante} / ${item.nombreEmpresa}`,
+            item.motivoSolicitud,
+            item.fechaInicio || "S/F",
+            item.fechaFin || "S/F",
+            `${item.nombreAgente} ${item.apellidoAgente}`,
+            item.actividadRealizada || "Actividad aún sin registrar",
+        ]);
+        // Crear la tabla con autoTable
+        doc.autoTable({
+            startY: 40, // Comienza la tabla un poco más abajo del texto
+            head: [tableColumn],
+            body: tableRows,
+            theme: 'grid', // Estilo de tabla
+            headStyles: { fillColor: [22, 160, 133] }, // Color de fondo para el encabezado
+            styles: { fontSize: 10 }, // Tamaño de fuente para la tabla
+            margin: { top: 10 }
+        });
+
+        // Crear el Excel
+        const worksheetData = filteredWork.map(item => ({
+            Ticket: item.numTicket,
+            "Solicitante / Empresa": `${item.fullnameSolicitante} / ${item.nombreEmpresa}`,
+            "Motivo de la Solicitud": item.motivoSolicitud,
+            Desde: item.fechaInicio || "S/F",
+            Hasta: item.fechaFin || "S/F",
+            Agente: `${item.nombreAgente} ${item.apellidoAgente}`,
+            "Actividad Realizada": item.actividadRealizada || "Actividad aún sin registrar",
+        }));
+        // Crear un libro de trabajo
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Diario de Trabajo");
+
+        // Guardar el PDF y Excel
+        XLSX.writeFile(workbook, `Diario de Trabajo (${currentDate}).xlsx`);
+        doc.save(`Diario de Trabajo (${currentDate}).pdf`);
+    })
+    // Boto btnConsultarDiasAnteriores para abrir un nua nueva pestaña
+    btnConsultarDiasAnteriores.addEventListener("click", function(){
+        tableResponsiveCreateDayliWork.style.display = "none";
+        btnConsultarDiasAnteriores.style.display = "none";
+
+        tableResponsiveSearchDayliWork.style.display = "";
+        btnBackRegistersActivities.style.display = "";
+    });
+    // Boton para regresar al registro de actividades
+    btnBackRegistersActivities.addEventListener("click", function(){
+        tableResponsiveSearchDayliWork.style.display = "none";
+        btnBackRegistersActivities.style.display = "none";
+        
+        tableResponsiveCreateDayliWork.style.display = "";
+        btnConsultarDiasAnteriores.style.display = "";
     });
 
 });

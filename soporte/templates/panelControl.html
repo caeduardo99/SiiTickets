@@ -49,28 +49,54 @@
                     <div class="row">
                         <div class="col-md-12">
                             <button type="button" class="btn btn-dark btn-sm" id="btnConsultarDiasAnteriores">Consultar Días Anteriores</button>
+                            <button type="button" class="btn btn-dark btn-sm" id="btnBackRegistersActivities" style="display: none;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 20px; height: 20px; fill: white;"><path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 288 480 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-370.7 0 73.4-73.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-128 128z"/></svg></button>
                         </div>
                     </div>
                     <br>
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Número de Ticket</th>
-                                    <th scope="col">Solicitante/Empresa</th>
-                                    <th scope="col">Motivo de la Solicitud</th>
-                                    <th scope="col">Desde</th>
-                                    <th scope="col">Hasta</th>
-                                    <th scope="col">Actividad Realizada el día de Hoy</th>
-                                    <th scope="col"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyDiarioTrabajo">
-
-                            </tbody>
-                        </table>
+                    <div id="tableResponsiveCreateDayliWork">
+                        <div class="table-responsive" style="overflow-y: auto; max-height: 350px;">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Número de Ticket</th>
+                                        <th scope="col">Solicitante/Empresa</th>
+                                        <th scope="col">Motivo de la Solicitud</th>
+                                        <th scope="col">Desde</th>
+                                        <th scope="col">Hasta</th>
+                                        <th scope="col">Act. de Hoy</th>
+                                        <th scope="col"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyDiarioTrabajo">
+    
+                                </tbody>
+                            </table>
+                        </div>
                         <button type="button" id="btnCompleteDailyWork" style="display: none;" class="btn btn-sm btn-dark">Completar Diario de Trabajo</button>
                         <button type="button" id="btnGenerateDocuments" style="margin-left: 5px;" class="btn btn-sm btn-info">Generar PDF y Excel</button>
+                    </div>
+                    <div id="tableResponsiveSearchDayliWork" style="display: none;">
+                        <input type="text" class="form-control form-control-sm" id="inputSearchDayliWork" placeholder="Buscar Actividad/ Número de Ticket/ Solicitante/ Empresa/ Motivo de la Solicitud/ Desde/ Hasta" />
+                        <br>
+                        <div class="table-responsive" style="overflow-y: auto; max-height: 350px;">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Número de Ticket</th>
+                                        <th scope="col">Solicitante/Empresa</th>
+                                        <th scope="col">Motivo de la Solicitud</th>
+                                        <th scope="col">Desde</th>
+                                        <th scope="col">Hasta</th>
+                                        <th scope="col">Agente</th>
+                                        <th scope="col">Act. de Hoy</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbodyBuscarDiarioTrabajo">
+    
+                                </tbody>
+                            </table>
+                        </div>
+                        <button type="button" id="btnGenerateDocumentsSearch" style="display: none;" class="btn btn-sm btn-info">Generar PDF y Excel Encontrados</button>
                     </div>
                 </div>
             </div>

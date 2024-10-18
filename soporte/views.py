@@ -1597,6 +1597,7 @@ def info_panel_contro(request):
     id_usuario = request.user.id if request.user.is_authenticated else None
     nombre_usuario = request.user.first_name if request.user.is_authenticated else None
     resultado_diario_trabajo = None
+    resultado_diario_trabajo_all = None
 
     if id_usuario == 2 or id_usuario == 1 or id_usuario == 126:
         fecha_actual = date.today()
@@ -1709,6 +1710,28 @@ def info_panel_contro(request):
             resultado_diario_trabajo = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
                 ]
+        # Consulta para traer todos los registros del diario de trabajo
+        consult_all_daily_works = """
+            SELECT 
+            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+            ss.nombreApellido as fullnameSolicitante,
+            se.id as idEmpresa, se.nombreEmpresa,
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.actividadRealizada,
+            au.first_name as nombreAgente, au.last_name as apellidoAgente
+            FROM soporte_ticketsoporte st 
+            LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
+            LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
+            INNER JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
+            INNER JOIN auth_user au ON au.id = st.idAgente_id
+            WHERE st.idestado_id = 2 OR st.idestado_id = 3
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(consult_all_daily_works)
+            columns = [col[0] for col in cursor.description]
+            resultado_diario_trabajo_all = [
+                dict(zip(columns, row)) for row in cursor.fetchall()
+                ]
+            
     else:
         fecha_actual = date.today()
         fecha_actual_time = datetime.now()
@@ -1822,6 +1845,28 @@ def info_panel_contro(request):
             resultado_diario_trabajo = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
             ]
+
+        # Consulta para traer todos los registros del diario de trabajo
+        consult_all_daily_works = """
+            SELECT 
+            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+            ss.nombreApellido as fullnameSolicitante,
+            se.id as idEmpresa, se.nombreEmpresa,
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.actividadRealizada,
+            au.first_name as nombreAgente, au.last_name as apellidoAgente
+            FROM soporte_ticketsoporte st 
+            LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
+            LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
+            INNER JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
+            INNER JOIN auth_user au ON au.id = st.idAgente_id
+            WHERE st.idestado_id = 2 OR st.idestado_id = 3
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(consult_all_daily_works)
+            columns = [col[0] for col in cursor.description]
+            resultado_diario_trabajo_all = [
+                dict(zip(columns, row)) for row in cursor.fetchall()
+                ]
             
         # EN CASO DE QUE SEA CLIENTE EL USUARIO LOGEADO
         if (
@@ -2031,6 +2076,7 @@ def info_panel_contro(request):
         "infoTicketComplete": resultados_hoy,
         "panel_list_worked": resultados_panel_list,
         "consult_diario_trabajo": resultado_diario_trabajo,
+        "resultado_diario_trabajo_all": resultado_diario_trabajo_all
     }
 
     return JsonResponse(context, safe=False)
