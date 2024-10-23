@@ -239,12 +239,20 @@ $(document).ready(function () {
 
               const cellFechaDesdeSearch = document.createElement("td");
               var fechaInicio = item.fechaInicio;
-              cellFechaDesdeSearch.textContent = fechaInicio.replace('T', ' ');
+              if(fechaInicio != null){
+                cellFechaDesdeSearch.textContent = fechaInicio.replace('T', ' ');
+              }else{
+                cellFechaDesdeSearch.innerHTML = "Sin Asignar"
+              }
               resultsRow.appendChild(cellFechaDesdeSearch);
 
               const cellFechaHastaSearch = document.createElement("td");
               var fechaFin = item.fechaFin;
-              cellFechaHastaSearch.textContent = fechaFin.replace('T', ' ');
+              if(fechaFin != null){
+                cellFechaHastaSearch.textContent = fechaFin.replace('T', ' ');
+              }else{
+                cellFechaHastaSearch.innerHTML = "Sin asignar"
+              }
               resultsRow.appendChild(cellFechaHastaSearch);
 
               const cellAgenteSearch = document.createElement("td");
@@ -252,7 +260,7 @@ $(document).ready(function () {
               resultsRow.appendChild(cellAgenteSearch)
 
               const cellActividadDailySearch = document.createElement("td");
-              cellActividadDailySearch.textContent = item.actividadRealizada;
+              cellActividadDailySearch.textContent = item.actividadRealizada == "" ? "Aún sin asignar" : item.actividadRealizada;
               resultsRow.appendChild(cellActividadDailySearch);
 
               tbodyBuscarDiarioTrabajo.appendChild(resultsRow);

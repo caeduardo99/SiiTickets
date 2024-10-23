@@ -1721,9 +1721,9 @@ def info_panel_contro(request):
             FROM soporte_ticketsoporte st 
             LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
             LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
-            INNER JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
+            LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
             INNER JOIN auth_user au ON au.id = st.idAgente_id
-            WHERE st.idestado_id = 2 OR st.idestado_id = 3
+            WHERE st.idestado_id = 2 OR st.idestado_id = 3 OR st.idestado_id = 4
         """
         with connection.cursor() as cursor:
             cursor.execute(consult_all_daily_works)
@@ -1857,9 +1857,9 @@ def info_panel_contro(request):
             FROM soporte_ticketsoporte st 
             LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
             LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
-            INNER JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
+            LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
             INNER JOIN auth_user au ON au.id = st.idAgente_id
-            WHERE st.idestado_id = 2 OR st.idestado_id = 3
+            WHERE st.idestado_id = 2 OR st.idestado_id = 3 OR st.idestado_id = 4
         """
         with connection.cursor() as cursor:
             cursor.execute(consult_all_daily_works)
