@@ -499,6 +499,16 @@ document.addEventListener("DOMContentLoaded", function () {
         .then((response) => response.json())
         .then((data) => {
           toastr.success(data.status, "Tarea agregada exitosamente");
+          // Envio del mensaje de Whatsapp
+          const phoneNumber = String(numeroSolicitante);
+          var message = `Estimado/s, le saluda ${razonSocial} del departamento de soporte de Ishida Software, me dirijo con respecto al ticket *#${numTicket}* con asunto: *${detalleTicket}* 
+          Que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}. Su solicitud ha recibido información con respecto a la creación de la actividad (${nuevaTarea.descripcion}), por favor revisa en (http://186.3.160.137:120/).`;
+
+          // Crear la URL para enviar el mensaje a WhatsApp
+          const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+            message
+          )}`;
+          window.open(url);
         })
         .catch((error) => {
           console.error("Error al agregar tareas:", error);
@@ -914,8 +924,20 @@ document.addEventListener("DOMContentLoaded", function () {
         if (data.status == "success") {
           toastr.success(
             "Datos enviados correctamente",
-            "Datos enviados correctamente"
+            "Envio de información correcto"
           );
+          // Envio de mensaje para notificar al Solicitante
+          const phoneNumber = String(numeroSolicitante);
+          var message = `Estimado/s, le saluda ${razonSocial} del departamento de soporte de Ishida Software, me dirijo con respecto al ticket *#${numTicket}* con asunto: *${detalleTicket}* 
+          Que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}. Su solicitud ha recibido información con respecto a una fecha definida de solución (${fechaFinalizacionEdit.value == "" ? 'Sin definir' : fechaFinalizacionEdit.value}) y causa del error (${textAreaCausaError.value == '' ? 'Sin especificar' : textAreaCausaError.value})`;
+
+          // Crear la URL para enviar el mensaje a WhatsApp
+          const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+            message
+          )}`;
+
+          // Abrir la ventana del navegador para enviar el mensaje
+          window.open(url);
           setTimeout(() => {
             window.location.reload();
           }, 2000);
@@ -1055,6 +1077,16 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((data) => {
         if (data.status == "success") {
           toastr.success("Ticket cerrado", data.message);
+          // Envio del mensaje de Whatsapp
+          const phoneNumber = String(numeroSolicitante);
+          var message = `Estimado/s, le saluda ${razonSocial} del departamento de soporte de Ishida Software, me dirijo con respecto al ticket *#${numTicket}* con asunto: *${detalleTicket}* 
+          Que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}. Su solicitud ha recibido información con al cierre del presente Ticket, por favor revisar en (http://186.3.160.137:125/).`;
+
+          // Crear la URL para enviar el mensaje a WhatsApp
+          const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+            message
+          )}`;
+          window.open(url);
           setTimeout(() => {
             window.location.reload();
           }, 2000);
@@ -1083,6 +1115,16 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((data) => {
         // Aquí puedes hacer algo con la respuesta del servidor, como mostrar un mensaje al usuario
         toastr.success("tareas revisadas", data.message);
+        // Envio del mensaje de Whatsapp
+        const phoneNumber = String(numeroSolicitante);
+        var message = `Estimado/s, le saluda ${razonSocial} del departamento de soporte de Ishida Software, me dirijo con respecto al ticket *#${numTicket}* con asunto: *${detalleTicket}* 
+        Que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}. Su solicitud ha tenido una actualización con respecto a sus actividades, por favor revisar en (http://186.3.160.137:120/).`;
+
+        // Crear la URL para enviar el mensaje a WhatsApp
+        const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+          message
+        )}`;
+        window.open(url);
         setTimeout(() => {
           window.location.reload();
         }, 2000);
@@ -1247,6 +1289,9 @@ document.addEventListener("DOMContentLoaded", function () {
   btnTerminarTareas.addEventListener("click", function () {
     const baseUrl = window.location.origin;
     const url = `${baseUrl}/editar_tareas_soporte/`;
+    var selectAgente = selectEditAgenteSolicitado.selectedOptions[0];
+    var agente = selectAgente.textContent.toString();
+    var tasksString = arrayTasks.map(task => task.descripcion).join(", ");
     fetch(url, {
       method: "POST",
       body: JSON.stringify({ tasks: arrayTasks }),
@@ -1256,9 +1301,17 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
-
         toastr.success("Tareas realizadas", data.message);
+        // Envio del mensaje de Whatsapp
+        const phoneNumber = String(numeroSolicitante);
+        var message = `Estimado/s, le saluda ${razonSocial} del departamento de soporte de Ishida Software, me dirijo con respecto al ticket *#${numTicket}* con asunto: *${detalleTicket}* 
+        Que solicitó el usuario ${nombreCompletoSolicitante} - ${nombreEmpresaSolicitante}. Su solicitud ha recibido información con respecto a la finalización de la/s actividad/es (${tasksString}) a cargo del agente (${agente}).`;
+
+        // Crear la URL para enviar el mensaje a WhatsApp
+        const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+          message
+        )}`;
+        window.open(url);
         setTimeout(() => {
           window.location.reload();
         }, 2000);

@@ -335,30 +335,61 @@
     const numberAlertTotalVenci = document.getElementById("numberAlertTotalVenci");
     const goToDayliView = document.getElementById("goToDayliView");
 
-    fetch("send_info_base/")
-    .then((response) => response.json())
-    .then((data) => {
-        const infoDayliWork = data.dayliwork;
-        const filteredInfoDailyWork = infoDayliWork.reduce((acc, current) => {
-            const existingItemIndex = acc.findIndex(item => item.numTicket === current.numTicket);
-            if (existingItemIndex === -1) {
-                // Si no existe, agregar el objeto actual al acumulador
-                acc.push(current);
-            } else {
-                if (current.actividadRealizada !== null) {
-                    acc[existingItemIndex] = current;
+    if (!window.location.href.includes("ticketsoportescreadosid_new_page")) {
+        fetch("send_info_base/")
+        .then((response) => response.json())
+        .then((data) => {
+            const infoDayliWork = data.dayliwork;
+            const filteredInfoDailyWork = infoDayliWork.reduce((acc, current) => {
+                const existingItemIndex = acc.findIndex(item => item.numTicket === current.numTicket);
+                if (existingItemIndex === -1) {
+                    // Si no existe, agregar el objeto actual al acumulador
+                    acc.push(current);
+                } else {
+                    if (current.actividadRealizada !== null) {
+                        acc[existingItemIndex] = current;
+                    }
                 }
+                return acc;
+            }, []);
+            const filteredObjects = filteredInfoDailyWork.filter(item => 
+                (!item.actividadRealizada || item.actividadRealizada === "")
+            );
+            const numDayliNotification = filteredObjects.length;
+            numberAlertTotalVenci.innerHTML = numDayliNotification;
+            goToDayliView.href = "/view_control_panel";
+            goToDayliView.innerHTML = `<i class="fas fa-file mr-2"></i> Diario de trabajo <span class="float-right text-muted text-sm">${numDayliNotification} Actividades</span>`;
+        })
+    }else{
+        const baseUrl = window.location.origin;
+        const url = `${baseUrl}/send_info_base/`;
+        $.ajax({
+            url: url,
+            type: "GET",
+            success: function (data) {
+                const infoDayliWork = data.dayliwork;
+            const filteredInfoDailyWork = infoDayliWork.reduce((acc, current) => {
+                const existingItemIndex = acc.findIndex(item => item.numTicket === current.numTicket);
+                if (existingItemIndex === -1) {
+                    // Si no existe, agregar el objeto actual al acumulador
+                    acc.push(current);
+                } else {
+                    if (current.actividadRealizada !== null) {
+                        acc[existingItemIndex] = current;
+                    }
+                }
+                return acc;
+            }, []);
+            const filteredObjects = filteredInfoDailyWork.filter(item => 
+                (!item.actividadRealizada || item.actividadRealizada === "")
+            );
+            const numDayliNotification = filteredObjects.length;
+            numberAlertTotalVenci.innerHTML = numDayliNotification;
+            goToDayliView.href = "/view_control_panel";
+            goToDayliView.innerHTML = `<i class="fas fa-file mr-2"></i> Diario de trabajo <span class="float-right text-muted text-sm">${numDayliNotification} Actividades</span>`;
             }
-            return acc;
-        }, []);
-        const filteredObjects = filteredInfoDailyWork.filter(item => 
-            (!item.actividadRealizada || item.actividadRealizada === "")
-        );
-        const numDayliNotification = filteredObjects.length;
-        numberAlertTotalVenci.innerHTML = numDayliNotification;
-        goToDayliView.href = "/view_control_panel";
-        goToDayliView.innerHTML = `<i class="fas fa-file mr-2"></i> Diario de trabajo <span class="float-right text-muted text-sm">${numDayliNotification} Actividades</span>`;
-    })
+        })
+    }
 
 </script>
 
