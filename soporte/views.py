@@ -1698,12 +1698,14 @@ def info_panel_contro(request):
             CASE
                 WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
             END as actividadRealizada,
-            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada,
+            se2.id as idEstadoActividad, se2.descripcion as estadoActividad
             FROM soporte_ticketsoporte st 
             LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
             LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
             LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
             LEFT JOIN soporte_actividadprincipalsoporte sa on sa.id = sd.idActividad_id 
+            LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
             WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
             """
         with connection.cursor() as cursor:
@@ -1849,12 +1851,14 @@ def info_panel_contro(request):
             CASE
                 WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
             END as actividadRealizada,
-            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada,
+            se2.id as idEstadoActividad, se2.descripcion as estadoActividad
             FROM soporte_ticketsoporte st 
             LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
             LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
             LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
             LEFT JOIN soporte_actividadprincipalsoporte sa on sa.id = sd.idActividad_id 
+            LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
             WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
         """
         with connection.cursor() as cursor:

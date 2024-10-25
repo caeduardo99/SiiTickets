@@ -733,11 +733,14 @@ $(document).ready(function () {
     // Convertir los datos del arreglo filteredInfoDailyWork en un formato adecuado para la tabla
     const tableColumn = [
       "Ticket",
+      "Fecha de Creación",
       "Solicitante / Empresa",
       "Motivo de la Solicitud",
+      "Actividad Seleccionada para trabajar",
       "Desde",
       "Hasta",
       "Actividad Realizada",
+      "Estado de la Actividad",
     ];
     // console.log(updatedInfoDailyWork)
     const filteredInfoDailyWorkEmpty = updatedInfoDailyWork.filter(item => {
@@ -746,11 +749,14 @@ $(document).ready(function () {
     // console.log(filteredInfoDailyWorkEmpty)
     const tableRows = filteredInfoDailyWorkEmpty.map((item) => [
       item.numTicket,
+      item.fechaCreacionTicket,
       `${item.fullnameSolicitante} / ${item.nombreEmpresa}`,
       item.motivoSolicitud,
+      item.actividadSeleccionada || "Sin especificar",
       item.fechaInicio || "S/F",
       item.fechaFin || "S/F",
       item.actividadRealizada || "Actividad aún sin registrar",
+      item.estadoActividad || "Sin estado"
     ]);
     // Crear la tabla con autoTable
     doc.autoTable({
