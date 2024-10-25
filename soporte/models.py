@@ -150,6 +150,7 @@ class diarioTrabajo(models.Model):
     fechaInicio = models.DateTimeField(null=True, blank=True)
     fechaFin = models.DateTimeField(null=True, blank=True)
     idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_act_agente')
+    idActividad = models.ForeignKey(ActividadPrincipalSoporte, on_delete=models.CASCADE, related_name='actividades_diario_trabajo', null=True, blank=True)
 
 # Modelo para los accesos
 class accesoEmpresas(models.Model):

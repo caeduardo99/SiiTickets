@@ -1598,6 +1598,7 @@ def info_panel_contro(request):
     nombre_usuario = request.user.first_name if request.user.is_authenticated else None
     resultado_diario_trabajo = None
     resultado_diario_trabajo_all = None
+    resultado_all_activities = None
 
     if id_usuario == 2 or id_usuario == 1 or id_usuario == 126:
         fecha_actual = date.today()
@@ -1697,17 +1698,33 @@ def info_panel_contro(request):
             CASE
                 WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
             END as actividadRealizada,
-            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada
             FROM soporte_ticketsoporte st 
             LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
             LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
             LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
+            LEFT JOIN soporte_actividadprincipalsoporte sa on sa.id = sd.idActividad_id 
             WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
             """
         with connection.cursor() as cursor:
             cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario])
             columns = [col[0] for col in cursor.description]
             resultado_diario_trabajo = [
+                dict(zip(columns, row)) for row in cursor.fetchall()
+                ]
+        # Consulta de todas las actividades de los tickets
+        consult_all_activities = """
+        SELECT st.id as numTicket,st.idestado_id as estadoTicket,
+        sa.id as idActividad, sa.descripcion as actividad, sa.idestado_id as idEstadoAct,
+        au.id as idAgenteActividad
+        FROM soporte_ticketsoporte st 
+        INNER JOIN soporte_actividadprincipalsoporte sa on sa.idTicketSoporte_id = st.id 
+        INNER JOIN auth_user au on au.id = sa.idAgente_id 
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(consult_all_activities)
+            columns = [col[0] for col in cursor.description]
+            resultado_all_activities = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
                 ]
         # Consulta para traer todos los registros del diario de trabajo
@@ -1826,18 +1843,19 @@ def info_panel_contro(request):
         fecha_hoy = datetime.now().date()
         consult_diario_trabajo = """
         SELECT 
-        st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
-        ss.nombreApellido as fullnameSolicitante,
-        se.id as idEmpresa, se.nombreEmpresa,
-        CASE
-        	WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
-        END as actividadRealizada,
-        sd.fechaRegistro, sd.fechaFin, sd.fechaInicio
-        FROM soporte_ticketsoporte st 
-        LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
-        LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
-        LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
-        WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
+            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+            ss.nombreApellido as fullnameSolicitante,
+            se.id as idEmpresa, se.nombreEmpresa,
+            CASE
+                WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
+            END as actividadRealizada,
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada
+            FROM soporte_ticketsoporte st 
+            LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
+            LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
+            LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
+            LEFT JOIN soporte_actividadprincipalsoporte sa on sa.id = sd.idActividad_id 
+            WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
         """
         with connection.cursor() as cursor:
             cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario])
@@ -1845,7 +1863,21 @@ def info_panel_contro(request):
             resultado_diario_trabajo = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
             ]
-
+        # Consulta de todas las actividades de los tickets
+        consult_all_activities = """
+        SELECT st.id as numTicket,st.idestado_id as estadoTicket,
+        sa.id as idActividad, sa.descripcion as actividad, sa.idestado_id as idEstadoAct,
+        au.id as idAgenteActividad
+        FROM soporte_ticketsoporte st 
+        INNER JOIN soporte_actividadprincipalsoporte sa on sa.idTicketSoporte_id = st.id 
+        INNER JOIN auth_user au on au.id = sa.idAgente_id 
+        """
+        with connection.cursor() as cursor:
+            cursor.execute(consult_all_activities)
+            columns = [col[0] for col in cursor.description]
+            resultado_all_activities = [
+                dict(zip(columns, row)) for row in cursor.fetchall()
+                ]
         # Consulta para traer todos los registros del diario de trabajo
         consult_all_daily_works = """
             SELECT 
@@ -1868,6 +1900,7 @@ def info_panel_contro(request):
                 dict(zip(columns, row)) for row in cursor.fetchall()
                 ]
             
+        
         # EN CASO DE QUE SEA CLIENTE EL USUARIO LOGEADO
         if (
             len(resultados_admin) == 0
@@ -2076,7 +2109,8 @@ def info_panel_contro(request):
         "infoTicketComplete": resultados_hoy,
         "panel_list_worked": resultados_panel_list,
         "consult_diario_trabajo": resultado_diario_trabajo,
-        "resultado_diario_trabajo_all": resultado_diario_trabajo_all
+        "resultado_diario_trabajo_all": resultado_diario_trabajo_all,
+        "resultado_all_activities": resultado_all_activities,
     }
 
     return JsonResponse(context, safe=False)
@@ -3591,6 +3625,8 @@ def create_daily_work(request):
                 id_agente = item.get("idAgente_id")
                 fechaInicio = item.get("fechaInicioActividad")
                 fechaFin = item.get("fechaFinActividad")
+                actividad = item.get("actividadSelected")
+                actividad = ActividadPrincipalSoporte.objects.get(id=actividad)
 
                 if not num_ticket or not actividad_realizada or not id_agente:
                     return JsonResponse({"status": "error", "message": "Datos incompletos"}, status=400)
@@ -3612,6 +3648,7 @@ def create_daily_work(request):
                     idAgente=agente,
                     fechaInicio=fechaInicio,
                     fechaFin=fechaFin,
+                    idActividad=actividad,
                 )
 
             return JsonResponse({"status": "success", "message": "Registro creado correctamente"})
