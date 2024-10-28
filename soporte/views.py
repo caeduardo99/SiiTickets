@@ -1698,18 +1698,22 @@ def info_panel_contro(request):
             CASE
                 WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
             END as actividadRealizada,
-            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada,
-            se2.id as idEstadoActividad, se2.descripcion as estadoActividad
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada, sd.idAgente_id as idAgenteDiario,
+            se2.id as idEstadoActividad, se2.descripcion as estadoActividad,
+            sa2.idAgente_id as agenteActividad,
+            au.first_name as nombreAgenteTicket, au.last_name as apellidoAgenteTicket
             FROM soporte_ticketsoporte st 
             LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
             LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
             LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
             LEFT JOIN soporte_actividadprincipalsoporte sa on sa.id = sd.idActividad_id 
             LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
-            WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
+            LEFT JOIN soporte_actividadprincipalsoporte sa2 ON sa2.idTicketSoporte_id = st.id 
+            INNER JOIN auth_user au ON au.id = st.idAgente_id 
+            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3)
             """
         with connection.cursor() as cursor:
-            cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario])
+            cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario, id_usuario])
             columns = [col[0] for col in cursor.description]
             resultado_diario_trabajo = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
@@ -1851,18 +1855,22 @@ def info_panel_contro(request):
             CASE
                 WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
             END as actividadRealizada,
-            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada,
-            se2.id as idEstadoActividad, se2.descripcion as estadoActividad
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada, sd.idAgente_id as idAgenteDiario,
+            se2.id as idEstadoActividad, se2.descripcion as estadoActividad,
+            sa2.idAgente_id as agenteActividad,
+            au.first_name as nombreAgenteTicket, au.last_name as apellidoAgenteTicket
             FROM soporte_ticketsoporte st 
             LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
             LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
             LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
             LEFT JOIN soporte_actividadprincipalsoporte sa on sa.id = sd.idActividad_id 
             LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
-            WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
+            LEFT JOIN soporte_actividadprincipalsoporte sa2 ON sa2.idTicketSoporte_id = st.id 
+            INNER JOIN auth_user au ON au.id = st.idAgente_id 
+            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3)
         """
         with connection.cursor() as cursor:
-            cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario])
+            cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario, id_usuario])
             columns = [col[0] for col in cursor.description]
             resultado_diario_trabajo = [
                 dict(zip(columns, row)) for row in cursor.fetchall()
@@ -3626,7 +3634,7 @@ def create_daily_work(request):
             for item in data:
                 num_ticket = item.get("numTicket")
                 actividad_realizada = item.get("actividadRealizada")
-                id_agente = item.get("idAgente_id")
+                id_agente = item.get("agenteActividad")
                 fechaInicio = item.get("fechaInicioActividad")
                 fechaFin = item.get("fechaFinActividad")
                 actividad = item.get("actividadSelected")
@@ -3671,22 +3679,29 @@ def send_info_base(request):
     fecha_hoy = datetime.now().date()
     consult_diario_trabajo = """
         SELECT 
-        st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
-        ss.nombreApellido as fullnameSolicitante,
-        se.id as idEmpresa, se.nombreEmpresa,
-        CASE
-        	WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
-        END as actividadRealizada,
-        sd.fechaRegistro, sd.fechaFin, sd.fechaInicio
-        FROM soporte_ticketsoporte st 
-        LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
-        LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
-        LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
-        WHERE st.idAgente_id = %s AND (st.idestado_id = 2 OR st.idestado_id = 3)
+            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+            ss.nombreApellido as fullnameSolicitante,
+            se.id as idEmpresa, se.nombreEmpresa,
+            CASE
+                WHEN DATE(sd.fechaRegistro) == %s THEN sd.actividadRealizada
+            END as actividadRealizada,
+            sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.idActividad_id, sa.descripcion as actividadSeleccionada, sd.idAgente_id as idAgenteDiario,
+            se2.id as idEstadoActividad, se2.descripcion as estadoActividad,
+            sa2.idAgente_id as agenteActividad,
+            au.first_name as nombreAgenteTicket, au.last_name as apellidoAgenteTicket
+            FROM soporte_ticketsoporte st 
+            LEFT JOIN soporte_solicitante ss on ss.id = st.idSolicitante_id 
+            LEFT JOIN soporte_empresa se on se.id = ss.idEmpresa_id 
+            LEFT JOIN soporte_diariotrabajo sd on sd.numTicket_id = st.id
+            LEFT JOIN soporte_actividadprincipalsoporte sa on sa.id = sd.idActividad_id 
+            LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
+            LEFT JOIN soporte_actividadprincipalsoporte sa2 ON sa2.idTicketSoporte_id = st.id 
+            INNER JOIN auth_user au ON au.id = st.idAgente_id 
+            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3)
         """
     connection = connections["default"]
     with connection.cursor() as cursor:
-        cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario])
+        cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario, id_usuario])
         columns = [col[0] for col in cursor.description]
         resultado_diario_trabajo = [
             dict(zip(columns, row)) for row in cursor.fetchall()

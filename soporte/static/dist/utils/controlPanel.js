@@ -742,10 +742,10 @@ $(document).ready(function () {
       "Actividad Realizada",
       "Estado de la Actividad",
     ];
-    // console.log(updatedInfoDailyWork)
     const filteredInfoDailyWorkEmpty = updatedInfoDailyWork.filter(item => {
-        return !(item.actividadSeleccionada == null && item.actividadRealizada == null);
+      return !(item.actividadSeleccionada == null && item.actividadRealizada == null && (item.idAgenteDiario != idUsuario.value))
     });
+    console.log(updatedInfoDailyWork)
     // console.log(filteredInfoDailyWorkEmpty)
     const tableRows = filteredInfoDailyWorkEmpty.map((item) => [
       item.numTicket,
