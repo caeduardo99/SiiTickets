@@ -99,7 +99,7 @@ $(document).ready(function () {
       if (data.consult_diario_trabajo) {
         rowDiarioTrabajo.style.display = "";
         if (getInfoDailyWork.length != 0) {
-          console.log(updatedInfoDailyWork);
+          // console.log(updatedInfoDailyWork);
           updatedInfoDailyWork.forEach((item) => {
             const row = document.createElement("tr");
             row.style.cursor = "pointer";
@@ -134,7 +134,7 @@ $(document).ready(function () {
               var actividades = item.actividadesTicket;
               if (actividades.length != 0) {
                 actividades
-                  .filter((actividad) => actividad.idEstadoAct == 2)
+                  .filter((actividad) => actividad.idEstadoAct == 2 || actividad.idEstadoAct == 4)
                   .forEach((actividad) => {
                     // Crear un elemento <option> para cada actividad
                     const option = document.createElement("option");
@@ -742,11 +742,12 @@ $(document).ready(function () {
       "Actividad Realizada",
       "Estado de la Actividad",
     ];
-    const filteredInfoDailyWorkEmpty = updatedInfoDailyWork.filter(item => {
-      return !(item.actividadSeleccionada == null && item.actividadRealizada == null && (item.idAgenteDiario != idUsuario.value))
+    var filteredInfoDailyWorkEmpty = updatedInfoDailyWork.filter(item => {
+      return !(item.actividadSeleccionada == null || item.actividadRealizada == null);
     });
-    console.log(updatedInfoDailyWork)
-    // console.log(filteredInfoDailyWorkEmpty)
+    filteredInfoDailyWorkEmpty = filteredInfoDailyWorkEmpty.filter(item => {
+      return !(item.idAgenteDiario != idUsuario.value);
+    });
     const tableRows = filteredInfoDailyWorkEmpty.map((item) => [
       item.numTicket,
       item.fechaCreacionTicket,
