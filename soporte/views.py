@@ -1710,7 +1710,7 @@ def info_panel_contro(request):
             LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
             LEFT JOIN soporte_actividadprincipalsoporte sa2 ON sa2.idTicketSoporte_id = st.id 
             INNER JOIN auth_user au ON au.id = st.idAgente_id 
-            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3) OR (sa2.idestado_id = 4)
+            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3)
             """
         with connection.cursor() as cursor:
             cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario, id_usuario])
@@ -1867,7 +1867,7 @@ def info_panel_contro(request):
             LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
             LEFT JOIN soporte_actividadprincipalsoporte sa2 ON sa2.idTicketSoporte_id = st.id 
             INNER JOIN auth_user au ON au.id = st.idAgente_id 
-            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3) OR (sa2.idestado_id = 4)
+            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3)
         """
         with connection.cursor() as cursor:
             cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario, id_usuario])
@@ -3697,7 +3697,7 @@ def send_info_base(request):
             LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
             LEFT JOIN soporte_actividadprincipalsoporte sa2 ON sa2.idTicketSoporte_id = st.id 
             INNER JOIN auth_user au ON au.id = st.idAgente_id 
-            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3) OR (sa2.idestado_id = 4)
+            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s AND sa2.idestado_id = 4) AND (st.idestado_id = 2 OR st.idestado_id = 3) OR (sa2.idestado_id = 4)
         """
     connection = connections["default"]
     with connection.cursor() as cursor:

@@ -85,6 +85,7 @@ $(document).ready(function () {
           }
           return acc;
       }, []);
+      // console.log(filteredInfoDailyWork)
       updatedInfoDailyWork = filteredInfoDailyWork.map((workItem) => {
         // Buscar todas las actividades que tengan el mismo numTicket
         const actividadesRelacionadas = getInfoActivities.filter(
@@ -99,6 +100,9 @@ $(document).ready(function () {
       if (data.consult_diario_trabajo) {
         rowDiarioTrabajo.style.display = "";
         if (getInfoDailyWork.length != 0) {
+          updatedInfoDailyWork = updatedInfoDailyWork.filter(item => {
+            return (item.agenteActividad == idUsuario.value || item.idAgente_id == idUsuario.value);
+          });
           // console.log(updatedInfoDailyWork);
           updatedInfoDailyWork.forEach((item) => {
             const row = document.createElement("tr");
