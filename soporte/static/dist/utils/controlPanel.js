@@ -911,7 +911,7 @@ $(document).ready(function () {
     var actividades = data.actividadesTicket;
     if (actividades.length != 0) {
       actividades
-        .filter((actividad) => actividad.idEstadoAct == 2)
+        .filter((actividad) => actividad.idEstadoAct == 2 || actividad.idEstadoAct == 4)
         .forEach((actividad) => {
           const option = document.createElement("option");
           option.textContent = actividad.actividad;
