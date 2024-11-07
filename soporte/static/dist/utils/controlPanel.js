@@ -290,6 +290,7 @@ $(document).ready(function () {
       inputSearchDayliWork.addEventListener("input", function () {
         const searchTerm = inputSearchDayliWork.value.toLowerCase();
         tbodyBuscarDiarioTrabajo.innerHTML = "";
+        // console.log(getInfoAllDailyWork)
         filteredWork = getInfoAllDailyWork.filter((item) => {
           return (
             String(item.numTicket || "")
@@ -309,7 +310,10 @@ $(document).ready(function () {
               .includes(searchTerm) ||
             String(item.fechaFin || "")
               .toLowerCase()
-              .includes(searchTerm)
+              .includes(searchTerm) ||
+            String(`${item.nombreAgente} ${item.apellidoAgente}` || "")
+              .toLowerCase()
+              .includes(searchTerm) 
           );
         });
         if (filteredWork.length === 0) {
@@ -752,6 +756,19 @@ $(document).ready(function () {
     filteredInfoDailyWorkEmpty = filteredInfoDailyWorkEmpty.filter(item => {
       return !(item.idAgenteDiario != idUsuario.value);
     });
+    filteredInfoDailyWorkEmpty.sort((a, b) => {
+      const fechaInicioA = new Date(a.fechaInicio);
+      const fechaInicioB = new Date(b.fechaInicio);
+      const fechaFinA = new Date(a.fechaFin);
+      const fechaFinB = new Date(b.fechaFin);
+      // Comparar primero por fechaInicio
+      if (fechaInicioA - fechaInicioB !== 0) {
+        return fechaInicioA - fechaInicioB;
+      }
+      // Si las fechas de inicio son iguales, comparar por fechaFin
+      return fechaFinA - fechaFinB;
+    });
+    
     const tableRows = filteredInfoDailyWorkEmpty.map((item) => [
       item.numTicket,
       item.fechaCreacionTicket,
@@ -777,12 +794,15 @@ $(document).ready(function () {
     // Crear el Excel
     const worksheetData = filteredInfoDailyWorkEmpty.map((item) => ({
       Ticket: item.numTicket,
+      "Fecha de creación": item.fechaCreacionTicket,
       "Solicitante / Empresa": `${item.fullnameSolicitante} / ${item.nombreEmpresa}`,
       "Motivo de la Solicitud": item.motivoSolicitud,
+      "Actividad Seleccionada para trabajar": item.actividadSeleccionada || "Sin especificar",
       Desde: item.fechaInicio || "S/F",
       Hasta: item.fechaFin || "S/F",
       "Actividad Realizada":
         item.actividadRealizada || "Actividad aún sin registrar",
+      "Estado de la Actividad": item.estadoActividad || "Sin estado"
     }));
     // Crear un libro de trabajo
     const workbook = XLSX.utils.book_new();
@@ -824,6 +844,7 @@ $(document).ready(function () {
       30
     );
     // Convertir los datos del arreglo filteredWork en un formato adecuado para la tabla
+    // console.log(filteredWork)
     const tableColumn = [
       "Ticket",
       "Solicitante / Empresa",
