@@ -1293,6 +1293,7 @@ def ticketsoportescreadosid_new_page(request, ticket_id):
         st.trabajoRealizado,
         st.motivoAnulacion,
         st.idAgenteModificado_id,
+        st.horasTrabajoTicket,
         au2.first_name as NombreAgenteModificacion,
         au2.last_name as ApellidoAgenteMoficacion,
         se.nombreEmpresa,
@@ -2702,6 +2703,7 @@ def editar_ticket_soporte(request, ticket_id):
         idEstado = data.get("idEstado", "")
         comentario = data.get("comentario", "")
         idAgenteModificacion = data.get("idAgenteModificacion", None)
+        horasTrabajoTicket = data.get("horasTrabajoTicket", None)
         
         # Buscar el ticket por su ID
         ticket = TicketSoporte.objects.get(id=ticket_id)
@@ -2711,6 +2713,7 @@ def editar_ticket_soporte(request, ticket_id):
         ticket.chat = comentarioAdicional
         ticket.comentario = comentario
         ticket.idAgenteModificado = User.objects.get(id=idAgenteModificacion)
+        ticket.horasTrabajoTicket = horasTrabajoTicket
 
         # Actualizar las propiedades para revisar las condiciones
         if fecha_finalizacion == None or facturacion == "":

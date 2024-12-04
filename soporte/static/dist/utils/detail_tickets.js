@@ -57,6 +57,9 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnEditarDatos = document.getElementById("btnEditarDatos");
   const btnRegresarEstado = document.getElementById("btnRegresarEstado");
   const btnNullTicket = document.getElementById("btnNullTicket");
+  const inputNumHorasTrabajoTicketGeneral = document.getElementById("inputNumHorasTrabajoTicketGeneral");
+  const checkReportClient = document.getElementById("checkReportClient");
+
   var razonSocial = document.getElementById("razonSocial").value;
 
   var idUsuario = document.getElementById("idUsuario").value;
@@ -68,7 +71,8 @@ document.addEventListener("DOMContentLoaded", function () {
   detalleTicket,
   nombreCompletoSolicitante,
   nombreEmpresaSolicitante,
-  arrayFinishTasks = []
+  arrayFinishTasks = [],
+  reportClient = false
 
   // Json de las actividades
   var actividades = JSON.parse(content.getAttribute("data-actividades"));
@@ -83,6 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
   asuntoTicketAgenteEdit.value = asunto;
   textAreaComentarioEdit.textContent = ticket[0].comentario;
   selectEditAgenteSolicitado.disabled = true;
+  inputNumHorasTrabajoTicketGeneral.value = ticket[0].horasTrabajoTicket == null ? 0 : ticket[0].horasTrabajoTicket;
   
   numberEnterprise.textContent = `Teléfono: ${ticket[0].telefonoSolicitante}`
   // Llenar el select con los datos de resultados_agentes_data
@@ -158,6 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (idUsuario == 2 || idUsuario == 126) {
     if (ticket[0].idestado_id != 5 && ticket[0].idestado_id != 6) {
       selectFacturacion.disabled = false;
+      inputNumHorasTrabajoTicketGeneral.disabled = false;
       selectFacturacion.addEventListener("change", function () {
         btnEditarDatos.style.display = "";
       });
@@ -178,9 +184,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (ticket[0].fechaFinalizacion == null) {
       fechaFinalizacionEdit.disabled = false;
       selectFacturacion.disabled = false;
+      inputNumHorasTrabajoTicketGeneral.disabled = false;
     } else {
       fechaFinalizacionEdit.disabled = true;
       selectFacturacion.disabled = true;
+      inputNumHorasTrabajoTicketGeneral.disabled = true;
     }
     if (ticket[0].idestado_id != 5 && ticket[0].idestado_id != 6) {
       textAreaCausaError.disabled = false;
@@ -419,6 +427,15 @@ document.addEventListener("DOMContentLoaded", function () {
   } else {
     btnNotificarSolicitante.style.display = "none";
   }
+
+  // Funcionalidad para el check de generar reporte para clientes
+  checkReportClient.addEventListener("change", function(){
+    if(reportClient == false){
+      reportClient = true
+    }else{
+      reportClient = false
+    }
+  })
 
   // Funcionamiento del boton agregar nueva tarea
   btnNewTask.addEventListener("click", function () {
@@ -891,6 +908,15 @@ document.addEventListener("DOMContentLoaded", function () {
   selectFacturacion.addEventListener("change", function(){
     btnEditarDatos.style.display = "";
   })
+
+  inputNumHorasTrabajoTicketGeneral.addEventListener("input", function(){
+    var valNumHoras = inputNumHorasTrabajoTicketGeneral.value;
+    if(parseInt(valNumHoras) > 0){
+      btnEditarDatos.style.display = "";
+    }else{
+      btnEditarDatos.style.display = "none";
+    }
+  })
   
   // Funcionalidad para editar ciertos datos del campo
   btnEditarDatos.addEventListener("click", function () {
@@ -899,6 +925,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var facturacion = selectFacturacion.value;
     var idEstado = idEstadoGeneralTicket
     var comentario = textAreaComentarioEdit.value;
+    var horasTrabajoTicket = inputNumHorasTrabajoTicketGeneral.value;
     
     var comentarioAdicional = textAreaComentarioAdicional.value;
     const baseUrl = window.location.origin;
@@ -913,7 +940,8 @@ document.addEventListener("DOMContentLoaded", function () {
         comentarioAdicional: comentarioAdicional,
         idEstado: idEstado,
         comentario: comentario,
-        idAgenteModificacion: idUsuario
+        idAgenteModificacion: idUsuario,
+        horasTrabajoTicket: horasTrabajoTicket,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -1164,6 +1192,7 @@ document.addEventListener("DOMContentLoaded", function () {
       "es-ES",
       opcionesDeFormato
     );
+    var numHorasGenerales = inputNumHorasTrabajoTicketGeneral.value;
 
     var objGeneratePdf = {
       content: [
@@ -1210,8 +1239,9 @@ document.addEventListener("DOMContentLoaded", function () {
               agente == null ? "Sin asignar" : agente
             }`,
             `Fecha de solicitud: ${fechaCreacion}`,
-            `Fecha estimada de finalización: ${fechaEstimada}`,
-            `Fecha de finalización del ticket: ${fechaFinalizacion}`,
+            !reportClient ? `Fecha estimada de finalización: ${fechaEstimada}`: "",
+            !reportClient ? `Fecha de finalización del ticket: ${fechaFinalizacion}`: "",
+            `Horas de Soporte: ${numHorasGenerales} horas.`,
             `Este requerimiento necesita facturación: ${
               facturacionText == true ? "Si" : "No"
             }`,
@@ -1230,7 +1260,7 @@ document.addEventListener("DOMContentLoaded", function () {
             `Actividad: ${activity.descripcion}
             Hecho por: ${activity.agente_actividad_nombre}.
             ${
-              razonSocial != nombreEmpresaSolicitante
+              razonSocial != nombreEmpresaSolicitante && !reportClient
                 ? `Minutos trabajados por el agente: ${activity.minutosTrabajados} minutos.
                 FIS: ${activity.fechainicio} FFS: ${activity.fechafinal}.`
                 : ""
@@ -1268,7 +1298,7 @@ document.addEventListener("DOMContentLoaded", function () {
             paddin: [10, 0, 0, 0],
           },
           {
-            text: 'El valor a facturar será por hora técnica o fracción de hora.',
+            text: 'El valor a facturar será por hora técnica.',
             fontSize: 8,
             bold: true,
             margin: [35, 2, 0, 0],

@@ -85,6 +85,9 @@
                             <option value="false">No</option>
                         </select>
                         <br>
+                        <label for="inputNumHorasTrabajoTicketGeneral" class="form-label">Horas de Soporte</label>
+                        <input type="number" name="inputNumHorasTrabajoTicketGeneral" id="inputNumHorasTrabajoTicketGeneral" class="form-control" disabled>
+                        <br>
                         <label for="textAreaCausaError" class="form-label">Causa del error:</label>
                         <textarea class="form-control" id="textAreaCausaError" rows="3" disabled></textarea>
                     </div>
@@ -138,18 +141,32 @@
             </form>
         </div>
         <div class="card-footer">
-            <button class="btn btn-danger btn-sm" id="btnGenerarReporte" style="display: none;">Generar Reporte</button>
-            <button class="btn btn-success btn-sm" id="btnFinisTasks" style="display: none;">Finalizar Tareas</button>
-            <button class="btn btn-warning btn-sm" id="btnTerminarTareas" style="display: none;">Enviar Tareas</button>
-            <button class="btn btn-info btn-sm" id="btnAsignarAgente" style="display: none;">Asignar Agente</button>
-            <button class="btn btn-success btn-sm" id="btnFinishTicket">Cerrar el ticket</button>
-            <button class="btn btn-dark btn-sm" id="btnNotificar" style="display: none;">Notificar al Administrador</button>
-            <button class="btn btn-dark btn-sm" id="btnNotificarSolicitante" style="display: none;">Notificar al solicitante</button>
-            <button class="btn btn-warning btn-sm" id="btnEditarDatos" style="display: none;">Editar datos</button>
-            <button class="btn btn-danger btn-sm" id="btnRegresarEstado" style="display: none;">Solicitud adicional</button>
-            <button class="btn btn-danger btn-sm" id="btnNullTicket" style="display: none;">Anular ticket</button>
-            <div class="d-flex justify-content-end">
-                <p class="text-end" id="textAgentModified"></p>
+            <div class="row p-1">
+                <div class="col-md-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="checkReportClient">
+                        <label class="form-check-label" for="checkReportClient">
+                          Reporte para cliente
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-1">
+                <div class="col-md-12">
+                    <button class="btn btn-danger btn-sm" id="btnGenerarReporte" style="display: none;">Generar Reporte</button>
+                    <button class="btn btn-success btn-sm" id="btnFinisTasks" style="display: none;">Finalizar Tareas</button>
+                    <button class="btn btn-warning btn-sm" id="btnTerminarTareas" style="display: none;">Enviar Tareas</button>
+                    <button class="btn btn-info btn-sm" id="btnAsignarAgente" style="display: none;">Asignar Agente</button>
+                    <button class="btn btn-success btn-sm" id="btnFinishTicket">Cerrar el ticket</button>
+                    <button class="btn btn-dark btn-sm" id="btnNotificar" style="display: none;">Notificar al Administrador</button>
+                    <button class="btn btn-dark btn-sm" id="btnNotificarSolicitante" style="display: none;">Notificar al solicitante</button>
+                    <button class="btn btn-warning btn-sm" id="btnEditarDatos" style="display: none;">Editar datos</button>
+                    <button class="btn btn-danger btn-sm" id="btnRegresarEstado" style="display: none;">Solicitud adicional</button>
+                    <button class="btn btn-danger btn-sm" id="btnNullTicket" style="display: none;">Anular ticket</button>
+                    <div class="d-flex justify-content-end">
+                        <p class="text-end" id="textAgentModified"></p>
+                    </div>
+                </div>
             </div>
         </div>
       </div>
