@@ -59,6 +59,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const btnNullTicket = document.getElementById("btnNullTicket");
   const inputNumHorasTrabajoTicketGeneral = document.getElementById("inputNumHorasTrabajoTicketGeneral");
   const checkReportClient = document.getElementById("checkReportClient");
+  const labelCheckReportClient = document.getElementById("labelCheckReportClient");
 
   var razonSocial = document.getElementById("razonSocial").value;
 
@@ -317,8 +318,12 @@ document.addEventListener("DOMContentLoaded", function () {
   // Condicion para la aparicion del boton de generar reporte
   if (ticket[0].idestado_id == 5 || ticket[0].idestado_id == 4) {
     btnGenerarReporte.style.display = "";
+    checkReportClient.style.display = "";
+    labelCheckReportClient.style.display = "";
   } else {
     btnGenerarReporte.style.display = "none";
+    checkReportClient.style.display = "none";
+    labelCheckReportClient.style.display = "none";
   }
 
   // Funcionalidad para agregar la imagen
