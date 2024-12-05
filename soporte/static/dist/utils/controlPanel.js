@@ -103,9 +103,24 @@ $(document).ready(function () {
           updatedInfoDailyWork = updatedInfoDailyWork.filter(item => {
             return (item.agenteActividad == idUsuario.value || item.idAgente_id == idUsuario.value);
           });
+          // Filtracion por medio de la fecha de Finalizacion, revisar si la fecha actual es mayor a la fecha de finalizacion Real
           // console.log(updatedInfoDailyWork);
+          updatedInfoDailyWork = updatedInfoDailyWork.filter((obj) => {
+            if (!obj.fechaFinalizacionEsperada) return true;
+            const fechaFin = new Date(obj.fechaFinalizacionEsperada);
+            const fechaActual = new Date();
+            const fechaFinSinHora = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
+            const fechaActualSinHora = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate());
+            return fechaFinSinHora >= fechaActualSinHora;
+          });
           updatedInfoDailyWork.forEach((item) => {
             const row = document.createElement("tr");
+            if(item.estadoTicket == 4){
+              row.className = "table-info";
+            }
+            if(item.estadoTicket == 5){
+              row.className = "table-success";
+            }
             row.style.cursor = "pointer";
             const cellNumTicket = document.createElement("td");
             const buttonMoreActivity = document.createElement("button");
@@ -138,7 +153,7 @@ $(document).ready(function () {
               var actividades = item.actividadesTicket;
               if (actividades.length != 0) {
                 actividades
-                  .filter((actividad) => actividad.idEstadoAct == 2 || actividad.idEstadoAct == 4)
+                  .filter((actividad) => actividad.idEstadoAct == 2 || actividad.idEstadoAct == 4 || actividad.idEstadoAct == 5)
                   .forEach((actividad) => {
                     // Crear un elemento <option> para cada actividad
                     const option = document.createElement("option");
@@ -915,6 +930,12 @@ $(document).ready(function () {
   function createNewRow(row, data) {
     console.log(data);
     const newRow = document.createElement("tr");
+    if(data.estadoTicket == 4){
+      newRow.className = "table-info"
+    }
+    if(data.estadoTicket == 5){
+      newRow.className = "table-success"
+    }
 
     const newCellNumTicket = document.createElement("td");
     newCellNumTicket.textContent = ` Ticket ${data.numTicket}`;
@@ -931,12 +952,11 @@ $(document).ready(function () {
     defaultOption.disabled = true;
     defaultOption.selected = true;
     newSelectAct.appendChild(defaultOption);
-    newCellActividades.appendChild(newSelectAct);
     // Llenar el SELECT con las actividades
     var actividades = data.actividadesTicket;
     if (actividades.length != 0) {
       actividades
-        .filter((actividad) => actividad.idEstadoAct == 2 || actividad.idEstadoAct == 4)
+        .filter((actividad) => actividad.idEstadoAct == 2 || actividad.idEstadoAct == 4 || actividad.idEstadoAct == 5)
         .forEach((actividad) => {
           const option = document.createElement("option");
           option.textContent = actividad.actividad;

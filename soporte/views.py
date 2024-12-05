@@ -1693,7 +1693,7 @@ def info_panel_contro(request):
         fecha_hoy = datetime.now().date()
         consult_diario_trabajo = """
             SELECT 
-            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.fechaFinalizacionReal, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
             ss.nombreApellido as fullnameSolicitante,
             se.id as idEmpresa, se.nombreEmpresa,
             CASE
@@ -1711,7 +1711,7 @@ def info_panel_contro(request):
             LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
             LEFT JOIN soporte_actividadprincipalsoporte sa2 ON sa2.idTicketSoporte_id = st.id 
             INNER JOIN auth_user au ON au.id = st.idAgente_id 
-            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3)
+            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3 OR st.idestado_id = 4 OR st.idestado_id = 5)
             """
         with connection.cursor() as cursor:
             cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario, id_usuario])
@@ -1737,7 +1737,7 @@ def info_panel_contro(request):
         # Consulta para traer todos los registros del diario de trabajo
         consult_all_daily_works = """
             SELECT 
-            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.fechaFinalizacionReal, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
             ss.nombreApellido as fullnameSolicitante,
             se.id as idEmpresa, se.nombreEmpresa,
             sd.fechaRegistro, sd.fechaFin, sd.fechaInicio, sd.actividadRealizada,
@@ -1850,7 +1850,7 @@ def info_panel_contro(request):
         fecha_hoy = datetime.now().date()
         consult_diario_trabajo = """
         SELECT 
-            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.fechaFinalizacionReal, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
             ss.nombreApellido as fullnameSolicitante,
             se.id as idEmpresa, se.nombreEmpresa,
             CASE
@@ -1868,7 +1868,7 @@ def info_panel_contro(request):
             LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
             LEFT JOIN soporte_actividadprincipalsoporte sa2 ON sa2.idTicketSoporte_id = st.id 
             INNER JOIN auth_user au ON au.id = st.idAgente_id 
-            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3)
+            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s) AND (st.idestado_id = 2 OR st.idestado_id = 3 OR st.idestado_id = 4 OR st.idestado_id = 5)
         """
         with connection.cursor() as cursor:
             cursor.execute(consult_diario_trabajo, [fecha_hoy, id_usuario, id_usuario])
@@ -3682,7 +3682,7 @@ def send_info_base(request):
     fecha_hoy = datetime.now().date()
     consult_diario_trabajo = """
         SELECT 
-            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
+            st.id as numTicket, st.fechaCreacion as fechaCreacionTicket, st.fechaFinalizacion as fechaFinalizacionEsperada, st.fechaFinalizacionReal, st.comentario as motivoSolicitud, st.idSolicitante_id as idSolicitante, st.idAgente_id, st.idestado_id as estadoTicket,
             ss.nombreApellido as fullnameSolicitante,
             se.id as idEmpresa, se.nombreEmpresa,
             CASE
@@ -3700,7 +3700,7 @@ def send_info_base(request):
             LEFT JOIN soporte_estadosticket se2 on se2.id = sa.idestado_id 
             LEFT JOIN soporte_actividadprincipalsoporte sa2 ON sa2.idTicketSoporte_id = st.id 
             INNER JOIN auth_user au ON au.id = st.idAgente_id 
-            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s AND sa2.idestado_id = 4) AND (st.idestado_id = 2 OR st.idestado_id = 3) OR (sa2.idestado_id = 4)
+            WHERE (st.idAgente_id = %s OR sa2.idAgente_id = %s AND sa2.idestado_id = 4) AND (st.idestado_id = 2 OR st.idestado_id = 3 OR st.idestado_id = 4 OR st.idestado_id = 5)
         """
     connection = connections["default"]
     with connection.cursor() as cursor:
