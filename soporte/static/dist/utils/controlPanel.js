@@ -41,12 +41,25 @@ $(document).ready(function () {
   const btnBackRegistersActivities = document.getElementById(
     "btnBackRegistersActivities"
   );
-  const inputSearchDayliWork = document.getElementById("inputSearchDayliWork");
+  const inputSearchNumTicket = document.getElementById("inputSearchNumTicket");
+  const inputSearchSolicitud = document.getElementById("inputSearchSolicitud");
+  const inputSearchSolicitanteEmpresa = document.getElementById(
+    "inputSearchSolicitanteEmpresa"
+  );
+  const inputSearchAgente = document.getElementById("inputSearchAgente");
+  const inputDateIni = document.getElementById("inputDateIni");
+  const inputDateFin = document.getElementById("inputDateFin");
+  const numeroCoincidencias = document.getElementById("numeroCoincidencias");
+
   const tbodyBuscarDiarioTrabajo = document.getElementById(
     "tbodyBuscarDiarioTrabajo"
   );
   const btnGenerateDocumentsSearch = document.getElementById(
     "btnGenerateDocumentsSearch"
+  );
+
+  const btnBuscarDiarioTrabajo = document.getElementById(
+    "btnBuscarDiarioTrabajo"
   );
 
   var calendarEl = document.getElementById("calendar");
@@ -55,7 +68,8 @@ $(document).ready(function () {
     selectedInfoDaily = [],
     filteredInfoDailyWork,
     filteredWork,
-    updatedInfoDailyWork;
+    updatedInfoDailyWork,
+    getInfoAllDailyWork;
 
   textBienvenida.textContent =
     infoUsuario.Nombre != ""
@@ -68,22 +82,22 @@ $(document).ready(function () {
     .then((data) => {
       // Llenar la informacion para el diario de trabajo
       var getInfoDailyWork = data.consult_diario_trabajo;
-      var getInfoAllDailyWork = data.resultado_diario_trabajo_all;
+      getInfoAllDailyWork = data.resultado_diario_trabajo_all;
       var getInfoActivities = data.resultado_all_activities;
       // console.log(getInfoDailyWork)
       filteredInfoDailyWork = getInfoDailyWork.reduce((acc, current) => {
-          // Comprobar si ya existe exactamente el mismo objeto en el acumulador
-          const isDuplicate = acc.some(
-              (item) =>
-                  item.numTicket === current.numTicket &&
-                  item.actividadSelect === current.actividadSelect &&
-                  item.actividadRealizada === current.actividadRealizada
-          );
-          // Si no es un duplicado exacto, lo agregamos
-          if (!isDuplicate) {
-              acc.push(current);
-          }
-          return acc;
+        // Comprobar si ya existe exactamente el mismo objeto en el acumulador
+        const isDuplicate = acc.some(
+          (item) =>
+            item.numTicket === current.numTicket &&
+            item.actividadSelect === current.actividadSelect &&
+            item.actividadRealizada === current.actividadRealizada
+        );
+        // Si no es un duplicado exacto, lo agregamos
+        if (!isDuplicate) {
+          acc.push(current);
+        }
+        return acc;
       }, []);
       // console.log(filteredInfoDailyWork)
       updatedInfoDailyWork = filteredInfoDailyWork.map((workItem) => {
@@ -100,8 +114,11 @@ $(document).ready(function () {
       if (data.consult_diario_trabajo) {
         rowDiarioTrabajo.style.display = "";
         if (getInfoDailyWork.length != 0) {
-          updatedInfoDailyWork = updatedInfoDailyWork.filter(item => {
-            return (item.agenteActividad == idUsuario.value || item.idAgente_id == idUsuario.value);
+          updatedInfoDailyWork = updatedInfoDailyWork.filter((item) => {
+            return (
+              item.agenteActividad == idUsuario.value ||
+              item.idAgente_id == idUsuario.value
+            );
           });
           // Filtracion por medio de la fecha de Finalizacion, revisar si la fecha actual es mayor a la fecha de finalizacion Real
           // console.log(updatedInfoDailyWork);
@@ -109,16 +126,24 @@ $(document).ready(function () {
             if (!obj.fechaFinalizacionEsperada) return true;
             const fechaFin = new Date(obj.fechaFinalizacionEsperada);
             const fechaActual = new Date();
-            const fechaFinSinHora = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), fechaFin.getDate());
-            const fechaActualSinHora = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), fechaActual.getDate());
+            const fechaFinSinHora = new Date(
+              fechaFin.getFullYear(),
+              fechaFin.getMonth(),
+              fechaFin.getDate()
+            );
+            const fechaActualSinHora = new Date(
+              fechaActual.getFullYear(),
+              fechaActual.getMonth(),
+              fechaActual.getDate()
+            );
             return fechaFinSinHora >= fechaActualSinHora;
           });
           updatedInfoDailyWork.forEach((item) => {
             const row = document.createElement("tr");
-            if(item.estadoTicket == 4){
+            if (item.estadoTicket == 4) {
               row.className = "table-info";
             }
-            if(item.estadoTicket == 5){
+            if (item.estadoTicket == 5) {
               row.className = "table-success";
             }
             row.style.cursor = "pointer";
@@ -153,7 +178,12 @@ $(document).ready(function () {
               var actividades = item.actividadesTicket;
               if (actividades.length != 0) {
                 actividades
-                  .filter((actividad) => actividad.idEstadoAct == 2 || actividad.idEstadoAct == 4 || actividad.idEstadoAct == 5)
+                  .filter(
+                    (actividad) =>
+                      actividad.idEstadoAct == 2 ||
+                      actividad.idEstadoAct == 4 ||
+                      actividad.idEstadoAct == 5
+                  )
                   .forEach((actividad) => {
                     // Crear un elemento <option> para cada actividad
                     const option = document.createElement("option");
@@ -293,103 +323,6 @@ $(document).ready(function () {
       } else {
         rowDiarioTrabajo.style.display = "none";
       }
-      // Para la tabla de busqueda
-      const rowSear = document.createElement("tr");
-      const cellSearchMain = document.createElement("td");
-      cellSearchMain.textContent = "Esperando consulta";
-      cellSearchMain.colSpan = "8";
-      cellSearchMain.style.textAlign = "center";
-      rowSear.appendChild(cellSearchMain);
-      tbodyBuscarDiarioTrabajo.appendChild(rowSear);
-      // Funcionamiento de input
-      inputSearchDayliWork.addEventListener("input", function () {
-        const searchTerm = inputSearchDayliWork.value.toLowerCase();
-        tbodyBuscarDiarioTrabajo.innerHTML = "";
-        // console.log(getInfoAllDailyWork)
-        filteredWork = getInfoAllDailyWork.filter((item) => {
-          return (
-            String(item.numTicket || "")
-              .toLowerCase()
-              .includes(searchTerm) ||
-            String(item.fullnameSolicitante || "")
-              .toLowerCase()
-              .includes(searchTerm) ||
-            String(item.nombreEmpresa || "")
-              .toLowerCase()
-              .includes(searchTerm) ||
-            String(item.motivoSolicitud || "")
-              .toLowerCase()
-              .includes(searchTerm) ||
-            String(item.fechaInicio || "")
-              .toLowerCase()
-              .includes(searchTerm) ||
-            String(item.fechaFin || "")
-              .toLowerCase()
-              .includes(searchTerm) ||
-            String(`${item.nombreAgente} ${item.apellidoAgente}` || "")
-              .toLowerCase()
-              .includes(searchTerm) 
-          );
-        });
-        if (filteredWork.length === 0) {
-          btnGenerateDocumentsSearch.style.display = "none";
-          const noResultsRow = document.createElement("tr");
-          const noResultsCell = document.createElement("td");
-          noResultsCell.textContent = "No se encontraron resultados";
-          noResultsCell.colSpan = "8";
-          noResultsCell.style.textAlign = "center";
-          noResultsRow.appendChild(noResultsCell);
-          tbodyBuscarDiarioTrabajo.appendChild(noResultsRow);
-        } else {
-          // Mostrar las filas filtradas
-          filteredWork.forEach((item) => {
-            btnGenerateDocumentsSearch.style.display = "";
-            const resultsRow = document.createElement("tr");
-            const cellNumTicketSearch = document.createElement("td");
-            cellNumTicketSearch.textContent = item.numTicket;
-            resultsRow.appendChild(cellNumTicketSearch);
-
-            const cellSolicitanteEmpSearch = document.createElement("td");
-            cellSolicitanteEmpSearch.textContent = `${item.fullnameSolicitante}/ ${item.nombreEmpresa}`;
-            resultsRow.appendChild(cellSolicitanteEmpSearch);
-
-            const cellMotivoSearch = document.createElement("td");
-            cellMotivoSearch.textContent = item.motivoSolicitud;
-            resultsRow.appendChild(cellMotivoSearch);
-
-            const cellFechaDesdeSearch = document.createElement("td");
-            var fechaInicio = item.fechaInicio;
-            if (fechaInicio != null) {
-              cellFechaDesdeSearch.textContent = fechaInicio.replace("T", " ");
-            } else {
-              cellFechaDesdeSearch.innerHTML = "Sin Asignar";
-            }
-            resultsRow.appendChild(cellFechaDesdeSearch);
-
-            const cellFechaHastaSearch = document.createElement("td");
-            var fechaFin = item.fechaFin;
-            if (fechaFin != null) {
-              cellFechaHastaSearch.textContent = fechaFin.replace("T", " ");
-            } else {
-              cellFechaHastaSearch.innerHTML = "Sin asignar";
-            }
-            resultsRow.appendChild(cellFechaHastaSearch);
-
-            const cellAgenteSearch = document.createElement("td");
-            cellAgenteSearch.textContent = `${item.nombreAgente} ${item.apellidoAgente}`;
-            resultsRow.appendChild(cellAgenteSearch);
-
-            const cellActividadDailySearch = document.createElement("td");
-            cellActividadDailySearch.textContent =
-              item.actividadRealizada == ""
-                ? "Aún sin asignar"
-                : item.actividadRealizada;
-            resultsRow.appendChild(cellActividadDailySearch);
-
-            tbodyBuscarDiarioTrabajo.appendChild(resultsRow);
-          });
-        }
-      });
 
       var panel_worked = data.panel_list_worked;
 
@@ -765,10 +698,12 @@ $(document).ready(function () {
       "Actividad Realizada",
       "Estado de la Actividad",
     ];
-    var filteredInfoDailyWorkEmpty = updatedInfoDailyWork.filter(item => {
-      return !(item.actividadSeleccionada == null || item.actividadRealizada == null);
+    var filteredInfoDailyWorkEmpty = updatedInfoDailyWork.filter((item) => {
+      return !(
+        item.actividadSeleccionada == null || item.actividadRealizada == null
+      );
     });
-    filteredInfoDailyWorkEmpty = filteredInfoDailyWorkEmpty.filter(item => {
+    filteredInfoDailyWorkEmpty = filteredInfoDailyWorkEmpty.filter((item) => {
       return !(item.idAgenteDiario != idUsuario.value);
     });
     filteredInfoDailyWorkEmpty.sort((a, b) => {
@@ -783,7 +718,7 @@ $(document).ready(function () {
       // Si las fechas de inicio son iguales, comparar por fechaFin
       return fechaFinA - fechaFinB;
     });
-    
+
     const tableRows = filteredInfoDailyWorkEmpty.map((item) => [
       item.numTicket,
       item.fechaCreacionTicket,
@@ -793,7 +728,7 @@ $(document).ready(function () {
       item.fechaInicio || "S/F",
       item.fechaFin || "S/F",
       item.actividadRealizada || "Actividad aún sin registrar",
-      item.estadoActividad || "Sin estado"
+      item.estadoActividad || "Sin estado",
     ]);
     // Crear la tabla con autoTable
     doc.autoTable({
@@ -804,6 +739,11 @@ $(document).ready(function () {
       headStyles: { fillColor: [22, 160, 133] }, // Color de fondo para el encabezado
       styles: { fontSize: 10 }, // Tamaño de fuente para la tabla
       margin: { top: 10 },
+      columnStyles: {
+        1: { cellWidth: 22 },
+        5: { cellWidth: 22 },
+        6: { cellWidth: 22 },
+      },
     });
 
     // Crear el Excel
@@ -812,12 +752,13 @@ $(document).ready(function () {
       "Fecha de creación": item.fechaCreacionTicket,
       "Solicitante / Empresa": `${item.fullnameSolicitante} / ${item.nombreEmpresa}`,
       "Motivo de la Solicitud": item.motivoSolicitud,
-      "Actividad Seleccionada para trabajar": item.actividadSeleccionada || "Sin especificar",
+      "Actividad Seleccionada para trabajar":
+        item.actividadSeleccionada || "Sin especificar",
       Desde: item.fechaInicio || "S/F",
       Hasta: item.fechaFin || "S/F",
       "Actividad Realizada":
         item.actividadRealizada || "Actividad aún sin registrar",
-      "Estado de la Actividad": item.estadoActividad || "Sin estado"
+      "Estado de la Actividad": item.estadoActividad || "Sin estado",
     }));
     // Crear un libro de trabajo
     const workbook = XLSX.utils.book_new();
@@ -833,6 +774,120 @@ $(document).ready(function () {
       `Diario de Trabajo ${infoUsuario.Nombre} ${infoUsuario.Apellido} (${currentDate}).pdf`
     );
   });
+
+  // Funcionalidad del boton para los filtros
+  btnBuscarDiarioTrabajo.addEventListener("click", function () {
+    tbodyBuscarDiarioTrabajo.innerHTML = "";
+
+    var numTicket = inputSearchNumTicket.value;
+    var motivoSolicitud = inputSearchSolicitud.value;
+    var solicitante = inputSearchSolicitanteEmpresa.value;
+    var agente = inputSearchAgente.value;
+    var fechaDesde = inputDateIni.value;
+    var fechaHasta = inputDateFin.value;
+
+    const formatDateToYMD = (dateString) => {
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, "0"); 
+      const day = date.getDate().toString().padStart(2, "0"); 
+      return `${year}-${month}-${day}`;
+    };
+
+    filteredWork = getInfoAllDailyWork.filter((item) => {
+      const numTicketMatch = numTicket
+        ? String(item.numTicket).includes(numTicket)
+        : true;
+      const motivoMatch = motivoSolicitud
+        ? item.motivoSolicitud.toLowerCase().includes(motivoSolicitud)
+        : true;
+      const solicitanteMatch = solicitante
+        ? item.fullnameSolicitante.toLowerCase().includes(solicitante) ||
+          item.nombreEmpresa.toLowerCase().includes(solicitante)
+        : true;
+      const agenteMatch = agente
+        ? item.nombreAgente?.toLowerCase().includes(agente)
+        : true;
+      // Rango de fechas
+      const itemFecha = formatDateToYMD(item.fechaRegistro);
+      const fechaDesdeMatch = fechaDesde
+        ? itemFecha > formatDateToYMD(fechaDesde)
+        : true;
+      const fechaHastaMatch = fechaHasta
+        ? itemFecha <= formatDateToYMD(fechaHasta)
+        : true;
+        
+      return (
+        numTicketMatch &&
+        motivoMatch &&
+        solicitanteMatch &&
+        agenteMatch &&
+        fechaDesdeMatch &&
+        fechaHastaMatch
+      );
+    });
+    // console.log(filteredWork);
+    numeroCoincidencias.innerHTML = "";
+    numeroCoincidencias.style.display = "";
+    numeroCoincidencias.textContent = `${filteredWork.length} coincidencias encontradas`;
+    if (filteredWork.length === 0) {
+      btnGenerateDocumentsSearch.style.display = "none";
+      const noResultsRow = document.createElement("tr");
+      const noResultsCell = document.createElement("td");
+      noResultsCell.textContent = "No se encontraron resultados de esta busqueda.";
+      noResultsCell.colSpan = "8";
+      noResultsCell.style.textAlign = "center";
+      noResultsRow.appendChild(noResultsCell);
+      tbodyBuscarDiarioTrabajo.appendChild(noResultsRow);
+    } else {
+      filteredWork.forEach((item) => {
+        btnGenerateDocumentsSearch.style.display = "";
+        const resultsRow = document.createElement("tr");
+        const cellNumTicketSearch = document.createElement("td");
+        cellNumTicketSearch.textContent = item.numTicket;
+        resultsRow.appendChild(cellNumTicketSearch);
+
+        const cellSolicitanteEmpSearch = document.createElement("td");
+        cellSolicitanteEmpSearch.textContent = `${item.fullnameSolicitante}/ ${item.nombreEmpresa}`;
+        resultsRow.appendChild(cellSolicitanteEmpSearch);
+
+        const cellMotivoSearch = document.createElement("td");
+        cellMotivoSearch.textContent = item.motivoSolicitud;
+        resultsRow.appendChild(cellMotivoSearch);
+
+        const cellFechaDesdeSearch = document.createElement("td");
+        var fechaInicio = item.fechaInicio;
+        if (fechaInicio != null) {
+          cellFechaDesdeSearch.textContent = fechaInicio.replace("T", " ");
+        } else {
+          cellFechaDesdeSearch.innerHTML = "Sin Asignar";
+        }
+        resultsRow.appendChild(cellFechaDesdeSearch);
+
+        const cellFechaHastaSearch = document.createElement("td");
+        var fechaFin = item.fechaFin;
+        if (fechaFin != null) {
+          cellFechaHastaSearch.textContent = fechaFin.replace("T", " ");
+        } else {
+          cellFechaHastaSearch.innerHTML = "Sin asignar";
+        }
+        resultsRow.appendChild(cellFechaHastaSearch);
+        const cellAgenteSearch = document.createElement("td");
+        cellAgenteSearch.textContent = `${item.nombreAgente} ${item.apellidoAgente}`;
+        resultsRow.appendChild(cellAgenteSearch);
+
+        const cellActividadDailySearch = document.createElement("td");
+        cellActividadDailySearch.textContent =
+          item.actividadRealizada == ""
+            ? "Aún sin asignar"
+            : item.actividadRealizada;
+        resultsRow.appendChild(cellActividadDailySearch);
+
+        tbodyBuscarDiarioTrabajo.appendChild(resultsRow);
+      });
+    }
+  });
+
   // Boton para generar un reporte de los registros buscados
   btnGenerateDocumentsSearch.addEventListener("click", function () {
     // Traer la fecha actual
@@ -887,6 +942,11 @@ $(document).ready(function () {
       headStyles: { fillColor: [22, 160, 133] }, // Color de fondo para el encabezado
       styles: { fontSize: 10 }, // Tamaño de fuente para la tabla
       margin: { top: 10 },
+      columnStyles: {
+        1: { cellWidth: 22 },
+        5: { cellWidth: 22 },
+        6: { cellWidth: 22 },
+      },
     });
 
     // Crear el Excel
@@ -930,11 +990,11 @@ $(document).ready(function () {
   function createNewRow(row, data) {
     console.log(data);
     const newRow = document.createElement("tr");
-    if(data.estadoTicket == 4){
-      newRow.className = "table-info"
+    if (data.estadoTicket == 4) {
+      newRow.className = "table-info";
     }
-    if(data.estadoTicket == 5){
-      newRow.className = "table-success"
+    if (data.estadoTicket == 5) {
+      newRow.className = "table-success";
     }
 
     const newCellNumTicket = document.createElement("td");
@@ -956,7 +1016,12 @@ $(document).ready(function () {
     var actividades = data.actividadesTicket;
     if (actividades.length != 0) {
       actividades
-        .filter((actividad) => actividad.idEstadoAct == 2 || actividad.idEstadoAct == 4 || actividad.idEstadoAct == 5)
+        .filter(
+          (actividad) =>
+            actividad.idEstadoAct == 2 ||
+            actividad.idEstadoAct == 4 ||
+            actividad.idEstadoAct == 5
+        )
         .forEach((actividad) => {
           const option = document.createElement("option");
           option.textContent = actividad.actividad;
@@ -1026,7 +1091,7 @@ $(document).ready(function () {
       } else {
         btnCompleteDailyWork.style.display = "none";
       }
-      console.log(selectedInfoDaily)
+      console.log(selectedInfoDaily);
     });
     cellActions.appendChild(check);
 
@@ -1036,7 +1101,7 @@ $(document).ready(function () {
     newRow.appendChild(cellFechaDesde);
     newRow.appendChild(cellFechaHasta);
     newRow.appendChild(cellActHoy);
-    newRow.appendChild(cellActions)
+    newRow.appendChild(cellActions);
 
     row.insertAdjacentElement("afterend", newRow);
   }

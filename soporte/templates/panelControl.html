@@ -77,7 +77,37 @@
                         <button type="button" id="btnGenerateDocuments" style="margin-left: 5px;" class="btn btn-sm btn-info">Generar PDF y Excel</button>
                     </div>
                     <div id="tableResponsiveSearchDayliWork" style="display: none;">
-                        <input type="text" class="form-control form-control-sm" id="inputSearchDayliWork" placeholder="Buscar Actividad/ Número de Ticket/ Solicitante/ Empresa/ Motivo de la Solicitud/ Desde/ Hasta/ Nombre y Apellido de Agente" />
+                        <div class="row">
+                            <div class="col-md-2">
+                                <input type="text" class="form-control form-control-sm" id="inputSearchNumTicket" placeholder="Número Ticket" />
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control form-control-sm" id="inputSearchSolicitud" placeholder="Motivo de la Solicitud" />
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" id="inputSearchSolicitanteEmpresa" placeholder="Solicitante/Empresa" />
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm" id="inputSearchAgente" placeholder="Buscar Agente" />
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: 5px;">
+                            <div class="col-md-6">
+                                <label for="inputDateIni">Desde: </label>
+                                <input type="date" class="form-control form-control-sm" id="inputDateIni" />
+                            </div>
+                            <div class="col-md-6">
+                                <label for="inputDateFin">Hasta: </label>
+                                <input type="date" class="form-control form-control-sm" id="inputDateFin" />
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p class="text-center" id="numeroCoincidencias" style="display: none;"></p>
+                                <button class="btn btn-block btn-dark btn-sm" id="btnBuscarDiarioTrabajo">Aplicar Filtros</button>
+                            </div>
+                        </div>
                         <br>
                         <div class="table-responsive" style="overflow-y: auto; max-height: 350px;">
                             <table class="table table-sm table-hover">
@@ -93,7 +123,9 @@
                                     </tr>
                                 </thead>
                                 <tbody id="tbodyBuscarDiarioTrabajo">
-    
+                                    <tr>
+                                        <td colspan="7" class="text-center">Esperando busqueda</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
