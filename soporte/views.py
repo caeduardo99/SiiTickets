@@ -20,7 +20,8 @@ from .models import (
     ActividadPrincipalActualizacion,
     tipoAcceso,
     accesoEmpresas,
-    diarioTrabajo
+    diarioTrabajo,
+    cambioEstadoTicketSoporte
 )
 from datetime import datetime, date
 from django.contrib.auth.models import User, Group
@@ -2345,6 +2346,14 @@ def asign_admin_ticket_support(request, id_agente, id_ticket, id_user_modified):
         ticket.idAgenteModificado = User.objects.get(id=id_user_modified)
         ticket.chat = comentario_adicional
         ticket.save()
+        # Cambio para la tabla de estados
+        cambioEstadoTicketSoporte.objects.create(
+            numTicket=ticket,
+            idEstadoAnterior=EstadosTicket.objects.get(id=1),
+            idEstadoActual=EstadosTicket.objects.get(id=3),
+            fechaCambio=fechaAsignacion,
+            idAgente=User.objects.get(id=id_agente),
+        )
         # Devolver la respuesta JSON
         return JsonResponse(
             {"status": "success", "message": "Datos recibidos correctamente"}
@@ -2587,6 +2596,9 @@ def finalizar_tareas_soporte(request):
             "idTicketSoporte", flat=True
         )
 
+        fecha_hora_actual = datetime.now()
+        formateada = fecha_hora_actual.strftime('%Y-%m-%d %H:%M:%S')
+
         todas_tareas_estado_5 = (
             ActividadPrincipalSoporte.objects.filter(idTicketSoporte__in=id_tickets)
             .exclude(idestado=5)
@@ -2597,6 +2609,17 @@ def finalizar_tareas_soporte(request):
         if todas_tareas_estado_5:
             for id_ticket in id_tickets:
                 TicketSoporte.objects.filter(id=id_ticket).update(idestado=4)
+
+            ticket = TicketSoporte.objects.get(id=id_ticket)
+            id_agente_ticket = ticket.idAgente.id
+            
+            cambioEstadoTicketSoporte.objects.create(
+                numTicket=TicketSoporte.objects.get(id=id_ticket),
+                idEstadoAnterior=EstadosTicket.objects.get(id=2),
+                idEstadoActual=EstadosTicket.objects.get(id=4),
+                fechaCambio=formateada,
+                idAgente=User.objects.get(id=id_agente_ticket),
+                )
 
         return JsonResponse(
             {"status": "success", "message": "La/s tarea/s se ha/n fue finalizada"}
@@ -2704,6 +2727,8 @@ def editar_ticket_soporte(request, ticket_id):
         comentario = data.get("comentario", "")
         idAgenteModificacion = data.get("idAgenteModificacion", None)
         horasTrabajoTicket = data.get("horasTrabajoTicket", None)
+        fecha_hora_actual = datetime.now()
+        formateada = fecha_hora_actual.strftime('%Y-%m-%d %H:%M:%S')
         
         # Buscar el ticket por su ID
         ticket = TicketSoporte.objects.get(id=ticket_id)
@@ -2719,13 +2744,34 @@ def editar_ticket_soporte(request, ticket_id):
         if fecha_finalizacion == None or facturacion == "":
             estado = EstadosTicket.objects.get(id=idEstado)
             ticket.idestado = estado
+            cambioEstadoTicketSoporte.objects.create(
+                numTicket=ticket,
+                idEstadoAnterior=EstadosTicket.objects.get(id=idEstado),
+                idEstadoActual=EstadosTicket.objects.get(id=idEstado),
+                fechaCambio=formateada,
+                idAgente=User.objects.get(id=idAgenteModificacion),
+            )
         else:
             if idEstado == 4:
                 estado = EstadosTicket.objects.get(id=idEstado)
                 ticket.idestado = estado
+                cambioEstadoTicketSoporte.objects.create(
+                    numTicket=ticket,
+                    idEstadoAnterior=EstadosTicket.objects.get(id=3),
+                    idEstadoActual=EstadosTicket.objects.get(id=idEstado),
+                    fechaCambio=formateada,
+                    idAgente=User.objects.get(id=idAgenteModificacion),
+                )
             else:
                 estado = EstadosTicket.objects.get(id=2)
                 ticket.idestado = estado
+                cambioEstadoTicketSoporte.objects.create(
+                    numTicket=ticket,
+                    idEstadoAnterior=EstadosTicket.objects.get(id=3),
+                    idEstadoActual=EstadosTicket.objects.get(id=idEstado),
+                    fechaCambio=formateada,
+                    idAgente=User.objects.get(id=idAgenteModificacion),
+                )
 
         # Condicion en caso de que llegue de alguna forma la facturacion
         if facturacion == "true":
@@ -3603,7 +3649,7 @@ def finish_ticket_update(request, id_ticket):
         )
 
 @csrf_exempt
-def null_ticket(request, id_ticket):
+def null_ticket(request, id_ticket, id_estado):
     try:
         fecha_actual = datetime.now()
         fecha_finalizacion = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
@@ -3617,6 +3663,15 @@ def null_ticket(request, id_ticket):
         ticket.motivoAnulacion = motivo
         ticket.idAgenteModificado = User.objects.get(id=idAgenteMotivo)
         ticket.save()
+
+        # Registrar el cambio de estado
+        cambioEstadoTicketSoporte.objects.create(
+            numTicket=ticket,
+            idEstadoAnterior=EstadosTicket.objects.get(id=id_estado),
+            idEstadoActual=EstadosTicket.objects.get(id=6),
+            fechaCambio=fecha_finalizacion,
+            idAgente=User.objects.get(id=idAgenteMotivo),
+        )
 
         return JsonResponse(
             {"status": "success", "message": "Anulacion Exitosa"}

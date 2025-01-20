@@ -218,7 +218,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (razonAnulacion !== null) {
       alert('Ticket anulado por el siguiente motivo: ' + razonAnulacion);
       const baseUrl = window.location.origin;
-      const url = `${baseUrl}/null_ticket/${numTicket}`;
+      const url = `${baseUrl}/null_ticket/${numTicket}/${idEstadoGeneralTicket}`;
       fetch(url, {
         method: "POST",
         headers: {

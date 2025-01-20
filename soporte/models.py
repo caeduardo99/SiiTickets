@@ -162,3 +162,12 @@ class accesoEmpresas(models.Model):
     direccion = models.CharField(max_length=255)
     usuario = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
+
+# Modelo para el cmabio de estados en los tickets
+class cambioEstadoTicketSoporte(models.Model):
+    id = models.AutoField(primary_key=True)
+    numTicket = models.ForeignKey(TicketSoporte, on_delete=models.CASCADE, related_name='soporte_cambio_state')
+    idEstadoAnterior = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_last_estado')
+    idEstadoActual = models.ForeignKey(EstadosTicket, on_delete=models.CASCADE, related_name='ticket_current_estado')
+    fechaCambio = models.DateTimeField(null=True, blank=True)
+    idAgente = models.ForeignKey(User, on_delete=models.CASCADE, related_name='daily_cambio_agente')
